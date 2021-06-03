@@ -1,12 +1,11 @@
 const http = require('http');
 const algosdk = require('algosdk');
-import MyAlgo from '@randlabs/myalgo-connect';
+const MyAlgo = require('@randlabs/myalgo-connect');
+
 //const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 require('./algo_delegate_template_teal.js');
 require('./ASA_delegate_template_teal.js');
 require('./dex_teal.js');
-
-import algodex from './algodex_api.js';
 
 //FIXME - import below from algodex_api.js
 const myAlgoWallet = new MyAlgo();
@@ -51,10 +50,12 @@ const AlgodexInternalApi = {
         console.log("generateOrder final str is: " + rtn);
         return rtn;
     },
-
+    dumpVar : function dumpVar(x) {
+        return JSON.stringify(x, null, 2);
+    },
     getExecuteOrderTransactionsAsTakerFromOrderEntry : 
         async function getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, orderBookEscrowEntry, takerCombOrderBalance) {
-            console.log("getExecuteOrderTransactionsFromOrderEntry orderBookEscrowEntry: " + algodex.dumpVar(orderBookEscrowEntry));
+            console.log("getExecuteOrderTransactionsFromOrderEntry orderBookEscrowEntry: " + this.dumpVar(orderBookEscrowEntry));
 
             // rec contains the original order creators address
             let orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
@@ -65,9 +66,9 @@ const AlgodexInternalApi = {
 
             let isASAEscrow = orderBookEscrowEntry['isASAEscrow'];
 
-            let escrowSource = algodex.buildDelegateTemplateFromArgs(min,assetid,n,d,orderCreatorAddr, isASAEscrow);
+            let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,orderCreatorAddr, isASAEscrow);
             const enableLsigLogging = DEBUG_SMART_CONTRACT_SOURCE; // escrow logging 
-            let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource,enableLsigLogging);
+            let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, escrowSource,enableLsigLogging);
 
             if (!isASAEscrow) {
                 console.log("NOT asa escrow");
@@ -82,7 +83,7 @@ const AlgodexInternalApi = {
 // Helper function to get ASA Order Txns (3-4 transactions)
     getExecuteASAOrderTxns : async function getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient, 
                 lsig, takerCombOrderBalance) {
-        console.log("inside executeASAOrder!", algodex.dumpVar(takerCombOrderBalance));
+        console.log("inside executeASAOrder!", this.dumpVar(takerCombOrderBalance));
         try {
             let retTxns = [];
             let params = await algodClient.getTransactionParams().do();
@@ -147,7 +148,7 @@ const AlgodexInternalApi = {
             takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
             takerCombOrderBalance['asaBalance'] -= escrowAsaAmount;
             console.log("ASA here110 algoAmount asaAmount txnFee takerOrderBalance: ", algoTradeAmount,
-                        escrowAsaAmount, executionFees, algodex.dumpVar(takerCombOrderBalance));
+                        escrowAsaAmount, executionFees, this.dumpVar(takerCombOrderBalance));
 
             console.log("receiving ASA " + escrowAsaAmount + " from  " + lsig.address());
             console.log("sending ALGO amount " + algoTradeAmount + " to " + orderCreatorAddr);
@@ -275,7 +276,7 @@ const AlgodexInternalApi = {
                     takerCombOrderBalance) {
         try {
             console.log("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
-                algodex.dumpVar(orderBookEscrowEntry), algodClient,
+                this.dumpVar(orderBookEscrowEntry), algodClient,
                         takerCombOrderBalance);
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
@@ -311,7 +312,7 @@ const AlgodexInternalApi = {
 
             algoAmountReceiving -= txnFee; // this will be the transfer amount
             console.log("here1");
-            console.log("takerOrderBalance: " + algodex.dumpVar(takerCombOrderBalance));
+            console.log("takerOrderBalance: " + this.dumpVar(takerCombOrderBalance));
             console.log("algoAmount: " + algoAmountReceiving);
 
             //if (escrowAlgoAmount + txnFee > currentEscrowBalance) {
@@ -375,7 +376,7 @@ const AlgodexInternalApi = {
             takerCombOrderBalance['algoBalance'] -= algoAmountReceiving;
             takerCombOrderBalance['asaBalance'] -= asaAmount;
             console.log("here11 algoAmount asaAmount txnFee takerOrderBalance: ", algoAmountReceiving,
-                        asaAmount, txnFee, algodex.dumpVar(takerCombOrderBalance));
+                        asaAmount, txnFee, this.dumpVar(takerCombOrderBalance));
 
             console.log("receiving " + algoAmountReceiving + " from  " + lsig.address());
             console.log("sending ASA amount " + asaAmount + " to " + orderCreatorAddr);
@@ -507,7 +508,7 @@ const AlgodexInternalApi = {
         // takerWalletAddr
         for (let i = 0; i < allOrderBookOrders.length; i++) {
             let orderBookEntry = allOrderBookOrders[i];
-            console.log("orderBookEntry: ", algodex.dumpVar(orderBookEntry) );
+            console.log("orderBookEntry: ", this.dumpVar(orderBookEntry) );
 
             if (orderBookEntry['escrowOrderType'] == 'buy' && !isSellingASA_AsTakerOrder) {
                 // only look for sell orders in this case
@@ -531,7 +532,7 @@ const AlgodexInternalApi = {
             queuedOrders.sort((a, b) => (a.price > b.price) ? 1 : (a.price === b.price) ? ((a.price > b.price) ? 1 : -1) : -1 )
         }
 
-        console.log("queued orders: ", algodex.dumpVar(queuedOrders));
+        console.log("queued orders: ", this.dumpVar(queuedOrders));
         return queuedOrders;
     },
 

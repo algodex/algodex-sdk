@@ -1,13 +1,13 @@
 const http = require('http');
 const algosdk = require('algosdk');
-import MyAlgo from '@randlabs/myalgo-connect';
+const MyAlgo = require('@randlabs/myalgo-connect');
 
 //const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 require('./algo_delegate_template_teal.js');
 require('./ASA_delegate_template_teal.js');
 require('./dex_teal.js');
 
-import dexInternal from './algodex_internal_api.js';
+const dexInternal = require('./algodex_internal_api.js').default;
 
 const myAlgoWallet = new MyAlgo();
 
@@ -163,7 +163,7 @@ const AlgodexApi = {
     },
 
     dumpVar : function dumpVar(x) {
-        return JSON.stringify(x, null, 2);
+        return dexInternal.dumpVar(x);
     },
 
     getNumeratorAndDenominatorFromPrice : function getNumeratorAndDenominatorFromPrice(limitPrice) {
