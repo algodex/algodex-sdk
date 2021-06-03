@@ -757,4 +757,4 @@ const AlgodexInternalApi = {
 
 }
 
-export default AlgodexInternalApi;
+module.exports = AlgodexInternalApi;

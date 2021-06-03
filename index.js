@@ -1,6 +1,6 @@
 
 //import algodex from './algodex_api.js';
-const algodex = require('./algodex_api.js').default;
+const algodex = require('./algodex_api.js');
 
 exports.doAlert = function() {
 	algodex.doAlert();
