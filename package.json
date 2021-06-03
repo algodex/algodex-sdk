@@ -1,6 +1,6 @@
 {
   "name": "@algodex/algodex-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/algodex/algodex-api.git"
+    "url": "git@github.com:algodex/algodex-api.git"
   },
   "keywords": [
     "algodex",

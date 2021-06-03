@@ -1,5 +1,5 @@
 exports.printMsg = function() {
-	console.log("Hello World from Alex!");
-	return "Hello World!";
+	console.log("Hello World from algodex-api!");
+	return "Hello World from algodex-api!";
 }
 
