@@ -7,7 +7,7 @@ require('./algo_delegate_template_teal.js');
 require('./ASA_delegate_template_teal.js');
 require('./dex_teal.js');
 
-const dexInternal = require('./algodex_internal_api.js').default;
+const dexInternal = require('./algodex_internal_api.js');
 
 const myAlgoWallet = new MyAlgo();
 
@@ -686,4 +686,4 @@ const AlgodexApi = {
 
 };
 
-export default AlgodexApi;
+module.exports = AlgodexApi;
