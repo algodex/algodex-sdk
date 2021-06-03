@@ -21,7 +21,10 @@
   },
   "homepage": "https://github.com/algodex/algodex-api#readme",
   "publishConfig": {
-    "registry":"https://npm.pkg.github.com/algodex"
+    "registry": "https://npm.pkg.github.com/algodex"
+  },
+  "dependencies": {
+    "@randlabs/myalgo-connect": "^1.0.1",
+    "algosdk": "^1.9.1"
   }
-
 }
