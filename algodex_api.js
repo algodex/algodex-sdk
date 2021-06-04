@@ -10,41 +10,10 @@ require('./dex_teal.js');
 const dexInternal = require('./algodex_internal_api.js');
 
 const myAlgoWallet = new MyAlgo();
-
-const ORDERBOOK_APPID = 15789309; //also change in contract code below
-const ASA_ORDERBOOK_APPID = 15847181;
-
-
-const MIN_ESCROW_BALANCE =     260000;
-const MIN_ASA_ESCROW_BALANCE = 360000;
-
-const LOCAL_ALGOD_SERVER = "http://192.168.1.211";
-const LOCAL_ALGOD_PORT = 4001;
-const LOCAL_ALGOD_TOKEN = "68ea2562459dec26bcebd43c426625cc3ba02707abcb34d3e278eecd7fbde7c3";
-const LOCAL_INDEXER_SERVER = "https://testnet.algoexplorerapi.io/idx2";
-const LOCAL_INDEXER_PORT = "";
-const LOCAL_INDEXER_TOKEN = "";
-    //const indexer_server = "http://localhost";
-    //const indexer_port = "8980";
-
-const TEST_ALGOD_SERVER = "https://testnet.algoexplorerapi.io";
-const TEST_ALGOD_PORT = "";
-const TEST_ALGOD_TOKEN = "";
-const TEST_INDEXER_SERVER = "https://testnet.algoexplorerapi.io/idx2";
-const TEST_INDEXER_PORT = "";
-const TEST_INDEXER_TOKEN = "";
-
-const PROD_ALGOD_SERVER = "https://algoexplorerapi.io";
-const PROD_ALGOD_PORT = "";
-const PROD_ALGOD_TOKEN = "";
-const PROD_INDEXER_SERVER = "https://algoexplorerapi.io/idx2";
-const PROD_INDEXER_PORT = "";
-const PROD_INDEXER_TOKEN = "";
-
-const DEBUG = 1;
-const DEBUG_SMART_CONTRACT_SOURCE = 0;
+const constants = require('./constants.js');
 
 const AlgodexApi = {
+
     doAlert : function doAlert() {
         alert(1);
         console.log("api call!!!");
@@ -57,17 +26,17 @@ const AlgodexApi = {
         let token = null;
 
         if (environment == "local") {
-            server = LOCAL_INDEXER_SERVER;
-            port =   LOCAL_INDEXER_PORT;
-            token =  LOCAL_INDEXER_TOKEN;
+            server = constants.LOCAL_INDEXER_SERVER;
+            port =   constants.LOCAL_INDEXER_PORT;
+            token =  constants.LOCAL_INDEXER_TOKEN;
         } else if (environment == "test") {
-            server = TEST_INDEXER_SERVER;
-            port =   TEST_INDEXER_PORT;
-            token =  TEST_INDEXER_TOKEN;
+            server = constants.TEST_INDEXER_SERVER;
+            port =   constants.TEST_INDEXER_PORT;
+            token =  constants.TEST_INDEXER_TOKEN;
         } else if (environment == "production") {
-            server = PROD_INDEXER_SERVER;
-            port =   PROD_INDEXER_PORT;
-            token =  PROD_INDEXER_TOKEN;
+            server = constants.PROD_INDEXER_SERVER;
+            port =   constants.PROD_INDEXER_PORT;
+            token =  constants.PROD_INDEXER_TOKEN;
         } else {
             throw "environment must be local, test, or production";
         }
@@ -82,17 +51,17 @@ const AlgodexApi = {
         let port = null;
         let token = null;
         if (environment == "local") {
-            server = LOCAL_ALGOD_SERVER;
-            port =   LOCAL_ALGOD_PORT;
-            token =  LOCAL_ALGOD_TOKEN;
+            server = constants.LOCAL_ALGOD_SERVER;
+            port =   constants.LOCAL_ALGOD_PORT;
+            token =  constants.LOCAL_ALGOD_TOKEN;
         } else if (environment == "test") {
-            server = TEST_ALGOD_SERVER;
-            port =   TEST_ALGOD_PORT;
-            token =  TEST_ALGOD_TOKEN;
+            server = constants.TEST_ALGOD_SERVER;
+            port =   constants.TEST_ALGOD_PORT;
+            token =  constants.TEST_ALGOD_TOKEN;
         } else if (environment == "production") {
-            server = PROD_ALGOD_SERVER;
-            port =   PROD_ALGOD_PORT;
-            token =  PROD_ALGOD_TOKEN;
+            server = constants.PROD_ALGOD_SERVER;
+            port =   constants.PROD_ALGOD_PORT;
+            token =  constants.PROD_ALGOD_TOKEN;
         } else {
             throw "environment must be local, test, or production";
         }
@@ -104,62 +73,12 @@ const AlgodexApi = {
 
     // Check the status of pending transactions
     checkPending : async function(algodClient, txid, numRoundTimeout) {
-
-        if (algodClient == null || txid == null || numRoundTimeout < 0) {
-            throw "Bad arguments.";
-        }
-        let status = (await algodClient.status().do());
-        if (status == undefined) throw "Unable to get node status";
-
-        let startingRound = status["last-round"];
-        let nextRound = startingRound;
-        while (nextRound < startingRound + numRoundTimeout) {
-            // Check the pending tranactions
-            let pendingInfo = await algodClient.pendingTransactionInformation(txid).do();
-            if (pendingInfo != undefined) {
-                if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-                    //Got the completed Transaction
-                    console.log("Transaction " + txid + " confirmed in round " + pendingInfo["confirmed-round"]);
-                    return pendingInfo;
-                }
-                if (pendingInfo["pool-error"] != null && pendingInfo["pool-error"].length > 0) {
-                    // If there was a pool error, then the transaction has been rejected!
-                    return "Transaction Rejected";
-                }
-
-            }
-            nextRound++;
-            await algodClient.statusAfterBlock(nextRound).do();
-        }
-
-        if (pendingInfo != null) {
-            return "Transaction Still Pending";
-        }
-
-        return null;
+        return dexInternal.checkPending(algodClient, txid, numRoundTimeout);
     },
 
     // Wait for a transaction to be confirmed
     waitForConfirmation : async function(algodClient, txId) {
-
-        let checkPending = await AlgodexApi.checkPending(algodClient, txId, 4);
-        if (checkPending == null || checkPending == "Transaction Rejected") throw "Transaction Rejected";
-        if (checkPending == "Transaction Still Pending") throw "Transaction Still Pending";
-        console.log("Transaction confirmed in round " + checkPending["confirmed-round"]);
-    },
-
-
-    getAccountInfo : async function getAccountInfo(accountAddr) {
-        let result = await m.request({
-                method: "GET",
-                url: "https://testnet.algoexplorerapi.io/v2/accounts/"+accountAddr,
-        });
-        return result;
-    },
-
-    printTransactionDebug : function printTransactionDebug(signedTxns) {
-        console.log('TxnGroup to debug:');
-        console.log(Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64'));
+        return dexInternal.waitForConfirmation(algodClient, txId);
     },
 
     dumpVar : function dumpVar(x) {
@@ -358,14 +277,14 @@ const AlgodexApi = {
             const isAsaOrder = (assetId != null);
 
             let escrowSource = dexInternal.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder);
-            let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, DEBUG_SMART_CONTRACT_SOURCE);
+            let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
                         
             if (assetId == null) {
                 console.log("closing order");
-                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ORDERBOOK_APPID, appArgs, lsig);
+                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, constants.ORDERBOOK_APPID, appArgs, lsig);
             } else {
                 console.log("closing ASA order");
-                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ORDERBOOK_APPID, appArgs, lsig, assetId);
+                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, constants.ASA_ORDERBOOK_APPID, appArgs, lsig, assetId);
             }
     },
 
@@ -376,7 +295,7 @@ const AlgodexApi = {
             makerWalletAddr, n, d, min, assetId);
         let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, false);
 
-        let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, program, DEBUG_SMART_CONTRACT_SOURCE);
+        let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let generatedOrderEntry = dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId);
         console.log("address is: " + lsig.address());
         console.log("here111 generatedOrderEntry " + generatedOrderEntry);
@@ -413,7 +332,6 @@ const AlgodexApi = {
             console.log("sending trans: " + signedTxn.txID);
             txn = await algodClient.sendRawTransaction(signedTxn.blob).do();
             await this.waitForConfirmation(algodClient, txn.txId);
-            body.classList.remove("waiting");
             return;
         }
 
@@ -441,7 +359,7 @@ const AlgodexApi = {
         //console.log("owners bit addr: " + ownersBitAddr);
         console.log("herezzz_888");
         console.log(appArgs.length);
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ORDERBOOK_APPID, appArgs, "appOptIn");
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, constants.ORDERBOOK_APPID, appArgs, "appOptIn");
 
         let txns = [txn, logSigTrans];
         const groupID = algosdk.computeGroupID(txns)
@@ -508,7 +426,7 @@ const AlgodexApi = {
 
         let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, true);
 
-        let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, program,DEBUG_SMART_CONTRACT_SOURCE);
+        let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let generatedOrderEntry = dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId);
         console.log("address is: " + lsig.address());
         
@@ -517,7 +435,7 @@ const AlgodexApi = {
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['apps-local-state'] != null
                 && accountInfo['apps-local-state'].length > 0
-                && accountInfo['apps-local-state'][0].id == ASA_ORDERBOOK_APPID) {
+                && accountInfo['apps-local-state'][0].id == constants.ASA_ORDERBOOK_APPID) {
             alreadyOptedIn = true;
         }
         console.log("alreadyOptedIn: " + alreadyOptedIn);
@@ -549,7 +467,6 @@ const AlgodexApi = {
             console.log("sending trans: " + signedTxn.txID);
             txn = await algodClient.sendRawTransaction(signedTxn.blob).do();
             await this.waitForConfirmation(algodClient, txn.txId);
-            body.classList.remove("waiting");
             return;
         }
 
@@ -557,7 +474,7 @@ const AlgodexApi = {
             type: 'pay',
             from: makerWalletAddr,
             to:  lsig.address(),
-            amount: (MIN_ASA_ESCROW_BALANCE + 100000), //fund with enough to subtract from later
+            amount: (constants.MIN_ASA_ESCROW_BALANCE + 100000), //fund with enough to subtract from later
             firstRound: params.firstRound,
             lastRound: params.lastRound,
             genesisHash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
@@ -588,7 +505,7 @@ const AlgodexApi = {
         appArgs.push(enc.encode(makerWalletAddr));
         console.log(appArgs.length);
 
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ASA_ORDERBOOK_APPID, 
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, constants.ASA_ORDERBOOK_APPID, 
                     appArgs, "appOptIn");
 
         // create optin transaction
@@ -676,13 +593,22 @@ const AlgodexApi = {
 // INTERNAL PASS-THRU FUNCTIONS /
 /////////////////////////////////
 
+    printTransactionDebug : function printTransactionDebug(signedTxns) {
+        return dexInternal.printTransactionDebug(signedTxns);
+    },
+
     buildDelegateTemplateFromArgs : function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow) {
         return dexInternal.buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow);
     },
 
     getLsigFromProgramSource : async function getLsigFromProgramSource(algosdk, algodClient, program, logProgramSource) {
         return await dexInternal.getLsigFromProgramSource(algosdk, algodClient, program, logProgramSource);
-    }
+    },
+
+    getAccountInfo : async function getAccountInfo(accountAddr) {
+        return dexInternal.getAccountInfo(accountAddr);
+    },
+
 
 };
 
