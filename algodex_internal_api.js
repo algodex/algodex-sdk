@@ -9,12 +9,8 @@ require('./dex_teal.js');
 
 //FIXME - import below from algodex_api.js
 const myAlgoWallet = new MyAlgo();
-const DEBUG = 1; 
-const DEBUG_SMART_CONTRACT_SOURCE = 0;
-const MIN_ESCROW_BALANCE =     260000;
-const MIN_ASA_ESCROW_BALANCE = 360000;
-const ORDERBOOK_APPID = 15789309;
-const ASA_ORDERBOOK_APPID = 15847181;
+
+const constants = require('./constants.js');
 
 const AlgodexInternalApi = {
     doAlertInternal : function doAlertInternal() {
@@ -67,7 +63,7 @@ const AlgodexInternalApi = {
             let isASAEscrow = orderBookEscrowEntry['isASAEscrow'];
 
             let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,orderCreatorAddr, isASAEscrow);
-            const enableLsigLogging = DEBUG_SMART_CONTRACT_SOURCE; // escrow logging 
+            const enableLsigLogging = constants.DEBUG_SMART_CONTRACT_SOURCE; // escrow logging 
             let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, escrowSource,enableLsigLogging);
 
             if (!isASAEscrow) {
@@ -91,7 +87,7 @@ const AlgodexInternalApi = {
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
-            const appId = ASA_ORDERBOOK_APPID;
+            const appId = constants.ASA_ORDERBOOK_APPID;
             const takerAddr = takerCombOrderBalance['takerAddr'];
             let escrowAsaAmount = orderBookEscrowEntry['asaAmount'];
             let escrowAlgoAmount = orderBookEscrowEntry['algoAmount'];
@@ -110,7 +106,7 @@ const AlgodexInternalApi = {
             const d = orderBookEntrySplit[1];
             console.log("n: ", n, " d: ", d);
             
-            //let escrowAccountInfo = await algodex.getAccountInfo(lsig.address()); //FIXME - shouldn't require HTTP look up
+            //let escrowAccountInfo = await this.getAccountInfo(lsig.address()); //FIXME - shouldn't require HTTP look up
             let closeRemainderTo = undefined;
 
             let closeoutFromASABalance = true;
@@ -154,7 +150,7 @@ const AlgodexInternalApi = {
             console.log("sending ALGO amount " + algoTradeAmount + " to " + orderCreatorAddr);
 
 
-            if ((currentEscrowBalance - executionFees < MIN_ASA_ESCROW_BALANCE) 
+            if ((currentEscrowBalance - executionFees < constants.MIN_ASA_ESCROW_BALANCE) 
                 //FIXME: reimburse fees!
                 || closeoutFromASABalance == true) {
                 closeRemainderTo = orderCreatorAddr;
@@ -281,7 +277,7 @@ const AlgodexInternalApi = {
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
-            const appId = ORDERBOOK_APPID;
+            const appId = constants.ORDERBOOK_APPID;
             let escrowAsaAmount = orderBookEscrowEntry['asaAmount'];
             const currentEscrowAlgoBalance = orderBookEscrowEntry['algoAmount'];
             let algoAmountReceiving = orderBookEscrowEntry['algoAmount'];
@@ -304,7 +300,7 @@ const AlgodexInternalApi = {
             appAccts.push(takerAddr);
             // Call stateful contract
             
-            //let escrowAccountInfo = await algodex.getAccountInfo(lsig.address()); //FIXME - load from order book cache not from here
+            //let escrowAccountInfo = await this.getAccountInfo(lsig.address()); //FIXME - load from order book cache not from here
             //let currentEscrowBalance = escrowAlgoAmount;
             let closeRemainderTo = undefined;
             const txnFee = 0.004 * 1000000; //FIXME - make more accurate
@@ -380,7 +376,7 @@ const AlgodexInternalApi = {
 
             console.log("receiving " + algoAmountReceiving + " from  " + lsig.address());
             console.log("sending ASA amount " + asaAmount + " to " + orderCreatorAddr);
-            if (currentEscrowAlgoBalance - algoAmountReceiving < MIN_ESCROW_BALANCE) {
+            if (currentEscrowAlgoBalance - algoAmountReceiving < constants.MIN_ESCROW_BALANCE) {
                 closeRemainderTo = orderCreatorAddr;
             }
 
@@ -591,20 +587,20 @@ const AlgodexInternalApi = {
             let txId3 = signedTx3.txID;
             //console.log("signedTxn:" + JSON.stringify(signedTx));
             console.log("Signed transaction3 with txID: %s", txId3);
-            //algodex.printTransactionDebug([signedTx.blob]);
+            //this.printTransactionDebug([signedTx.blob]);
 
             let signed = [];
             signed.push(signedTx.blob);
             signed.push(signedTx2.blob);
             signed.push(signedTx3.blob);
         
-            algodex.printTransactionDebug(signed);
+            this.printTransactionDebug(signed);
 
             //console.log(Buffer.concat(signed.map(txn => Buffer.from(txn))).toString('base64'));
             let tx = await algodClient.sendRawTransaction(signed).do();
             console.log(tx.txId);
 
-            await algodex.waitForConfirmation(algodClient, tx.txId);
+            await this.waitForConfirmation(algodClient, tx.txId);
 
             // display results
             let transactionResponse = await algodClient.pendingTransactionInformation(tx.txId).do();
@@ -621,10 +617,16 @@ const AlgodexInternalApi = {
 
         return;
     },
-
+    getAccountInfo : async function getAccountInfo(accountAddr) {
+        let result = await m.request({
+                method: "GET",
+                url: "https://testnet.algoexplorerapi.io/v2/accounts/"+accountAddr,
+        });
+        return result;
+    },
     // close order 
     closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig) {
-        let accountInfo = await algodex.getAccountInfo(lsig.address());
+        let accountInfo = await this.getAccountInfo(lsig.address());
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['assets'] != null
             && accountInfo['assets'].length > 0 && accountInfo['assets'][0] != null) {
@@ -667,19 +669,19 @@ const AlgodexInternalApi = {
             //console.log("signedTxn:" + JSON.stringify(signedTx));
             console.log("Signed transaction with txID: %s", txId2);
 
-            //algodex.printTransactionDebug([signedTx.blob]);
+            //this.printTransactionDebug([signedTx.blob]);
 
             let signed = [];
             signed.push(signedTx.blob);
             signed.push(signedTx2.blob);
            
-            algodex.printTransactionDebug(signed);
+            this.printTransactionDebug(signed);
 
             //console.log(Buffer.concat(signed.map(txn => Buffer.from(txn))).toString('base64'));
             let tx = await algodClient.sendRawTransaction(signed).do();
             console.log(tx.txId);
 
-            await algodex.waitForConfirmation(algodClient, tx.txId);
+            await this.waitForConfirmation(algodClient, tx.txId);
 
             // display results
             let transactionResponse = await algodClient.pendingTransactionInformation(tx.txId).do();
@@ -693,6 +695,56 @@ const AlgodexInternalApi = {
         } catch (e) {
             throw e;
         }
+    },
+
+    // Wait for a transaction to be confirmed
+    waitForConfirmation : async function(algodClient, txId) {
+
+        let checkPending = await this.checkPending(algodClient, txId, 4);
+        if (checkPending == null || checkPending == "Transaction Rejected") throw "Transaction Rejected";
+        if (checkPending == "Transaction Still Pending") throw "Transaction Still Pending";
+        console.log("Transaction confirmed in round " + checkPending["confirmed-round"]);
+    },
+    // Check the status of pending transactions
+    checkPending : async function(algodClient, txid, numRoundTimeout) {
+
+        if (algodClient == null || txid == null || numRoundTimeout < 0) {
+            throw "Bad arguments.";
+        }
+        let status = (await algodClient.status().do());
+        if (status == undefined) throw "Unable to get node status";
+
+        let startingRound = status["last-round"];
+        let nextRound = startingRound;
+        while (nextRound < startingRound + numRoundTimeout) {
+            // Check the pending tranactions
+            let pendingInfo = await algodClient.pendingTransactionInformation(txid).do();
+            if (pendingInfo != undefined) {
+                if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
+                    //Got the completed Transaction
+                    console.log("Transaction " + txid + " confirmed in round " + pendingInfo["confirmed-round"]);
+                    return pendingInfo;
+                }
+                if (pendingInfo["pool-error"] != null && pendingInfo["pool-error"].length > 0) {
+                    // If there was a pool error, then the transaction has been rejected!
+                    return "Transaction Rejected";
+                }
+
+            }
+            nextRound++;
+            await algodClient.statusAfterBlock(nextRound).do();
+        }
+
+        if (pendingInfo != null) {
+            return "Transaction Still Pending";
+        }
+
+        return null;
+    },
+
+    printTransactionDebug : function printTransactionDebug(signedTxns) {
+        console.log('TxnGroup to debug:');
+        console.log(Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64'));
     },
 
     buildDelegateTemplateFromArgs : function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow) {
