@@ -6,6 +6,7 @@ return `
 // STATEFUL CONTRACT
 //   ORDER BOOK FOR ASA ESCROWS
 //////////////////////////////////
+
 #pragma version 3
 // check if the app is being created
 // if so save creator
@@ -111,12 +112,15 @@ pop
 // store the ordernumber as the key
 int 0 //address index
 txna ApplicationArgs 1 //order number
-////FIXME!!!! change to creator address dont use app args
 int 1 // value - just set to 1
 app_local_put
-// store creator as a key
+// store creator as value
 int 0 //address index
-txna ApplicationArgs 2 //creator address
+byte "creator" //creator key
+gtxn 0 Sender
+app_local_put
+int 0 //address index
+byte "version" //store version
 int 1
 app_local_put
 ret_success:
@@ -136,27 +140,36 @@ int 3
 ==
 bz fail
 pop
+
 int 0 //account that opened order
 gtxn  0 ApplicationID //current smart contract
 gtxna 0 ApplicationArgs 1 // order number
 app_local_get_ex
-// if the value doesnt exist fail
-bz fail
+assert
 pop
 int 0 //account that opened order
 gtxn 0  ApplicationID //current smart contract
-gtxn 0  ApplicationArgs 2 //order creator account number
+byte "creator" //order creator account number
 app_local_get_ex
-// if the value doesnt exist fail
-bz fail
+assert
+pop
+int 0 //account that opened order
+gtxn 0  ApplicationID //current smart contract
+byte "version" //order creator account number
+app_local_get_ex
+assert
+
+//FIXME check creators match expectations for other orders
 
 // delete the ordernumber
 int 0 //escrow account that opened order
 txna ApplicationArgs 1 // limit order number
-app_local_del
-// delete the original account number
+app_local_del // delete the original account number
 int 0 //escrow account that opened order
-txna ApplicationArgs 2 // original limit order creator account
+byte "creator" // original limit order creator account
+app_local_del
+int 0 //escrow account that opened order
+byte "version"
 app_local_del
 
 int 1
@@ -216,10 +229,16 @@ pop
 
 int 0 // Escrow account containing order
 txn ApplicationID // Current stateful smart contract
-txna ApplicationArgs 2 // 3rd argument is order creator
+byte "creator"
 app_local_get_ex
-assert
+assert // If the value doesnt exists fail
 pop
+int 0
+byte "creator"
+app_local_get // check creator matches expectation
+txna ApplicationArgs 2 // 3rd argument is order creator
+==
+assert
 
 global ZeroAddress
 gtxn 1 CloseRemainderTo
@@ -279,14 +298,27 @@ int 0 // Escrow account containing order
 txn ApplicationID // Current stateful smart contract
 txna ApplicationArgs 1 // 2nd argument is order number
 app_local_get_ex
-bz fail2 // If the value doesnt exists fail
+bz fail2 // If the value doesnt exist fail
 pop
 
 int 0 // Escrow account containing order
 txn ApplicationID // Current stateful smart contract
-txna ApplicationArgs 2 // 3rd argument is order creator
+byte "creator"
 app_local_get_ex
-bz fail2 // If the value doesnt exists fail
+assert // If the value doesnt exist fail
+pop
+int 0
+byte "creator"
+app_local_get // check creator matches expectation
+txna ApplicationArgs 2 // 3rd argument is order creator
+==
+assert
+
+int 0 // Escrow account containing order
+txn ApplicationID // Current stateful smart contract
+byte "version"
+app_local_get_ex
+assert // If the value doesnt exists fail
 pop
 
 global ZeroAddress
@@ -300,10 +332,13 @@ bnz ret_success3
 int 0 //escrow account containing order
 txna ApplicationArgs 1 // order details
 app_local_del
-
 // Delete other info
 int 0 // escrow account containing order
-txna ApplicationArgs 2 // creator of order address
+byte "creator"
+app_local_del
+// Delete other info
+int 0 // escrow account containing order
+byte "version"
 app_local_del
 
 ret_success3:

@@ -176,7 +176,8 @@ const AlgodexInternalApi = {
             var enc = new TextEncoder();
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
-            appArgs.push(enc.encode(orderCreatorAddr));
+            appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+
             console.log(appArgs.length);
 
             if (closeRemainderTo == undefined) {
@@ -400,9 +401,8 @@ const AlgodexInternalApi = {
             
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
-            appArgs.push(enc.encode(orderCreatorAddr));
+            appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
             console.log(appArgs.length);
-
 
             let transaction1 = null;
 
