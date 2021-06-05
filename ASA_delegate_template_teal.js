@@ -196,7 +196,7 @@ notCloseOut:
     // This should be changed after creation
     // This links this contract to the stateful contract
     gtxn 0 ApplicationID
-    int 15847181 //stateful contract app id
+    int <orderBookId> //stateful contract app id. orderBookId
     ==
     &&
     // The application call must be
@@ -243,7 +243,7 @@ notCloseOut:
     global ZeroAddress
     ==
     &&
-    int 15322902 // asset id to trade for
+    int <assetid> // asset id to trade for
     gtxn 2 XferAsset
     ==
     &&
@@ -286,7 +286,7 @@ notCloseOut:
     // This should be changed after creation
     // This links this contract to the stateful contract
     gtxn 0 ApplicationID
-    int 15847181 //stateful contract app id
+    int <orderBookId> //stateful contract app id. orderBookId
     ==
     &&
     // The application call must be

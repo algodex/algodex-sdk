@@ -154,7 +154,7 @@ let delegateTemplate = `#pragma version 3
     // This should be changed after creation
     // This links this contract to the stateful contract
     gtxn 0 ApplicationID
-    int 15789309 //stateful contract app id
+    int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
     // verify no transaction
@@ -291,7 +291,7 @@ let delegateTemplate = `#pragma version 3
     // This should be changed after creation
     // This links this contract to the stateful contract
     gtxn 0 ApplicationID
-    int 15789309 //stateful contract app id
+    int <orderBookId> //stateful contract app id orderBookId
     ==
     &&
     // verify no transaction

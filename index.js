@@ -10,6 +10,10 @@ exports.printMsg = function() {
 	return "Hello World from algodex-api!!!";
 };
 
+exports.initSmartContracts = function(environment) {
+	return algodex.initSmartContracts(environment);
+};
+
 exports.initIndexer = function(environment) {
 	return algodex.initIndexer(environment);
 };

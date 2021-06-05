@@ -12,11 +12,19 @@ const myAlgoWallet = new MyAlgo();
 
 const constants = require('./constants.js');
 
+let ALGO_ESCROW_ORDER_BOOK_ID = -1;
+let ASA_ESCROW_ORDER_BOOK_ID = -1;
+
 const AlgodexInternalApi = {
     doAlertInternal : function doAlertInternal() {
         alert(2);
         console.log("internal api call!!!");
     },
+    initSmartContracts : function initSmartContracts(algoOrderBookId, asaOrderBookId) {
+        ALGO_ESCROW_ORDER_BOOK_ID = algoOrderBookId;
+        ASA_ESCROW_ORDER_BOOK_ID = asaOrderBookId;
+    },
+
     // call application 
     createTransactionFromLogicSig : async function createTransactionFromLogicSig(client, lsig, AppID, appArgs, transType) {
         // define sender
@@ -87,7 +95,7 @@ const AlgodexInternalApi = {
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
-            const appId = constants.ASA_ORDERBOOK_APPID;
+            const appId = ASA_ESCROW_ORDER_BOOK_ID;
             const takerAddr = takerCombOrderBalance['takerAddr'];
             let escrowAsaAmount = orderBookEscrowEntry['asaAmount'];
             let escrowAlgoAmount = orderBookEscrowEntry['algoAmount'];
@@ -168,7 +176,8 @@ const AlgodexInternalApi = {
             var enc = new TextEncoder();
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
-            appArgs.push(enc.encode(orderCreatorAddr));
+            appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+
             console.log(appArgs.length);
 
             if (closeRemainderTo == undefined) {
@@ -277,7 +286,7 @@ const AlgodexInternalApi = {
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
-            const appId = constants.ORDERBOOK_APPID;
+            const appId = ALGO_ESCROW_ORDER_BOOK_ID;
             let escrowAsaAmount = orderBookEscrowEntry['asaAmount'];
             const currentEscrowAlgoBalance = orderBookEscrowEntry['algoAmount'];
             let algoAmountReceiving = orderBookEscrowEntry['algoAmount'];
@@ -392,9 +401,8 @@ const AlgodexInternalApi = {
             
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
-            appArgs.push(enc.encode(orderCreatorAddr));
+            appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
             console.log(appArgs.length);
-
 
             let transaction1 = null;
 
@@ -747,12 +755,21 @@ const AlgodexInternalApi = {
         console.log(Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64'));
     },
 
-    buildDelegateTemplateFromArgs : function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow) {
-        if (isNaN(min) || isNaN(assetid) || isNaN(N) || isNaN(D)) {
+    buildDelegateTemplateFromArgs : 
+      function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow) {
+        let orderBookId = null;
+        if (isASAEscrow) {
+            orderBookId = ASA_ESCROW_ORDER_BOOK_ID;
+        } else {
+            orderBookId = ALGO_ESCROW_ORDER_BOOK_ID;
+        }
+
+        if (isNaN(min) || isNaN(assetid) || isNaN(N) || isNaN(D) || isNaN(orderBookId) ) {
+            throw "one or more null arguments in buildDelegateTemplateFromArgs!";
             return null;
         }
-        console.log("here913 in buildDelegateTemplateFromArgs. min, assetid, N, D, writerAddr, isASAEscrow",
-            min, assetid, N, D, writerAddr, isASAEscrow);
+        console.log("here913 in buildDelegateTemplateFromArgs. min, assetid, N, D, writerAddr, isASAEscrow, orderbookId",
+            min, assetid, N, D, writerAddr, isASAEscrow, orderBookId);
 
         let delegateTemplate = null;
         if (!isASAEscrow) {
@@ -767,6 +784,7 @@ const AlgodexInternalApi = {
         res = res.replaceAll("<N>", N);
         res = res.replaceAll("<D>", D);
         res = res.replaceAll("<contractWriterAddr>", writerAddr);
+        res = res.replaceAll("<orderBookId>", orderBookId);
 
 
         return res;

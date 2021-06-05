@@ -12,6 +12,9 @@ const dexInternal = require('./algodex_internal_api.js');
 const myAlgoWallet = new MyAlgo();
 const constants = require('./constants.js');
 
+let ALGO_ESCROW_ORDER_BOOK_ID = -1;
+let ASA_ESCROW_ORDER_BOOK_ID = -1;
+
 const AlgodexApi = {
 
     doAlert : function doAlert() {
@@ -19,11 +22,31 @@ const AlgodexApi = {
         console.log("api call!!!");
     },
 
+    initSmartContracts : function(environment) {
+        if (environment == "local") {
+            ALGO_ESCROW_ORDER_BOOK_ID = constants.LOCAL_ALGO_ORDERBOOK_APPID;
+            ASA_ESCROW_ORDER_BOOK_ID = constants.LOCAL_ASA_ORDERBOOK_APPID;
+        } else if (environment == "test") {
+            ALGO_ESCROW_ORDER_BOOK_ID = constants.TEST_ALGO_ORDERBOOK_APPID;
+            ASA_ESCROW_ORDER_BOOK_ID = constants.TEST_ASA_ORDERBOOK_APPID;
+        } else if (environment == "production") {
+            ALGO_ESCROW_ORDER_BOOK_ID = constants.PROD_ALGO_ORDERBOOK_APPID;
+            ASA_ESCROW_ORDER_BOOK_ID = constants.PROD_ASA_ORDERBOOK_APPID;
+        } else {
+            throw "environment must be local, test, or production";
+        }
+
+        dexInternal.initSmartContracts(ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID);
+
+    },
+    
     //Options are: local, test, production
     initIndexer : function(environment) {
         let server = null;
         let port = null;
         let token = null;
+
+        this.initSmartContracts(environment);
 
         if (environment == "local") {
             server = constants.LOCAL_INDEXER_SERVER;
@@ -50,6 +73,9 @@ const AlgodexApi = {
         let server = null;
         let port = null;
         let token = null;
+
+        this.initSmartContracts(environment);
+
         if (environment == "local") {
             server = constants.LOCAL_ALGOD_SERVER;
             port =   constants.LOCAL_ALGOD_PORT;
@@ -276,15 +302,15 @@ const AlgodexApi = {
             }
             const isAsaOrder = (assetId != null);
 
-            let escrowSource = dexInternal.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder);
+            let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder);
             let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
                         
             if (assetId == null) {
                 console.log("closing order");
-                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, constants.ORDERBOOK_APPID, appArgs, lsig);
+                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig);
             } else {
                 console.log("closing ASA order");
-                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, constants.ASA_ORDERBOOK_APPID, appArgs, lsig, assetId);
+                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ESCROW_ORDER_BOOK_ID, appArgs, lsig, assetId);
             }
     },
 
@@ -359,7 +385,7 @@ const AlgodexApi = {
         //console.log("owners bit addr: " + ownersBitAddr);
         console.log("herezzz_888");
         console.log(appArgs.length);
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, constants.ORDERBOOK_APPID, appArgs, "appOptIn");
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn");
 
         let txns = [txn, logSigTrans];
         const groupID = algosdk.computeGroupID(txns)
@@ -435,7 +461,7 @@ const AlgodexApi = {
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['apps-local-state'] != null
                 && accountInfo['apps-local-state'].length > 0
-                && accountInfo['apps-local-state'][0].id == constants.ASA_ORDERBOOK_APPID) {
+                && accountInfo['apps-local-state'][0].id == ASA_ESCROW_ORDER_BOOK_ID) {
             alreadyOptedIn = true;
         }
         console.log("alreadyOptedIn: " + alreadyOptedIn);
@@ -505,7 +531,7 @@ const AlgodexApi = {
         appArgs.push(enc.encode(makerWalletAddr));
         console.log(appArgs.length);
 
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, constants.ASA_ORDERBOOK_APPID, 
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ASA_ESCROW_ORDER_BOOK_ID, 
                     appArgs, "appOptIn");
 
         // create optin transaction
