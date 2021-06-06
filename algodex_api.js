@@ -187,6 +187,15 @@ const AlgodexApi = {
                 // Overspending issues
                 continue;
             }
+
+            if (isSellingASA_AsTakerOrder && parseFloat(takerOrderBalance['limitPrice']) > queuedOrders[i]['price']) {
+                //buyer & seller prices don't match
+                continue;
+            }
+            if (!isSellingASA_AsTakerOrder && parseFloat(takerOrderBalance['limitPrice']) < queuedOrders[i]['price']) {
+                //buyer & seller prices don't match
+                continue;
+            }
             let singleOrderTransList = 
                 await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, 
                     queuedOrders[i], takerOrderBalance);
