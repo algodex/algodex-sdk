@@ -96,6 +96,31 @@ exports.getNumeratorAndDenominatorFromPrice = function(limitPrice) {
 	return algodex.getNumeratorAndDenominatorFromPrice(limitPrice);
 };
 
+
+/*
+ * Creates an order entry from parameters, which represents an existing entry in the order book
+ * The data should mirror what's already on the blockchain. 
+ *
+ * @param {String} blockChainOrderVal: order entry that matches what's on the blockchain. For example "2500-625-0-15322902" (N-D-min-assetId)
+ * @param {Number} price             : Decimal value. Calculated using d/n.
+ * @param {Number} n                 : numerator of the price ratio. Must be an integer.
+ * @param {Number} d                 : denominator of the price ratio. Must be an integer. 
+ * @param {Number} min               : minimum order size
+ * @param {String} escrowAddr        : address of escrow account. Needed for closing orders
+ * @param {Number} algoBalance       : amount of algos stored inside of the escrow
+ * @param {Number} asaBalance        : amount of ASAs stored inside of the escrow
+ * @param {String} escrowOrderType   : "buy" or "sell"
+ * @param {Boolean} isASAEscrow      : true or false. True if the escrow account is set up to hold (and sell) ASAs
+ * @param {String} orderCreatorAddr  : address of the owner of the escrow, i.e. the wallet that created the order. Not the escrow address
+ * @param {Number} assetId           : id of the asset
+ */
+exports.createOrderBookEntryObj = function(blockChainOrderVal, price, n, d, min, escrowAddr, algoAmount, asaAmount,
+                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId) {
+	return algodex.createOrderBookEntryObj(blockChainOrderVal, price, n, d, min, escrowAddr, algoAmount, asaAmount,
+                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId);
+};
+
+
 /*
  * Executes a limit order as a taker and submits it to the blockchain
  *
@@ -145,7 +170,6 @@ exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, 
 
 exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize) {
 	return algodex.placeAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize);
-
 };
 
 /*
@@ -153,7 +177,7 @@ exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWallet
  * Note: use getNumeratorAndDenominatorFromPrice() to get the n and d values.
  *
  * @param {String} makerWalletAddr: external wallet address of the user placing the order. Used to sign with My Algo
- * @param {Number}               n: numerator   of the price ratio. Must be an integer. d/n is the ASA price in terms of algos.
+ * @param {Number}               n: numerator of the price ratio. Must be an integer. d/n is the ASA price in terms of algos.
  * @param {Number}               d: denominator of the price ratio. Must be an integer. d/n is the ASA price in terms of algos.
  * @param {Number}             min: minimum execution amount size. Should always be set to 0 (for the time being).
  * @param {Number}         assetId: Algorand ASA ID for the asset.
