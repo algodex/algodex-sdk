@@ -133,7 +133,7 @@ const AlgodexApi = {
         }
     },
 
-    executeOrderClickAsTaker : async function executeOrderClickAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
+    executeOrderAsTaker : async function executeOrderAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
 
         console.log("in executeOrderClick");
