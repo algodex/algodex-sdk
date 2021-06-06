@@ -148,6 +148,10 @@ const AlgodexInternalApi = {
 
             //FIXME - need more logic to transact correct price in case balances dont match order balances
             console.log("closeoutFromASABalance: " + closeoutFromASABalance);
+
+            console.log("almost final amounts algoTradeAmount escrowAsaAmount ", algoTradeAmount, escrowAsaAmount);
+            //algoTradeAmount = algoTradeAmount / 2;
+
             takerCombOrderBalance['algoBalance'] -= executionFees;
             takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
             takerCombOrderBalance['asaBalance'] -= escrowAsaAmount;
@@ -377,6 +381,10 @@ const AlgodexInternalApi = {
                 }
             }
             //asaAmount = 3; //Set this to 3 (a low amount) to test breaking inequality in smart contract
+            console.log("almost final ASA amount: " + asaAmount);
+            //asaAmount = asaAmount / 2;
+            //console.log("dividing asaAmount / 2: " + asaAmount);
+
             takerCombOrderBalance['algoBalance'] -= txnFee;
             takerCombOrderBalance['algoBalance'] -= algoAmountReceiving;
             takerCombOrderBalance['asaBalance'] -= asaAmount;
