@@ -381,10 +381,6 @@ finalExecuteChecks:
     && // high bits are equal and low bits are ok
     bnz done
 
-    ////FIXME - add in execute with closeout later
-    int 1
-    return
-
     err
     done:
     int 1
