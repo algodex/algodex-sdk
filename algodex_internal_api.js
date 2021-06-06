@@ -88,6 +88,7 @@ const AlgodexInternalApi = {
     getExecuteASAOrderTxns : async function getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient, 
                 lsig, takerCombOrderBalance) {
         console.log("inside executeASAOrder!", this.dumpVar(takerCombOrderBalance));
+        console.log("orderBookEscrowEntry ", this.dumpVar(orderBookEscrowEntry));
         try {
             let retTxns = [];
             let params = await algodClient.getTransactionParams().do();
@@ -97,8 +98,8 @@ const AlgodexInternalApi = {
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
             const appId = ASA_ESCROW_ORDER_BOOK_ID;
             const takerAddr = takerCombOrderBalance['takerAddr'];
-            let escrowAsaAmount = orderBookEscrowEntry['asaAmount'];
-            let escrowAlgoAmount = orderBookEscrowEntry['algoAmount'];
+            let escrowAsaAmount = orderBookEscrowEntry['asaBalance'];
+            let escrowAlgoAmount = orderBookEscrowEntry['algoBalance'];
             const currentEscrowBalance = escrowAlgoAmount;
             const currentASABalance = escrowAsaAmount;
             const assetId = orderBookEscrowEntry['assetId'];
@@ -112,7 +113,7 @@ const AlgodexInternalApi = {
             const orderBookEntrySplit = orderBookEntry.split("-");
             const n = orderBookEntrySplit[0];
             const d = orderBookEntrySplit[1];
-            console.log("n: ", n, " d: ", d);
+            console.log("n: ", n, " d: ", d, " asset amount: " , escrowAsaAmount);
             
             //let escrowAccountInfo = await this.getAccountInfo(lsig.address()); //FIXME - shouldn't require HTTP look up
             let closeRemainderTo = undefined;
@@ -124,10 +125,15 @@ const AlgodexInternalApi = {
             const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
 
             let algoTradeAmount = parseFloat(d)/n*escrowAsaAmount;
+            if (algoTradeAmount % 1 != 0) {
+                algoTradeAmount = Math.floor(algoTradeAmount) + 1; //round up to give seller more money
+            }
+
             if (algoTradeAmount > takerCombOrderBalance['algoBalance']) {
                 console.log("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount); 
                 algoTradeAmount = Math.floor(takerCombOrderBalance['algoBalance']);
-                console.log("here999b reduced to", algoTradeAmount);
+                escrowAsaAmount = algoTradeAmount / (parseFloat(d)/n);
+                console.log("here999b reduced to algoTradeAmount escrowAsaAmount", algoTradeAmount, escrowAsaAmount);
             } //FIXME: factor in fees
 
             if (takerCombOrderBalance['asaBalance'] < 1 || takerCombOrderBalance['algoBalance'] < executionFees) {
@@ -138,6 +144,10 @@ const AlgodexInternalApi = {
                 console.log("asa escrow here9991 takerCombOrderBalance['asaBalance'] < escrowAsaAmount",
                         takerCombOrderBalance['asaBalance'], escrowAsaAmount);
                 escrowAsaAmount = takerCombOrderBalance['asaBalance'];
+                algoTradeAmount = parseFloat(d)/n*escrowAsaAmount;
+                if (algoTradeAmount % 1 != 0) {
+                    algoTradeAmount = Math.floor(algoTradeAmount) + 1; //round up to give seller more money
+                }
             }
 
             if ((currentASABalance - escrowAsaAmount) > min_asa_balance) {
@@ -291,9 +301,9 @@ const AlgodexInternalApi = {
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
             const appId = ALGO_ESCROW_ORDER_BOOK_ID;
-            let escrowAsaAmount = orderBookEscrowEntry['asaAmount'];
-            const currentEscrowAlgoBalance = orderBookEscrowEntry['algoAmount'];
-            let algoAmountReceiving = orderBookEscrowEntry['algoAmount'];
+            let escrowAsaAmount = orderBookEscrowEntry['asaBalance'];
+            const currentEscrowAlgoBalance = orderBookEscrowEntry['algoBalance'];
+            let algoAmountReceiving = orderBookEscrowEntry['algoBalance'];
             const assetId = orderBookEscrowEntry['assetId'];
             const takerAddr = takerCombOrderBalance['takerAddr'];
 

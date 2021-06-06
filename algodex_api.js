@@ -132,8 +132,24 @@ const AlgodexApi = {
             d: d
         }
     },
-
-    executeOrderClickAsTaker : async function executeOrderClickAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
+    createOrderBookEntryObj : function createOrderBookEntryObj (blockChainOrderVal, price, n, d, min, escrowAddr, 
+                                            algoBalance, asaBalance, escrowOrderType, isASAEscrow, orderCreatorAddr, assetId) {
+        return {
+                orderEntry: blockChainOrderVal, // this should match what's in the blockchain
+                price: price, // d/n
+                n: n,
+                d: d,
+                min: min,
+                escrowAddr: escrowAddr,
+                algoBalance: algoBalance,
+                asaBalance: asaBalance,
+                escrowOrderType: escrowOrderType,
+                isASAEscrow: isASAEscrow,
+                orderCreatorAddr: orderCreatorAddr,
+                assetId: assetId
+            };
+    },
+    executeOrderAsTaker : async function executeOrderAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
 
         console.log("in executeOrderClick");
