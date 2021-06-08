@@ -1,7 +1,10 @@
-function getSellASADelegateTemplate() {
 
-// Stateless delegate contract template to sell algos in an escrow account
-let asaDelegateTemplate = `
+const asaDelegateTemplate = {
+
+    getTealTemplate : function getTealTemplate() {
+
+    // Stateless delegate contract template to sell algos in an escrow account
+    let asaDelegateTemplate = `
 
 #pragma version 3
 
@@ -390,6 +393,8 @@ finalExecuteChecks:
     return
 `;
     return asaDelegateTemplate;
+    }
+
 }
 
-window.getSellASADelegateTemplate = getSellASADelegateTemplate;
+module.exports = asaDelegateTemplate;
