@@ -1,15 +1,23 @@
 const http = require('http');
 const algosdk = require('algosdk');
-const MyAlgo = require('@randlabs/myalgo-connect');
+
+let MyAlgo = null;
+if (typeof window != 'undefined') {
+    MyAlgo = require('@randlabs/myalgo-connect');
+}
 
 //const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
-require('./algo_delegate_template_teal.js');
-require('./ASA_delegate_template_teal.js');
-require('./dex_teal.js');
+const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
+const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
+//require('./dex_teal.js');
 
 //FIXME - import below from algodex_api.js
-const myAlgoWallet = new MyAlgo();
 
+let myAlgoWallet = null;
+
+if (MyAlgo != null) {
+    myAlgoWallet = new MyAlgo();
+}
 const constants = require('./constants.js');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
@@ -791,9 +799,9 @@ const AlgodexInternalApi = {
 
         let delegateTemplate = null;
         if (!isASAEscrow) {
-            delegateTemplate = getSellAlgoDelegateTemplate();
+            delegateTemplate = algoDelegateTemplate.getTealTemplate();
         } else {
-            delegateTemplate = getSellASADelegateTemplate();
+            delegateTemplate = asaDelegateTemplate.getTealTemplate();
         }
         console.log("min is: " + min);
         let res = delegateTemplate.replaceAll("<min>", min);

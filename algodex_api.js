@@ -1,15 +1,23 @@
 const http = require('http');
 const algosdk = require('algosdk');
-const MyAlgo = require('@randlabs/myalgo-connect');
+
+let MyAlgo = null;
+
+if (typeof window != 'undefined') {
+  MyAlgo = require('@randlabs/myalgo-connect');
+}
 
 //const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 require('./algo_delegate_template_teal.js');
 require('./ASA_delegate_template_teal.js');
-require('./dex_teal.js');
+//require('./dex_teal.js');
 
 const dexInternal = require('./algodex_internal_api.js');
 
-const myAlgoWallet = new MyAlgo();
+if (MyAlgo != null) {
+    myAlgoWallet = new MyAlgo();
+}
+
 const constants = require('./constants.js');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
