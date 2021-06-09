@@ -363,8 +363,12 @@ const AlgodexApi = {
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['apps-local-state'] != null
                 && accountInfo['apps-local-state'].length > 0
-                && accountInfo['apps-local-state'][0].id == 15789309) {
+                && accountInfo['apps-local-state'][0].id == ALGO_ESCROW_ORDER_BOOK_ID) {
             alreadyOptedIn = true;
+        }
+
+        if (alreadyOptedIn == false && algoOrderSize < constants.MIN_ASA_ESCROW_BALANCE) {
+            algoOrderSize = constants.MIN_ASA_ESCROW_BALANCE;
         }
         console.log("alreadyOptedIn: " + alreadyOptedIn);
         console.log("acct info:" + JSON.stringify(accountInfo));
