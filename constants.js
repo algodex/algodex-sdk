@@ -1,13 +1,14 @@
 module.exports = {
     DEBUG: 1,
-    DEBUG_SMART_CONTRACT_SOURCE: 1,
+    DEBUG_SMART_CONTRACT_SOURCE: 0,
 
     MIN_ESCROW_BALANCE: 310000,
     MIN_ASA_ESCROW_BALANCE: 360000,
 
-    LOCAL_ALGOD_SERVER: "http://192.168.1.211",
+    //LOCAL_ALGOD_SERVER: "http://192.168.1.211",
+    LOCAL_ALGOD_SERVER: "http://127.0.0.1",
     LOCAL_ALGOD_PORT: 4001,
-    LOCAL_ALGOD_TOKEN: "68ea2562459dec26bcebd43c426625cc3ba02707abcb34d3e278eecd7fbde7c3",
+    LOCAL_ALGOD_TOKEN: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     LOCAL_INDEXER_SERVER: "https://testnet.algoexplorerapi.io/idx2",
     LOCAL_INDEXER_PORT: "",
     LOCAL_INDEXER_TOKEN: "",

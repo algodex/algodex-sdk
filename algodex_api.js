@@ -184,12 +184,17 @@ const AlgodexApi = {
             }
         }
 
+        orderAssetAmount = Math.max(1, orderAssetAmount);
+        orderAlgoAmount = Math.max(1, orderAlgoAmount);
+
         let orderAssetBalance = Math.min(orderAssetAmount, walletAssetAmount);
         let orderAlgoBalance = Math.min(orderAlgoAmount, walletAlgoAmount);
 
         const takerOrderBalance = {
             'asaBalance': orderAssetBalance,
             'algoBalance': orderAlgoBalance,
+            'walletAlgoBalance': walletAlgoAmount,
+            'walletASABalance': walletAssetAmount,
             'limitPrice': limitPrice,
             'takerAddr': takerWalletAddr
         };
@@ -418,7 +423,10 @@ const AlgodexApi = {
         // add owners address as arg
         //ownersAddr = makerWalletAddr;
         //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
-        appArgs.push(enc.encode(makerWalletAddr));
+
+        //appArgs.push(enc.encode(makerWalletAddr));
+        appArgs.push(algosdk.decodeAddress(makerWalletAddr).publicKey);
+
         //console.log("owners bit addr: " + ownersBitAddr);
         console.log("herezzz_888");
         console.log(appArgs.length);
