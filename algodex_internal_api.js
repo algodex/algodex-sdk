@@ -137,17 +137,30 @@ const AlgodexInternalApi = {
                 algoTradeAmount = Math.floor(algoTradeAmount) + 1; //round up to give seller more money
             }
 
-            if (algoTradeAmount > takerCombOrderBalance['algoBalance']) {
+            if (algoTradeAmount > takerCombOrderBalance['algoBalance'] && algoTradeAmount > 1) {
                 console.log("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount); 
                 algoTradeAmount = Math.floor(takerCombOrderBalance['algoBalance']);
                 escrowAsaAmount = algoTradeAmount / (parseFloat(d)/n);
+                console.log("checking max: " + escrowAsaAmount + " " + 1 );
+                escrowAsaAmount = Math.max(escrowAsaAmount, 1); // don't allow 0 value
                 console.log("here999b reduced to algoTradeAmount escrowAsaAmount", algoTradeAmount, escrowAsaAmount);
+
+                if (escrowAsaAmount % 1 != 0) {
+                    //round ASA amount
+                    escrowAsaAmount = Math.round(escrowAsaAmount);
+                    algoTradeAmount = parseFloat(d)/n*escrowAsaAmount;
+                    if (algoTradeAmount % 1 != 0) {
+                        algoTradeAmount = Math.floor(algoTradeAmount) + 1; //round up to give seller more money
+                        console.log("here999bc increased algo to algoTradeAmount escrowAsaAmount", algoTradeAmount, escrowAsaAmount);
+                    }
+                    console.log("here999c changed to algoTradeAmount escrowAsaAmount", algoTradeAmount, escrowAsaAmount);
+                }
             } //FIXME: factor in fees
 
-            if (takerCombOrderBalance['asaBalance'] < 1 || takerCombOrderBalance['algoBalance'] < executionFees) {
-                console.log("asa escrow here9991b balance too low, returning early!");
-                return; //no balance left to use for buying ASAs
-            }
+           // if (takerCombOrderBalance['asaBalance'] < 1 || takerCombOrderBalance['algoBalance'] < executionFees) {
+            //    console.log("asa escrow here9991b balance too low, returning early!");
+            //    return; //no balance left to use for buying ASAs
+            //}
             if (takerCombOrderBalance['asaBalance'] < escrowAsaAmount) {
                 console.log("asa escrow here9991 takerCombOrderBalance['asaBalance'] < escrowAsaAmount",
                         takerCombOrderBalance['asaBalance'], escrowAsaAmount);
@@ -164,6 +177,17 @@ const AlgodexInternalApi = {
                 closeoutFromASABalance = false;
             }
 
+            if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + algoTradeAmount) {
+               console.log("asa escrow here9992b balance too low, returning early! ", executionFees, algoTradeAmount, takerCombOrderBalance);
+               return; //no balance left to use for buying ASAs
+            }
+
+            if (takerCombOrderBalance['walletASABalance'] < escrowAsaAmount) {
+               console.log("asa escrow here9992b balance too low, returning early! ", executionFees, algoTradeAmount, takerCombOrderBalance);
+               return; //no balance left to use for buying ASAs
+            }
+
+
             //FIXME - need more logic to transact correct price in case balances dont match order balances
             console.log("closeoutFromASABalance: " + closeoutFromASABalance);
 
@@ -172,7 +196,11 @@ const AlgodexInternalApi = {
 
             takerCombOrderBalance['algoBalance'] -= executionFees;
             takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
+            takerCombOrderBalance['walletAlgoBalance'] -= executionFees;
+            takerCombOrderBalance['walletAlgoBalance'] -= algoTradeAmount;
+
             takerCombOrderBalance['asaBalance'] -= escrowAsaAmount;
+            takerCombOrderBalance['walletAsaBalance'] -= escrowAsaAmount;
             console.log("ASA here110 algoAmount asaAmount txnFee takerOrderBalance: ", algoTradeAmount,
                         escrowAsaAmount, executionFees, this.dumpVar(takerCombOrderBalance));
 
