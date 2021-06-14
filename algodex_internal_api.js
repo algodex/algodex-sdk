@@ -383,7 +383,9 @@ const AlgodexInternalApi = {
             console.log("here1");
             console.log("takerOrderBalance: " + this.dumpVar(takerCombOrderBalance));
             console.log("algoAmount: " + algoAmountReceiving);
-
+            
+            const price = new bigDecimal(d).divide(new bigDecimal(n));
+            
             //if (escrowAlgoAmount + txnFee > currentEscrowBalance) {
             //    escrowAlgoAmount = currentEscrowBalance - txnFee;
             //    console.log("here1b reducing algoAmount to " + escrowAlgoAmount + " due to current escrow balance " + currentEscrowBalance);
@@ -407,43 +409,48 @@ const AlgodexInternalApi = {
                 console.log("can't afford, returning early");
                 return null; // can't afford any transaction!
             }
-
-            let asaAmount = parseFloat(n)/d*algoAmountReceiving;
+            algoAmountReceiving = new bigDecimal(algoAmountReceiving);
+            let asaAmount = algoAmountReceiving.divide(price, 30);
             console.log("here6");
             console.log("asa amount: " + asaAmount);
 
-            if (asaAmount % 1 != 0) {
+            if (asaAmount.getValue().includes('.')) {
                 // round down decimals. possibly change this later?
-                asaAmount = Math.floor(asaAmount); 
+                asaAmount = asaAmount.floor();
 
                 console.log("here7");
                 console.log("increasing from decimal asa amount: " + asaAmount);
 
                 // recalculating receiving amount
                 // use math.floor to give slightly worse deal for taker
-                algoAmountReceiving = Math.floor(parseFloat(d)/n*asaAmount);
+                algoAmountReceiving = asaAmount.multiply(price).floor();
                 console.log("recalculating receiving amount to: " + algoAmountReceiving);
             }
 
-            if (takerCombOrderBalance['asaBalance'] < asaAmount) {
+            if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(asaAmount) == -1) {
                 console.log("here8");
                 console.log("here8 reducing asa amount due to taker balance: ", asaAmount);
                 asaAmount = takerCombOrderBalance['asaBalance'];
                 console.log("here8 asa amount is now: ", asaAmount);
 
-                algoAmountReceiving = parseFloat(d)/n*asaAmount;
+                algoAmountReceiving = price.multiply(asaAmount);
                 console.log("here9");
                 console.log("recalculating algoamount: " + algoAmountReceiving);
-                if (algoAmountReceiving % 1 != 0) {
+                if (algoAmountReceiving.getValue().includes('.')) {
                     // give slightly worse deal for taker if decimal
-                    algoAmountReceiving = Math.floor(algoAmountReceiving); 
+                    algoAmountReceiving = algoAmountReceiving.floor();
                     console.log("here10 increasing algoAmount due to decimal: " + algoAmountReceiving);
                 }
             }
+
             //asaAmount = 3; //Set this to 3 (a low amount) to test breaking inequality in smart contract
             console.log("almost final ASA amount: " + asaAmount);
             //asaAmount = asaAmount / 2;
             //console.log("dividing asaAmount / 2: " + asaAmount);
+            
+            // These are expected to be integers now
+            algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
+            asaAmount = parseInt(asaAmount.getValue());
 
             takerCombOrderBalance['algoBalance'] -= txnFee;
             takerCombOrderBalance['algoBalance'] -= algoAmountReceiving;
