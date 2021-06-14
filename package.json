@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@randlabs/myalgo-connect": "^1.0.1",
-    "algosdk": "^1.9.1"
+    "algosdk": "^1.9.1",
+    "js-big-decimal": "^1.3.4"
   }
 }
