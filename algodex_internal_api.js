@@ -183,7 +183,7 @@ const AlgodexInternalApi = {
             }
 
             if (new bigDecimal(currentASABalance).subtract(escrowAsaAmount)
-                    .compareTo(new bigDecimal(min_asa_balance))) {
+                    .compareTo(new bigDecimal(min_asa_balance)) == 1) {
 
                 console.log("asa escrow here9992 (currentASABalance - escrowAsaAmount) > min_asa_balance",
                         currentASABalance, escrowAsaAmount, min_asa_balance);
