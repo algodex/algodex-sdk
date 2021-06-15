@@ -848,13 +848,12 @@ const AlgodexInternalApi = {
             delegateTemplate = asaDelegateTemplate.getTealTemplate();
         }
         console.log("min is: " + min);
-        let res = delegateTemplate.replaceAll("<min>", min);
-
-        res = res.replaceAll("<assetid>", assetid);
-        res = res.replaceAll("<N>", N);
-        res = res.replaceAll("<D>", D);
-        res = res.replaceAll("<contractWriterAddr>", writerAddr);
-        res = res.replaceAll("<orderBookId>", orderBookId);
+        let res = delegateTemplate.split("<min>").join(min);
+        res = res.split("<assetid>").join(assetid);
+        res = res.split("<N>").join(N);
+        res = res.split("<D>").join(D);
+        res = res.split("<contractWriterAddr>").join(writerAddr);
+        res = res.split("<orderBookId>").join(orderBookId);
 
 
         return res;
@@ -884,13 +883,14 @@ const AlgodexInternalApi = {
 
     // create array buffer from b64 string
     _base64ToArrayBuffer : function _base64ToArrayBuffer(b64) {
-        var binary_string = window.atob(b64);
-        var len = binary_string.length;
+        var bytes = Buffer.from(b64, 'base64');
+		return bytes;
+        /*var len = binary_string.length;
         var bytes = new Uint8Array(len);
         for (var i = 0; i < len; i++) {
             bytes[i] = binary_string.charCodeAt(i);
         }
-        return bytes;
+        return bytes;*/
     }
 
 
