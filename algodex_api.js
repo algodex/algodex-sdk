@@ -125,15 +125,9 @@ const AlgodexApi = {
             return limitPrice.toString().split(".")[1].length || 0; 
         }
 
-        let n = 10**countDecimals(limitPrice) * limitPrice;
-        let d = limitPrice * n;
-
-        if (d % 1 != 0) {
-            //has decimal so increase more
-            const numDecD = countDecimals(d);
-            d = 10**numDecD * d;
-            n = 10**numDecD * n;
-        }
+        const origDecCount = countDecimals(limitPrice);
+        let d = 10**origDecCount * limitPrice;
+        let n = 10**origDecCount;
 
         return {
             n: n,

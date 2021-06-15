@@ -143,7 +143,7 @@ const AlgodexInternalApi = {
             }
 
             //FIXME - check if lower than wallet balance
-            if (algoTradeAmount.compareTo(new bigDecimal(takerCombOrderBalance['algoBalance']) == 1)
+            if (algoTradeAmount.compareTo(new bigDecimal(takerCombOrderBalance['algoBalance'])) == 1
                  && algoTradeAmount.compareTo(bDecOne) == 1
                  && algoTradeAmount.subtract(new bigDecimal(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == 1) {
 
