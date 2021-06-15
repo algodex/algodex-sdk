@@ -177,7 +177,7 @@ const AlgodexInternalApi = {
                         takerCombOrderBalance['asaBalance'], escrowAsaAmount);
                 escrowAsaAmount = new bigDecimal(takerCombOrderBalance['asaBalance']);
                 algoTradeAmount = price.multiply(escrowAsaAmount);
-                if (bigDecimal.modulus(algoTradeAmount, bDecOne) != 0) {
+                if (algoTradeAmount.getValue().includes('.')) {
                     algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
                 }
             }
