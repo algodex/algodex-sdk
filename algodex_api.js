@@ -181,8 +181,22 @@ const AlgodexApi = {
         orderAssetAmount = Math.max(1, orderAssetAmount);
         orderAlgoAmount = Math.max(1, orderAlgoAmount);
 
-        let orderAssetBalance = Math.min(orderAssetAmount, walletAssetAmount);
-        let orderAlgoBalance = Math.min(orderAlgoAmount, walletAlgoAmount);
+        if (isSellingASA_AsTakerOrder) {
+            // we are selling an ASA so check wallet balance
+            orderAssetBalance = Math.min(orderAssetAmount, walletAssetAmount);
+        } else {
+            // wallet ASA balance doesn't matter since we are selling algos
+            orderAssetBalance = orderAssetAmount;
+        }
+
+        if (!isSellingASA_AsTakerOrder) {
+            //we are buying with algos. so check algo balance
+            orderAlgoBalance = Math.min(orderAlgoAmount, walletAlgoAmount);
+        } else {
+            // wallet balance doesn't matter since we are selling an ASA
+            orderAlgoBalance = orderAlgoAmount;
+        }
+
 
         const takerOrderBalance = {
             'asaBalance': orderAssetBalance,

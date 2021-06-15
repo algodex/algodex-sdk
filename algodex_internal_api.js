@@ -195,11 +195,6 @@ const AlgodexInternalApi = {
                return; //no balance left to use for buying ASAs
             }
 
-            if (takerCombOrderBalance['walletASABalance'] < parseInt(escrowAsaAmount.getValue())) {
-               console.log("asa escrow here9992b balance too low, returning early! ", executionFees, algoTradeAmount, takerCombOrderBalance);
-               return; //no balance left to use for buying ASAs
-            }
-
             escrowAsaAmount = parseInt(escrowAsaAmount.getValue());
             algoTradeAmount = parseInt(algoTradeAmount.getValue());
             //FIXME - need more logic to transact correct price in case balances dont match order balances
