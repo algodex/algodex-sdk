@@ -2,7 +2,7 @@ const http = require('http');
 const algosdk = require('algosdk');
 
 const bigDecimal = require('js-big-decimal');
-global.TextEncoder = require("util").TextEncoder;
+const TextEncoder = require("text-encoding").TextEncoder;
 
 let MyAlgo = null;
 if (typeof window != 'undefined') {
