@@ -13,8 +13,8 @@ exports.doAlert = function() {
  * Print console message test
  */ 
 exports.printMsg = function() {
-	console.log("Hello World from algodex-api!!!");
-	return "Hello World from algodex-api!!!";
+	console.log("Hello World from algodex-sdk!!!");
+	return "Hello World from algodex-sdk!!!";
 };
 
 /*

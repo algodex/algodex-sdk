@@ -1,5 +1,5 @@
 {
-  "name": "@algodex/algodex-api",
+  "name": "@algodex/algodex-sdk",
   "version": "1.0.20",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:algodex/algodex-api.git"
+    "url": "git@github.com:algodex/algodex-sdk.git"
   },
   "keywords": [
     "algodex",
@@ -17,9 +17,9 @@
   "author": "Alexander Trefonas",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/algodex/algodex-api/issues"
+    "url": "https://github.com/algodex/algodex-sdk/issues"
   },
-  "homepage": "https://github.com/algodex/algodex-api#readme",
+  "homepage": "https://github.com/algodex/algodex-sdk#readme",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/algodex"
   },
