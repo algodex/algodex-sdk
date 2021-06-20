@@ -779,11 +779,37 @@ const AlgodexInternalApi = {
 
     // Wait for a transaction to be confirmed
     waitForConfirmation : async function(algodClient, txId) {
-
         let checkPending = await this.checkPending(algodClient, txId, 4);
-        if (checkPending == null || checkPending == "Transaction Rejected") throw "Transaction Rejected";
-        if (checkPending == "Transaction Still Pending") throw "Transaction Still Pending";
-        console.log("Transaction confirmed in round " + checkPending["confirmed-round"]);
+    
+        return new Promise(function(resolve, reject) {
+
+            let retstatus = {
+                    "txId": txId,
+                };
+
+            if (checkPending == null || checkPending == "Transaction Rejected") {
+                retstatus = {...retstatus,
+                        "status": "rejected",
+                        "statusMsg": "Transaction Rejected"};
+            }
+            if (checkPending == "Transaction Still Pending") {
+                retstatus = {...retstatus,
+                        "status": "pending",
+                        "statusMsg": "Transaction Pending"};
+            }
+
+            retstatus = {...retstatus,
+                    "status": "confirmed",
+                    "statusMsg": "Transaction confirmed in round " + checkPending["confirmed-round"]};
+            console.log ("here999aabc: ", retstatus);
+
+            if (retstatus['status'] == "confirmed") { // let's say this is a boolean value from line above
+                return resolve(retstatus);
+            } else {
+                return reject(retstatus); // this can be anything, preferably an Error object to catch the stacktrace from this function
+            }
+        });
+
     },
     // Check the status of pending transactions
     checkPending : async function(algodClient, txid, numRoundTimeout) {
