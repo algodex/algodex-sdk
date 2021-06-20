@@ -694,6 +694,7 @@ const AlgodexInternalApi = {
             throw e;
         }
 
+        // The transaction has now been confirmed
         return;
     },
     getAccountInfo : async function getAccountInfo(accountAddr) {

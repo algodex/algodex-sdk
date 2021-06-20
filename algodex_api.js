@@ -29,7 +29,10 @@ const AlgodexApi = {
         alert(1);
         console.log("api call!!!");
     },
-
+	getConstants : () => {
+			return constants;
+	},
+	
     initSmartContracts : function(environment) {
         if (environment == "local") {
             ALGO_ESCROW_ORDER_BOOK_ID = constants.LOCAL_ALGO_ORDERBOOK_APPID;

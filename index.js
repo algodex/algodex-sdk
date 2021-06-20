@@ -17,6 +17,11 @@ exports.printMsg = function() {
 	return "Hello World from algodex-sdk!!!";
 };
 
+exports.getConstants = function() {
+	return algodex.getConstants();
+}
+
+
 /*
  * Initialize smart contract environments. This is also called from within
  * initIndexer() and initAlgodClient
@@ -149,7 +154,7 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
  * @param {String} escrowAccountAddr: public address of the escrow account
  * @param {String}       creatorAddr: public address of the owner of the escrow account
  * @param {Object}    orderBookEntry: blockchain order book string. For example "2500-625-0-15322902" (N-D-min-assetId)
- * @returns {Object} Promise for when the transaction is complete
+ * @returns {Object} Promise for when the transaction is fully confirmed
  */
 exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry) {
 	return algodex.closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry);
