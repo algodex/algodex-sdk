@@ -137,7 +137,7 @@ exports.createOrderBookEntryObj = function(blockChainOrderVal, price, n, d, min,
  * @param {Number}           orderAssetAmount: Must be integer. max amount of the asset to buy or sell in base units
  * @param {Number}            orderAlgoAmount: Must be integer. max amount of algo to buy or sell in microAlgos
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
- * @returns {Object} Promise for when the transaction is fully confirmed
+ * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
