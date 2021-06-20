@@ -154,6 +154,7 @@ const AlgodexApi = {
                 assetId: assetId
             };
     },
+
     executeOrderAsTaker : async function executeOrderAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
 
@@ -285,7 +286,7 @@ const AlgodexApi = {
                     try {
                         this.printTransactionDebug(signedTxns);
                         let txn = await algodClient.sendRawTransaction(signedTxns).do();
-                        console.log("sent: " + txn.txID);
+                        console.log("sent: " + txn.txId);
                     }  catch (e) {
                         console.log(e);
                     }
