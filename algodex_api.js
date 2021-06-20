@@ -1,3 +1,4 @@
+
 const http = require('http');
 const algosdk = require('algosdk');
 
@@ -33,6 +34,14 @@ const AlgodexApi = {
 			return constants;
 	},
 	
+    allSettled : function(promises) {
+        let wrappedPromises = promises.map(p => Promise.resolve(p)
+            .then(
+                val => ({ status: 'promiseFulfilled', value: val }),
+                err => ({ status: 'promiseRejected', reason: err })));
+        return Promise.all(wrappedPromises);
+    },
+
     initSmartContracts : function(environment) {
         if (environment == "local") {
             ALGO_ESCROW_ORDER_BOOK_ID = constants.LOCAL_ALGO_ORDERBOOK_APPID;
@@ -154,6 +163,7 @@ const AlgodexApi = {
                 assetId: assetId
             };
     },
+
     executeOrderAsTaker : async function executeOrderAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
 
@@ -164,7 +174,7 @@ const AlgodexApi = {
         
         let execAccountInfo = await this.getAccountInfo(takerWalletAddr);
         let alreadyOptedIn = false;
-        console.log("herezz55");
+        console.log("herezz56");
 
         let walletAssetAmount = 0;
         const walletAlgoAmount = execAccountInfo['amount'];
@@ -277,6 +287,8 @@ const AlgodexApi = {
             transNeededUserSigList[i]['signedTxn'] = signedTxns[i].blob;
         }
         signedTxns = [];
+        let sentTxns = [];
+
         let lastGroupNum = -1;
         for (let i = 0; i < allTransList.length; i++) {  // loop to end of array 
             if (lastGroupNum != allTransList[i]['groupNum']) {
@@ -285,7 +297,8 @@ const AlgodexApi = {
                     try {
                         this.printTransactionDebug(signedTxns);
                         let txn = await algodClient.sendRawTransaction(signedTxns).do();
-                        console.log("sent: " + txn.txID);
+                        sentTxns.push(txn.txId);
+                        console.log("sent: " + txn.txId);
                     }  catch (e) {
                         console.log(e);
                     }
@@ -305,7 +318,8 @@ const AlgodexApi = {
                         const DO_SEND = true;
                         if (DO_SEND) {
                             let txn = await algodClient.sendRawTransaction(signedTxns).do();
-                            console.log("sent: " + txn.txID);
+                            sentTxns.push(txn.txId);
+                            console.log("sent: " + txn.txId);
                         } else {
                             console.log("skipping sending for debugging reasons!!!");
                         }
@@ -318,10 +332,28 @@ const AlgodexApi = {
 
         }
 
-        console.log("final trans are: " );
-        console.log(allTransList);
-        console.log(transNeededUserSigList);
+        console.log("going to wait for confirmations");
+
+        let waitConfirmedPromises = [];
+
+        for (let i = 0; i < sentTxns.length; i++) {
+            console.log("creating promise to wait for: " + sentTxns[i]);
+            const confirmPromise = this.waitForConfirmation(algodClient, sentTxns[i]);
+            waitConfirmedPromises.push(confirmPromise);
+        }
+
+        console.log("final9 trans are: " );
+        // console.log(alTransList);
+        // console.log(transNeededUserSigList);
         
+        console.log("going to send all ");
+        
+        let confirmedTransactions = await this.allSettled(waitConfirmedPromises);
+
+        let transResults = JSON.stringify(confirmedTransactions, null, 2); 
+        console.log("trans results after confirmed are: " );
+        console.log(transResults);
+
        // await this.waitForConfirmation(algodClient, txn.txId);
         return;
     },

@@ -137,7 +137,7 @@ exports.createOrderBookEntryObj = function(blockChainOrderVal, price, n, d, min,
  * @param {Number}           orderAssetAmount: Must be integer. max amount of the asset to buy or sell in base units
  * @param {Number}            orderAlgoAmount: Must be integer. max amount of algo to buy or sell in microAlgos
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
- * @returns {Object} Promise for when the transaction is complete
+ * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
@@ -170,7 +170,7 @@ exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, 
  * @param {Number}               d: denominator of the price ratio. Must be an integer. d/n is the ASA price in terms of algos.
  * @param {Number}         assetId: Algorand ASA ID for the asset.
  * @param {Number}   algoOrderSize: size of the order in terms of algos
- * @returns {Object} Promise for when the transaction is complete
+ * @returns {Object} Promise for when the transaction is fully confirmed
  */
 
 exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize) {
@@ -186,7 +186,7 @@ exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWallet
  * @param {Number}               d: denominator of the price ratio. Must be an integer. d/n is the ASA price in terms of algos.
  * @param {Number}             min: minimum execution amount size. Should always be set to 0 (for the time being).
  * @param {Number}         assetId: Algorand ASA ID for the asset.
- * @returns {Object} Promise for when the transaction is complete
+ * @returns {Object} Promise for when the transaction is fully confirmed
  */
 exports.placeASAToSellASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount) {
 	return algodex.placeASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount);
