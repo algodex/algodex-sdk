@@ -129,14 +129,14 @@ return
 
 ////////////
 // CLOSE   /
-//////////// FIXME check sender addresses?
+//////////// FIXME check sender addresses? and all 4 transactions
 close:
 txn OnCompletion
 int CloseOut
 ==
 // only works for app call
 global GroupSize
-int 3
+int 4
 ==
 bz fail
 pop
@@ -158,8 +158,12 @@ gtxn 0  ApplicationID //current smart contract
 byte "version" //order creator account number
 app_local_get_ex
 assert
-
-//FIXME check creators match expectations for other orders
+int 0
+byte "creator"
+app_local_get // check creator matches expectation to pay verification send
+gtxn 3 Sender
+==
+assert
 
 // delete the ordernumber
 int 0 //escrow account that opened order
@@ -400,6 +404,7 @@ return
 fail2:
 int 0
 return
+
 
 `;
 

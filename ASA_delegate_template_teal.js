@@ -75,8 +75,12 @@ const asaDelegateTemplate = {
     addr <contractWriterAddr> // contractWriterAddr
     ==
     &&
+    gtxn 3 Sender // proof the close is coming from sender
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
     global GroupSize
-    int 3
+    int 4
     ==
     &&
     gtxn 0 TypeEnum
