@@ -254,13 +254,33 @@ const AlgodexInternalApi = {
                 amount: algoTradeAmount,
                 ...params
             };
-            //myAlgoWalletUtil.setTransactionFee(fixedTxn2);
 
+            let accountInfo = await this.getAccountInfo(takerAddr);
+            let takerAlreadyOptedIntoASA = false;
+            if (accountInfo != null && accountInfo['assets'] != null
+                && accountInfo['assets'].length > 0) {
+                for (let i = 0; i < accountInfo['assets'].length; i++) {
+                    if (accountInfo['assets'][i]['asset-id'] === assetId) {
+                        takerAlreadyOptedIntoASA = true;
+                        break;
+                    }
+                }
+            }
 
-            // Make payment tx signed with lsig
-            // Algo payment from order executor to escrow creator
-           // let transaction2 = algosdk.makePaymentTxnWithSuggestedParams(orderExecutor.addr, orderCreatorAddr, amount, 
-           //     undefined, undefined, params);
+            // asset opt-in transfer
+            // FIXME: only if necessary
+            let transaction2b = null;
+
+            if (!takerAlreadyOptedIntoASA) {
+                transaction2b = {
+                    type: "axfer",
+                    from: takerAddr,
+                    to: takerAddr,
+                    amount: 0,
+                    assetIndex: assetId,
+                    ...params
+                };
+            }
 
             // Make asset xfer
 
@@ -287,19 +307,35 @@ const AlgodexInternalApi = {
             
             myAlgoWalletUtil.setTransactionFee(fixedTxn2);
 
-            let txns = [transaction1, fixedTxn2, transaction3, transaction4 ];
+            if (transaction2b != null) {
+                myAlgoWalletUtil.setTransactionFee(transaction2b);
+            }
+
+            let txns = [];
+            txns.push(transaction1);
+            txns.push(fixedTxn2);
+            if (transaction2b != null) {
+                console.log("adding transaction2b due to asset not being opted in");
+                txns.push(transaction2b);
+            } else {
+                console.log("NOT adding transaction2b because already opted");
+            }
+            txns.push(transaction3);
+            txns.push(transaction4);
+
+            //let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
            
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
             }
             
-            let signedTx1 = algosdk.signLogicSigTransactionObject(txns[0], lsig);
+            let signedTx1 = algosdk.signLogicSigTransactionObject(transaction1, lsig);
             //let signedTx2 = await myAlgoWallet.signTransaction(fixedTxn2);
-            let signedTx3 = algosdk.signLogicSigTransactionObject(txns[2], lsig);
+            let signedTx3 = algosdk.signLogicSigTransactionObject(transaction3, lsig);
             let signedTx4 = null;
             if (closeRemainderTo != undefined) {
-                signedTx4 = algosdk.signLogicSigTransactionObject(txns[3], lsig);
+                signedTx4 = algosdk.signLogicSigTransactionObject(transaction4, lsig);
             }
 
             retTxns.push({
@@ -309,6 +345,13 @@ const AlgodexInternalApi = {
                 'unsignedTxn': fixedTxn2,
                 'needsUserSig': true
             });
+
+            if (transaction2b != null) {
+                retTxns.push({
+                    'unsignedTxn': transaction2b,
+                    'needsUserSig': true
+                });
+            }
             retTxns.push({
                 'signedTxn': signedTx3.blob,
             });

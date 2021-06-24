@@ -163,38 +163,66 @@ notCloseOut:
     //&&
     //bnz fail
 
-    // this delegate is
-    // only used on an execute order without closeout
+    gtxna 0 ApplicationArgs 0
+    byte "execute_with_closeout"
+    ==
+    bnz execute_with_closeout
+
     global GroupSize
     int 4
     ==
-    // The first transaction must be 
-    // an ApplicationCall (ie call stateful smart contract)
+    global GroupSize //group size can be 5 for asset opt-in
+    int 5
+    ==
+    ||
+    assert
+
+    // First Transaction must be a call to a stateful contract
     gtxn 0 TypeEnum
     int appl
     ==
-    &&
-    // The second transaction must be 
-    // a payment tx 
+    // The second transaction must be a payment transaction
     gtxn 1 TypeEnum
     int pay
     ==
     &&
-    // The third transaction must be 
-    // an asset xfer tx 
-    gtxn 2 TypeEnum
+    assert
+
+    gtxn 2 TypeEnum // check for asset opt in transaction
     int axfer
     ==
-    &&
-    // The third transaction is a pay to refund fees
-    gtxn 3 TypeEnum
-    int pay
+    gtxn 2 AssetAmount
+    int 0
     ==
     &&
+    gtxn 2 Sender
+    gtxn 2 AssetReceiver
+    ==
+    &&
+    store 0 //this will store the next transaction offset
+
+    load 0
+    int 2
+    + 
+    gtxns TypeEnum //The next transaction must be an asset transfer
+    int axfer
+    ==
+    assert
+
+    load 0
+    int 3
+    +
+    gtxns TypeEnum     // The last transaction must be a payment transfer
+    int pay
+    ==
+    assert
+
+    //int 1 //TEMPORARY FIX LATER
+    //return
+
     txn Fee // fee for all transactions must be low
     int 1000
     <=
-    &&
     // The specific App ID must be called
     // This should be changed after creation
     // This links this contract to the stateful contract
@@ -218,108 +246,157 @@ notCloseOut:
     global ZeroAddress
     ==
     &&
-    gtxn 2 RekeyTo
+    assert
+
+    load 0
+    int 2
+    +
+    gtxns RekeyTo
     global ZeroAddress
     ==
-    &&
+    assert
+
     gtxn 0 CloseRemainderTo
     global ZeroAddress
-    ==
-    && 
+    == 
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
-    && 
-    gtxn 2 CloseRemainderTo
+    &&
+    assert
+
+    load 0
+    int 2
+    +
+    gtxns CloseRemainderTo
     global ZeroAddress
     ==
-    && 
+    assert
+ 
     gtxn 0 AssetCloseTo
     global ZeroAddress
     ==
-    &&
     gtxn 1 AssetCloseTo
     global ZeroAddress
     ==
     &&
-    gtxn 2 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
-    int <assetid> // asset id to trade for
-    gtxn 2 XferAsset
-    ==
-    &&
-    store 0 // store result in 0 register
+    assert
 
     load 0
-    bnz finalExecuteChecks  //If the above result is 0, skip next section
+    int 2
+    +
+    gtxns AssetCloseTo
+    global ZeroAddress
+    ==
+    assert
+
+    load 0
+    int 2
+    +
+    gtxns XferAsset
+    int <assetid> // asset id to trade for
+    ==
+    assert
+
+//TODO check 3rd transaction
+    b finalExecuteChecks  //If the above result is 0, skip next section
 
 ///////////////////////////////////////
 // EXECUTE WITH CLOSE
 //////////////////////////////////////
-//FIXME : add 4th transaction checks
+
+    execute_with_closeout:
+    //FIXME : add 4th transaction checks
     // only used on an execute order without closeout
     global GroupSize
     int 4
     ==
+    global GroupSize //group size can be 5 for asset opt-in from receiver
+    int 5
+    ==
+    ||
+    assert
+
     // The first transaction must be 
     // an ApplicationCall (ie call stateful smart contract)
     gtxn 0 TypeEnum
     int appl
     ==
-    &&
-    // The second transaction must be 
-    // a payment tx 
-    gtxn 1 TypeEnum
+    gtxn 1 TypeEnum // The second transaction must be a payment tx 
     int pay
     ==
     &&
-    // The third transaction must be 
-    // an asset xfer tx 
-    gtxn 2 TypeEnum
+    assert
+
+    gtxn 2 TypeEnum // check for asset opt in transaction
     int axfer
     ==
+    gtxn 2 AssetAmount
+    int 0
+    ==
     &&
+    gtxn 2 Sender
+    gtxn 2 AssetReceiver
+    ==
+    &&
+    store 0 //this will store the next transaction offset
+
+    load 0
+    int 2
+    + 
+    gtxns TypeEnum //The next transaction must be an asset transfer
+    int axfer
+    ==
+    assert
+
+    load 0
+    int 3
+    +
+    gtxns TypeEnum     // The last transaction must be a payment transfer. TODO add additional checks for this
+    int pay
+    ==
+    assert
+
+
     txn Fee
     int 1000
     <=
-    &&
-    // The specific App ID must be called
-    // This should be changed after creation
-    // This links this contract to the stateful contract
-    gtxn 0 ApplicationID
+    gtxn 0 ApplicationID // The specific App ID of stateful contract must be called
     int <orderBookId> //stateful contract app id. orderBookId
     ==
-    &&
-    // The application call must be
-    // A general application call or a closeout
+    && // The application call must be a general application call or a closeout
     gtxn 0 OnCompletion
     int CloseOut
     ==
     &&
-    // verify no transaction
-    // contains a rekey
-    gtxn 0 RekeyTo
-    global ZeroAddress
+    gtxn 0 RekeyTo // verify no transaction
+    global ZeroAddress // contains a rekey
     ==
     &&
     gtxn 1 RekeyTo
     global ZeroAddress
     ==
     &&
-    gtxn 2 RekeyTo
+    assert
+
+    load 0
+    int 2
+    +
+    gtxns RekeyTo
     global ZeroAddress
     ==
-    &&
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
-    && 
-    gtxn 2 CloseRemainderTo
+    &&
+    assert
+
+    load 0
+    int 2
+    +
+    gtxns CloseRemainderTo
     global ZeroAddress
     ==
-    && 
     gtxn 0 AssetCloseTo
     global ZeroAddress
     ==
@@ -328,22 +405,27 @@ notCloseOut:
     global ZeroAddress
     ==
     &&
-    gtxn 2 AssetCloseTo // remainder of ASA escrow is being closed out to escrow owner
+    assert
+    
+    load 0
+    int 2
+    +
+    gtxns AssetCloseTo // remainder of ASA escrow is being closed out to escrow owner
     addr <contractWriterAddr> // contractWriterAddr
     ==
-    &&
-    int <assetid> // Put <assetid> here. asset id to trade for
-    gtxn 2 XferAsset
-    ==
-    &&
-    store 1 // store result in 0 register
-
-finalExecuteChecks:
+    assert
 
     load 0
-    load 1
-    ||
-    bz fail
+    int 2
+    +
+    gtxns XferAsset
+    int <assetid> // Put <assetid> here. asset id to trade for
+    ==
+    assert
+
+    b finalExecuteChecks
+
+finalExecuteChecks:
 
     gtxn 1 Amount // min algos spent
     int <min> //Put <min> here
@@ -360,7 +442,10 @@ finalExecuteChecks:
     // BUY ORDER
     // gtxn[2].AssetAmount * D <= gtxn[1].Amount * N
     // N units of the asset per D microAlgos
-    gtxn 2 AssetAmount
+    load 0
+    int 2
+    +
+    gtxns AssetAmount
     int <D> // put <D> value here
     mulw // AssetAmount * D => (high 64 bits, low 64 bits)
     store 2 // move aside low 64 bits
