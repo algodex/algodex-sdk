@@ -139,7 +139,7 @@ int CloseOut
 ==
 // only works for app call
 global GroupSize
-int 2
+int 3
 ==
 assert
 pop
@@ -172,6 +172,12 @@ int 0
 byte "creator"
 app_local_get // check creator matches expectation
 gtxn 1 Receiver
+==
+assert
+int 0
+byte "creator"
+app_local_get // check creator matches expectation
+gtxn 2 Sender
 ==
 assert
 

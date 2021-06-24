@@ -774,7 +774,17 @@ const AlgodexInternalApi = {
             // Make payment tx signed with lsig
             let txn2 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr, undefined, params);
            
-            let txns = [txn, txn2];
+            let txn3 = {
+                    type: 'pay',
+                    from: creatorAddr,
+                    to:  creatorAddr,
+                    amount: 0,
+                    ...params
+                };
+
+            myAlgoWalletUtil.setTransactionFee(txn3);
+
+            let txns = [txn, txn2, txn3];
             const groupID = algosdk.computeGroupID(txns)
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
@@ -792,11 +802,15 @@ const AlgodexInternalApi = {
             //console.log("signedTxn:" + JSON.stringify(signedTx));
             console.log("Signed transaction with txID: %s", txId2);
 
-            //this.printTransactionDebug([signedTx.blob]);
+            let signedTx3 =  await myAlgoWallet.signTransaction(txn3);
+            console.log("zzsigned txn: " + signedTx3.txID);
 
+            //this.printTransactionDebug([signedTx.blob]);
+        
             let signed = [];
             signed.push(signedTx.blob);
             signed.push(signedTx2.blob);
+            signed.push(signedTx3.blob);
            
             this.printTransactionDebug(signed);
 
