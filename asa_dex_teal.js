@@ -185,7 +185,7 @@ return
 /////////////
 execute:
 
-txn OnCompletion //FIXME check OnCompletion of each transaction
+txn OnCompletion //FIXME check OnCompletion of each individual transaction
 int CloseOut
 ==
 txn OnCompletion
@@ -193,31 +193,56 @@ int NoOp
 ==
 ||
 assert
-// Must be three transacitons
+
 global GroupSize
 int 4
 ==
+global GroupSize //group size can be 5 for asset opt-in
+int 5
+==
+||
+assert
+
 // First Transaction must be a call to a stateful contract
 gtxn 0 TypeEnum
 int appl
 ==
-&&
 // The second transaction must be a payment transaction
 gtxn 1 TypeEnum
 int pay
 ==
 &&
-// The third transaction must be an asset transfer
+assert
+
 gtxn 2 TypeEnum
 int axfer
 ==
-&&
-// The fourth transaction must be a payment transfer
-//FIXME make sure it goes to right place!
-gtxn 3 TypeEnum
-int pay
+gtxn 2 AssetAmount
+int 0
 ==
 &&
+gtxn 2 Sender
+gtxn 2 AssetReceiver
+==
+&&
+store 0 //this will store the next transaction offset
+
+load 0
+int 2
++ 
+gtxns TypeEnum //The next transaction must be an asset transfer
+int axfer
+==
+assert
+
+load 0
+int 3
++
+// The last transaction must be a payment transfer
+//FIXME make sure it goes to right place!
+gtxns TypeEnum
+int pay
+==
 assert
 
 int 0 // Escrow account containing order
@@ -269,31 +294,58 @@ txn OnCompletion
 int CloseOut
 ==
 bz fail2
-// Must be three transacitons
+
 global GroupSize
 int 4
 ==
+global GroupSize //group size can be 5 for asset opt-in
+int 5
+==
+||
+assert
+
 // First Transaction must be a call to a stateful contract
 gtxn 0 TypeEnum
 int appl
 ==
-&&
 // The second transaction must be a payment transaction
 gtxn 1 TypeEnum
 int pay
 ==
 &&
-// The third transaction must be an asset transfer
+assert
+
 gtxn 2 TypeEnum
 int axfer
 ==
-&&
-// The fourth transaction must be an payment transfer to original escrow (closeout)
-gtxn 3 TypeEnum
-int pay
+gtxn 2 AssetAmount
+int 0
 ==
 &&
-bz fail2
+gtxn 2 Sender
+gtxn 2 AssetReceiver
+==
+&&
+store 0 //this will store the next transaction offset
+
+load 0
+int 2
++ 
+gtxns TypeEnum //The next transaction must be an asset transfer
+int axfer
+==
+assert
+
+load 0
+int 3
++
+// The last transaction must be a payment transfer
+//FIXME make sure it goes to right place!
+gtxns TypeEnum
+int pay
+==
+assert
+
 int 0 // Escrow account containing order
 txn ApplicationID // Current stateful smart contract
 txna ApplicationArgs 1 // 2nd argument is order number
