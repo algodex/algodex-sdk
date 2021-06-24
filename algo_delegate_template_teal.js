@@ -50,6 +50,7 @@ let delegateTemplate = `#pragma version 3
 //// CLOSEOUT ////////
 /////////////////////
 
+//TODO: add more checks for 3rd transaction 
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
     gtxn 0 CloseRemainderTo
@@ -58,8 +59,13 @@ let delegateTemplate = `#pragma version 3
     gtxn 1 CloseRemainderTo
     addr <contractWriterAddr> // contractWriterAddr
     ==
+    &&
+    gtxn 2 Sender // proof the close is coming from sender
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
     global GroupSize
-    int 2
+    int 3
     ==
     &&
     gtxn 0 TypeEnum
