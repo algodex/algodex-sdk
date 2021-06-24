@@ -118,8 +118,7 @@ let delegateTemplate = `#pragma version 3
 //   WITH CLOSEOUT
 /////////////////////////////////
     checkPayWithCloseout:
-    pop
-
+    
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
