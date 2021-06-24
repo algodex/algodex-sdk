@@ -255,16 +255,32 @@ const AlgodexInternalApi = {
                 ...params
             };
 
+            let accountInfo = await this.getAccountInfo(takerAddr);
+            let takerAlreadyOptedIntoASA = false;
+            if (accountInfo != null && accountInfo['assets'] != null
+                && accountInfo['assets'].length > 0) {
+                for (let i = 0; i < accountInfo['assets'].length; i++) {
+                    if (accountInfo['assets'][i]['asset-id'] === assetId) {
+                        takerAlreadyOptedIntoASA = true;
+                        break;
+                    }
+                }
+            }
+
             // asset opt-in transfer
             // FIXME: only if necessary
-            let transaction2b = {
-                type: "axfer",
-                from: takerAddr,
-                to: takerAddr,
-                amount: 0,
-                assetIndex: assetId,
-                ...params
-            };
+            let transaction2b = null;
+
+            if (!takerAlreadyOptedIntoASA) {
+                transaction2b = {
+                    type: "axfer",
+                    from: takerAddr,
+                    to: takerAddr,
+                    amount: 0,
+                    assetIndex: assetId,
+                    ...params
+                };
+            }
 
             // Make asset xfer
 
@@ -290,9 +306,24 @@ const AlgodexInternalApi = {
             }
             
             myAlgoWalletUtil.setTransactionFee(fixedTxn2);
-            myAlgoWalletUtil.setTransactionFee(transaction2b);
 
-            let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
+            if (transaction2b != null) {
+                myAlgoWalletUtil.setTransactionFee(transaction2b);
+            }
+
+            let txns = [];
+            txns.push(transaction1);
+            txns.push(fixedTxn2);
+            if (transaction2b != null) {
+                console.log("adding transaction2b due to asset not being opted in");
+                txns.push(transaction2b);
+            } else {
+                console.log("NOT adding transaction2b because already opted");
+            }
+            txns.push(transaction3);
+            txns.push(transaction4);
+
+            //let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
            
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
