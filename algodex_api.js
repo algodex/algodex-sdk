@@ -523,7 +523,7 @@ const AlgodexApi = {
         }).then(() => {
             
             console.log("here4");
-            alert("Order Opened: " + generatedOrderEntry.slice(59));
+            console.log("Order Opened: " + generatedOrderEntry.slice(59));
         }).catch((err) => {
                 alert("error sending transaction");
                 console.log("has error!!");
@@ -693,7 +693,7 @@ const AlgodexApi = {
             return promiseTX1;
         }).then(() => {
             console.log("here4");
-            alert("Order Opened: " + generatedOrderEntry.slice(59));
+            console.log("Order Opened: " + generatedOrderEntry.slice(59));
         }).catch((err) => {
                 alert("error sending transaction");
                 console.log("has error!!");
