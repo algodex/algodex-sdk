@@ -8,7 +8,7 @@ if (typeof window != 'undefined') {
   MyAlgo = require('@randlabs/myalgo-connect');
 }
 
-//const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
+const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 require('./algo_delegate_template_teal.js');
 require('./ASA_delegate_template_teal.js');
 //require('./dex_teal.js');

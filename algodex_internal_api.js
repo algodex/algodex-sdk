@@ -3,13 +3,14 @@ const algosdk = require('algosdk');
 
 const bigDecimal = require('js-big-decimal');
 const TextEncoder = require("text-encoding").TextEncoder;
+const axios = require('axios').default;
 
 let MyAlgo = null;
 if (typeof window != 'undefined') {
     MyAlgo = require('@randlabs/myalgo-connect');
 }
 
-//const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
+const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 //require('./dex_teal.js');
@@ -752,11 +753,16 @@ const AlgodexInternalApi = {
         return;
     },
     getAccountInfo : async function getAccountInfo(accountAddr) {
-        let result = await m.request({
-                method: "GET",
-                url: "https://testnet.algoexplorerapi.io/v2/accounts/"+accountAddr,
-        });
-        return result;
+        // "https://testnet.algoexplorerapi.io/v2/accounts/"+accountAddr
+        try {
+            const response = await axios.get(constants.TEST_ALGOD_SERVER + "/v2/accounts/"+accountAddr);
+            console.log(response);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw new Error("getAccountInfo failed: ", error);
+        }
+      
     },
     // close order 
     closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig) {
