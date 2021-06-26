@@ -437,7 +437,7 @@ const AlgodexApi = {
 
         if (alreadyOptedIn) {
             // already opted in so only send this single transaction and return
-            signedTxn =  await myAlgoWallet.signTransaction(txn);
+            let signedTxn =  await myAlgoWallet.signTransaction(txn);
             console.log("signed txn: " + signedTxn.txID);
             // .then((signedTxn) => {
             console.log("sending trans: " + signedTxn.txID);
@@ -575,11 +575,11 @@ const AlgodexApi = {
 
         if (alreadyOptedIn) {
             // already opted in so only send this single transaction and return
-            signedTxn =  await myAlgoWallet.signTransaction(assetSendTrans);
+            let signedTxn =  await myAlgoWallet.signTransaction(assetSendTrans);
             console.log("signed txn: " + signedTxn.txID);
             // .then((signedTxn) => {
             console.log("sending trans: " + signedTxn.txID);
-            txn = await algodClient.sendRawTransaction(signedTxn.blob).do();
+            let txn = await algodClient.sendRawTransaction(signedTxn.blob).do();
             await this.waitForConfirmation(algodClient, txn.txId);
             return;
         }
