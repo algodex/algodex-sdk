@@ -15,10 +15,15 @@ let delegateTemplate = `#pragma version 3
     global GroupSize
     int 2
     ==
+    global GroupSize
+    int 3
+    ==
+    ||
+    assert
+    
     txn TypeEnum
     int appl
     ==
-    &&
     txn Amount
     int 0
     ==

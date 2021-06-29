@@ -5,7 +5,7 @@ const algosdk = require('algosdk');
 let MyAlgo = null;
 
 if (typeof window != 'undefined') {
-  MyAlgo = require('@randlabs/myalgo-connect');
+    MyAlgo = require('@randlabs/myalgo-connect');
 }
 
 const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
@@ -17,6 +17,8 @@ const dexInternal = require('./algodex_internal_api.js');
 
 if (MyAlgo != null) {
     myAlgoWallet = new MyAlgo();
+    console.log("printing my algo wallet");
+    console.log(myAlgoWallet)
 }
 
 const constants = require('./constants.js');
@@ -407,19 +409,36 @@ const AlgodexApi = {
         console.log("address is: " + lsig.address());
         console.log("here111 generatedOrderEntry " + generatedOrderEntry);
         // check if the lsig has already opted in
-        let accountInfo = await this.getAccountInfo(lsig.address());
-        let alreadyOptedIn = false;
-        if (accountInfo != null && accountInfo['apps-local-state'] != null
-                && accountInfo['apps-local-state'].length > 0
-                && accountInfo['apps-local-state'][0].id == ALGO_ESCROW_ORDER_BOOK_ID) {
-            alreadyOptedIn = true;
+        let alreadyOptedIntoOrderbook = false;
+        
+        let makerAccountInfo = await this.getAccountInfo(makerWalletAddr);
+        let makerAlreadyOptedIntoASA = false;
+        if (makerAccountInfo != null && makerAccountInfo['assets'] != null
+            && makerAccountInfo['assets'].length > 0) {
+            for (let i = 0; i < makerAccountInfo['assets'].length; i++) {
+                if (makerAccountInfo['assets'][i]['asset-id'] === assetId) {
+                    makerAlreadyOptedIntoASA = true;
+                    break;
+                }
+            }
         }
 
-        if (alreadyOptedIn == false && algoOrderSize < constants.MIN_ASA_ESCROW_BALANCE) {
+        let escrowAccountInfo = await this.getAccountInfo(lsig.address());
+
+        if (escrowAccountInfo != null && escrowAccountInfo['apps-local-state'] != null
+                && escrowAccountInfo['apps-local-state'].length > 0
+                && escrowAccountInfo['apps-local-state'][0].id == ALGO_ESCROW_ORDER_BOOK_ID) {
+            alreadyOptedIntoOrderbook = true;
+        }
+
+        console.log({makerAlreadyOptedIntoASA});
+        console.log({alreadyOptedIntoOrderbook});
+
+        if (alreadyOptedIntoOrderbook == false && algoOrderSize < constants.MIN_ASA_ESCROW_BALANCE) {
             algoOrderSize = constants.MIN_ASA_ESCROW_BALANCE;
         }
-        console.log("alreadyOptedIn: " + alreadyOptedIn);
-        console.log("acct info:" + JSON.stringify(accountInfo));
+        console.log("alreadyOptedIn: " + alreadyOptedIntoOrderbook);
+        console.log("acct info:" + JSON.stringify(escrowAccountInfo));
 
         let params = await algodClient.getTransactionParams().do();
         console.log("sending trans to: " + lsig.address());
@@ -433,18 +452,15 @@ const AlgodexApi = {
             genesisHash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
             genesisID: "testnet-v1.0"
         };
-        myAlgoWalletUtil.setTransactionFee(txn);
 
-        if (alreadyOptedIn) {
-            // already opted in so only send this single transaction and return
-            let signedTxn =  await myAlgoWallet.signTransaction(txn);
-            console.log("signed txn: " + signedTxn.txID);
-            // .then((signedTxn) => {
-            console.log("sending trans: " + signedTxn.txID);
-            txn = await algodClient.sendRawTransaction(signedTxn.blob).do();
-            await this.waitForConfirmation(algodClient, txn.txId);
-            return;
-        }
+        let outerTxns = [];
+
+        outerTxns.push({
+            unsignedTxn: txn,
+            needsUserSig: true
+        });
+
+        myAlgoWalletUtil.setTransactionFee(txn);
 
         console.log("typeof: " + typeof txn.txId);
         console.log("the val: " + txn.txId);
@@ -463,39 +479,89 @@ const AlgodexApi = {
 
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
 
-        // add owners address as arg
-        //ownersAddr = makerWalletAddr;
-        //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
-
-        //appArgs.push(enc.encode(makerWalletAddr));
         appArgs.push(algosdk.decodeAddress(makerWalletAddr).publicKey);
 
         //console.log("owners bit addr: " + ownersBitAddr);
         console.log("herezzz_888");
         console.log(appArgs.length);
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn");
+        let logSigTrans = null;
 
-        let txns = [txn, logSigTrans];
+        if (!alreadyOptedIntoOrderbook) {
+            logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn");
+            outerTxns.push({
+                unsignedTxn: logSigTrans,
+                needsUserSig: false
+            });
+        }
+        // asset opt-in transfer
+        let assetOptInTxn = null;
+
+        if (!makerAlreadyOptedIntoASA) {
+            assetOptInTxn = {
+                type: "axfer",
+                from: makerWalletAddr,
+                to: makerWalletAddr,
+                amount: 0,
+                assetIndex: assetId,
+                ...params
+            };
+            outerTxns.push({
+                unsignedTxn: assetOptInTxn,
+                needsUserSig: true
+            });
+        }
+
+        let txns = [];
+        let txnsForSig = [];
+        for (let i = 0; i < outerTxns.length; i++) {
+            txns.push(outerTxns[i].unsignedTxn);
+            if (outerTxns[i].needsUserSig == true) {
+                txnsForSig.push(outerTxns[i].unsignedTxn);
+            }
+        }
+
         const groupID = algosdk.computeGroupID(txns)
         for (let i = 0; i < txns.length; i++) {
             txns[i].group = groupID;
         }
         
         // first put the algos into the account
-        let signedTxn =  await myAlgoWallet.signTransaction(txn);
-        console.log("signed txn: " + signedTxn.txID);
+        let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
+        if (Array.isArray(signedTxnsFromUser)) {
+            let userSigIndex = 0;
+            for (let i = 0; i < outerTxns.length; i++) {
+                if (outerTxns[i].needsUserSig) {
+                    outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
+                    userSigIndex++;
+                }
+            }
+        } else {
+           for (let i = 0; i < outerTxns.length; i++) {
+                if (outerTxns[i].needsUserSig) {
+                    outerTxns[i].signedTxn = signedTxnsFromUser.blob;
+                    break;
+                }
+            }
+        }
             // .then((signedTxn) => {
 
         // register order into the order book
-        let signedTxn2 = await algosdk.signLogicSigTransactionObject(logSigTrans, lsig);
-        let txId = signedTxn.txID;
-        //console.log("signedTxn:" + JSON.stringify(signedTxn)); //zz
-        console.log("Signed transaction with txID: %s", txId);
-        console.log("sending trans: " + signedTxn2.txID);
+        if (logSigTrans != null) {
+            let signedLsig = await algosdk.signLogicSigTransactionObject(logSigTrans, lsig);
+            for (let i = 0; i < outerTxns.length; i++) {
+                if (!outerTxns[i].needsUserSig) {
+                    outerTxns[i].signedTxn = signedLsig.blob;
+                    break;
+                }
+            }
+        }
         
         let signed = [];
-        signed.push(signedTxn.blob);
-        signed.push(signedTxn2.blob);
+
+        for (let i = 0; i < outerTxns.length; i++) {
+            signed.push(outerTxns[i].signedTxn);
+        }
+        
         console.log("printing transaction debug");
         this.printTransactionDebug(signed);
         let groupTx = null;
