@@ -3,7 +3,9 @@ const constants = require('./constants.js');
 const axios = require('axios').default;
 
 exports.connectToWallet = async function(txn) {
-    try {
+    try {  
+        console.log("connecting...");
+        console.log(myAlgoWallet);
         accounts = await myAlgoWallet.connect();
 
         const addresses = accounts.map(account => account.address);

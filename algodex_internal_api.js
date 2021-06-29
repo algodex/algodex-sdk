@@ -18,8 +18,8 @@ const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 //FIXME - import below from algodex_api.js
 
 let myAlgoWallet = null;
-
 if (MyAlgo != null) {
+    console.log("pointing to bridge URL");
     myAlgoWallet = new MyAlgo();
 }
 const constants = require('./constants.js');
@@ -199,6 +199,11 @@ const AlgodexInternalApi = {
 
             escrowAsaAmount = parseInt(escrowAsaAmount.getValue());
             algoTradeAmount = parseInt(algoTradeAmount.getValue());
+
+            if (escrowAsaAmount == 0) {
+                console.log("here77zz escrowAsaAmount is 0. returning early! nothing to do");
+                return;
+            }
             //FIXME - need more logic to transact correct price in case balances dont match order balances
             console.log("closeoutFromASABalance: " + closeoutFromASABalance);
 
@@ -269,7 +274,6 @@ const AlgodexInternalApi = {
             }
 
             // asset opt-in transfer
-            // FIXME: only if necessary
             let transaction2b = null;
 
             if (!takerAlreadyOptedIntoASA) {
@@ -492,6 +496,10 @@ const AlgodexInternalApi = {
             algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
             asaAmount = parseInt(asaAmount.getValue());
 
+            if (algoAmountReceiving == 0) {
+                console.log("algoAmountReceiving == 0. Nothing to do, so return early.");
+                return;
+            }
             takerCombOrderBalance['algoBalance'] -= txnFee;
             takerCombOrderBalance['algoBalance'] -= algoAmountReceiving;
             takerCombOrderBalance['asaBalance'] -= asaAmount;
