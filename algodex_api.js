@@ -150,7 +150,8 @@ const AlgodexApi = {
     },
     createOrderBookEntryObj : function createOrderBookEntryObj (blockChainOrderVal, price, n, d, min, escrowAddr, 
                                             algoBalance, asaBalance, escrowOrderType, isASAEscrow, orderCreatorAddr, assetId) {
-        return {
+        const orderEntry = 
+            {
                 orderEntry: blockChainOrderVal, // this should match what's in the blockchain
                 price: price, // d/n
                 n: n,
@@ -164,6 +165,7 @@ const AlgodexApi = {
                 orderCreatorAddr: orderCreatorAddr,
                 assetId: assetId
             };
+        return orderEntry;
     },
 
     executeOrderAsTaker : async function executeOrderAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
@@ -177,9 +179,24 @@ const AlgodexApi = {
         let execAccountInfo = await this.getAccountInfo(takerWalletAddr);
         let alreadyOptedIn = false;
         console.log("herezz56");
+        console.log({execAccountInfo});
+
+        let takerMinBalance = 0;
+
+        takerMinBalance += 100000 * (execAccountInfo['created-apps'].length); // Apps
+        takerMinBalance += (25000+3500) * execAccountInfo['apps-total-schema']['num-uint']; // Total Ints
+        takerMinBalance += (25000+25000) * execAccountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
+        takerMinBalance += execAccountInfo['assets'].length * 100000;
+        takerMinBalance += 1000000;
+
+        console.log({min_bal: takerMinBalance});
 
         let walletAssetAmount = 0;
-        const walletAlgoAmount = execAccountInfo['amount'];
+        const walletAlgoAmount = execAccountInfo['amount'] - takerMinBalance - (0.004 * 1000000);
+        if (walletAlgoAmount <= 0) {
+            console.log("not enough to trade!! returning early");
+            return;
+        }
 
         if (execAccountInfo != null && execAccountInfo['assets'] != null
             && execAccountInfo['assets'].length > 0) {
@@ -212,14 +229,14 @@ const AlgodexApi = {
             orderAlgoBalance = orderAlgoAmount;
         }
 
-
         const takerOrderBalance = {
             'asaBalance': orderAssetBalance,
             'algoBalance': orderAlgoBalance,
             'walletAlgoBalance': walletAlgoAmount,
             'walletASABalance': walletAssetAmount,
             'limitPrice': limitPrice,
-            'takerAddr': takerWalletAddr
+            'takerAddr': takerWalletAddr,
+            'walletMinBalance': takerMinBalance
         };
         console.log("initial taker orderbalance: ", this.dumpVar(takerOrderBalance));
 
