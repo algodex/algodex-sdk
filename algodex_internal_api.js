@@ -451,10 +451,6 @@ const AlgodexInternalApi = {
             
             const price = new bigDecimal(d).divide(new bigDecimal(n));
             
-            //if (escrowAlgoAmount + txnFee > currentEscrowBalance) {
-            //    escrowAlgoAmount = currentEscrowBalance - txnFee;
-            //    console.log("here1b reducing algoAmount to " + escrowAlgoAmount + " due to current escrow balance " + currentEscrowBalance);
-            //}
 
             if (takerCombOrderBalance['algoBalance'] < algoAmountReceiving + txnFee) {
                 algoAmountReceiving = Math.floor(takerCombOrderBalance['algoBalance']);

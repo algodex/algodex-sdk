@@ -19,11 +19,10 @@ let delegateTemplate = `#pragma version 3
     int 3
     ==
     ||
-    assert
-    
     txn TypeEnum
     int appl
     ==
+    &&
     txn Amount
     int 0
     ==
