@@ -267,22 +267,19 @@ execute_with_closeout:
 txn OnCompletion
 int CloseOut
 ==
-// Must be three transacitons
-global GroupSize
+global GroupSize // Must be three transactions
 int 3
 ==
-// First Transaction must be a call to a stateful contract
-gtxn 0 TypeEnum
+&&
+gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
 int appl
 ==
 &&
-// The second transaction must be a payment transaction
-gtxn 1 TypeEnum
+gtxn 1 TypeEnum // The second transaction must be a payment transaction
 int pay
 ==
 &&
-// The third transaction must be an asset transfer
-gtxn 2 TypeEnum
+gtxn 2 TypeEnum // The third transaction must be an asset transfer
 int axfer
 ==
 &&

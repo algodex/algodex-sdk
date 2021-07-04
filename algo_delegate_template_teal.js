@@ -210,12 +210,18 @@ let delegateTemplate = `#pragma version 3
 // PAY (ORDER EXECUTION)
 //   WITH CLOSEOUT
 /////////////////////////////////
+    // Must be four transactions
+    // FIRST TXN - transaction must be a call to a stateful contract
+    // SECOND TXN - transaction must be a payment transaction
+    // THIRD TXN - transaction must be an asset transfer
+    // FOURTH TXN - transaction must be a payment transaction to refund escrow fees
+
     checkPayWithCloseout:
     
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
-    bnz partialPayTxn // Jump to here if close remainder is a zero address
+    bnz partialPayTxn // Jump to here if close remainder is a zero address. This is *not* a close-out
 
     gtxn 0 OnCompletion // The application call must be
     int CloseOut  // A general application call or a closeout
