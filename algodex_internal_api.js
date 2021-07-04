@@ -5,6 +5,10 @@ const bigDecimal = require('js-big-decimal');
 const TextEncoder = require("text-encoding").TextEncoder;
 const axios = require('axios').default;
 
+const LESS_THAN = -1;
+const EQUAL = 0;
+const GREATER_THAN = 1;
+
 let MyAlgo = null;
 if (typeof window != 'undefined') {
     MyAlgo = require('@randlabs/myalgo-connect');
@@ -26,6 +30,7 @@ const constants = require('./constants.js');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
+
 
 const AlgodexInternalApi = {
     doAlertInternal : function doAlertInternal() {
@@ -144,15 +149,15 @@ const AlgodexInternalApi = {
                 algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
             }
             //FIXME - check if lower than order balance
-            if (algoTradeAmount.compareTo(new bigDecimal(takerCombOrderBalance['algoBalance'])) == 1
-                 && algoTradeAmount.compareTo(bDecOne) == 1
-                 && algoTradeAmount.subtract(new bigDecimal(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == 1) {
+            if (algoTradeAmount.compareTo(new bigDecimal(takerCombOrderBalance['algoBalance'])) == GREATER_THAN
+                 && algoTradeAmount.compareTo(bDecOne) == GREATER_THAN
+                 && algoTradeAmount.subtract(new bigDecimal(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == GREATER_THAN) {
 
                 console.log("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount.getValue()); 
                 algoTradeAmount = new bigDecimal(Math.floor(takerCombOrderBalance['algoBalance']));
                 escrowAsaTradeAmount = algoTradeAmount.divide(price);
                 console.log("checking max: " + escrowAsaTradeAmount.getValue() + " " + 1 );
-                if (!escrowAsaTradeAmount.compareTo(bDecOne)) { //don't allow 0 value
+                if (escrowAsaTradeAmount.compareTo(bDecOne) == LESS_THAN) { //don't allow 0 value
                     escrowAsaTradeAmount = bDecOne;
                 }
                 console.log("here999b reduced to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
@@ -195,7 +200,7 @@ const AlgodexInternalApi = {
             //    console.log("asa escrow here9991b balance too low, returning early!");
             //    return; //no balance left to use for buying ASAs
             //}
-            if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(escrowAsaTradeAmount) == -1) {
+            if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(escrowAsaTradeAmount) == LESS_THAN) {
                 console.log("asa escrow here9991 takerCombOrderBalance['asaBalance'] < escrowAsaAmount",
                         takerCombOrderBalance['asaBalance'], escrowAsaTradeAmount.getValue());
                 escrowAsaTradeAmount = new bigDecimal(takerCombOrderBalance['asaBalance']);
@@ -206,7 +211,7 @@ const AlgodexInternalApi = {
             }
 
             if (new bigDecimal(currentASABalance).subtract(escrowAsaTradeAmount)
-                    .compareTo(new bigDecimal(min_asa_balance)) == 1) {
+                    .compareTo(new bigDecimal(min_asa_balance)) == GREATER_THAN) {
 
                 console.log("asa escrow here9992 (currentASABalance - escrowAsaAmount) > min_asa_balance",
                         currentASABalance, escrowAsaTradeAmount.getValue(), min_asa_balance);
@@ -488,10 +493,10 @@ const AlgodexInternalApi = {
                 console.log("recalculating receiving amount to: " + algoAmountReceiving.getValue());
             }
 
-            if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(asaAmount) == -1) {
+            if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(asaAmount) == LESS_THAN) {
                 console.log("here8");
                 console.log("here8 reducing asa amount due to taker balance: ", asaAmount.getValue());
-                asaAmount = takerCombOrderBalance['asaBalance'];
+                asaAmount = new bigDecimal(takerCombOrderBalance['asaBalance']);
                 console.log("here8 asa amount is now: ", asaAmount.getValue());
 
                 algoAmountReceiving = price.multiply(asaAmount);
