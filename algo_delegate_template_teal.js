@@ -109,6 +109,9 @@ let delegateTemplate = `#pragma version 3
 /////////////////////
 
 //TODO: add more checks for 3rd transaction 
+    // FIRST  TXN - application call to order book contract for closeout
+    // SECOND TXN - close out call
+    // THIRD  TXN - send transaction for proof that closeout sender owns the escrow
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
     gtxn 0 CloseRemainderTo
@@ -116,6 +119,18 @@ let delegateTemplate = `#pragma version 3
     ==
     gtxn 1 CloseRemainderTo
     addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
+    gtxn 2 CloseRemainderTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 0 Sender // first transaction must come from the escrow
+    txn Sender
+    ==
+    &&
+    gtxn 1 Sender // second transaction must come from the escrow
+    txn Sender
     ==
     &&
     gtxn 2 Sender // proof the close is coming from sender
@@ -134,6 +149,10 @@ let delegateTemplate = `#pragma version 3
     int pay
     ==
     &&
+    gtxn 2 TypeEnum
+    int pay
+    ==
+    &&
     gtxn 0 Amount
     int 0 //Check all the funds are being sent to the CloseRemainderTo address
     ==
@@ -142,7 +161,19 @@ let delegateTemplate = `#pragma version 3
     int 0 //Check all the funds are being sent to the CloseRemainderTo address
     ==
     &&
+    gtxn 2 Amount
+    int 0 // This is just a proof so amount should be 0
+    ==
+    &&
     gtxn 0 RekeyTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 1 RekeyTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 2 RekeyTo
     global ZeroAddress
     ==
     &&
@@ -150,19 +181,23 @@ let delegateTemplate = `#pragma version 3
     int CloseOut //Check App Call OnCompletion is CloseOut (OptOut)
     ==
     &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
     gtxn 1 OnCompletion
-    int NoOp //Check App Call OnCompletion is CloseOut (OptOut)
+    int NoOp //pay transaction
     ==
     && 
+    gtxn 2 OnCompletion
+    int NoOp //proof pay transaction
+    ==
+    &&
     gtxn 0 AssetCloseTo
     global ZeroAddress // should not matter, but add just in case
     ==
     &&
     gtxn 1 AssetCloseTo
+    global ZeroAddress  // should not matter, but add just in case
+    ==
+    &&
+    gtxn 2 AssetCloseTo
     global ZeroAddress  // should not matter, but add just in case
     ==
     &&
