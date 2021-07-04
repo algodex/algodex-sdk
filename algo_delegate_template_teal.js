@@ -114,9 +114,13 @@ let delegateTemplate = `#pragma version 3
     // THIRD  TXN - send transaction for proof that closeout sender owns the escrow
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
+    global GroupSize
+    int 3
+    ==
     gtxn 0 CloseRemainderTo
     global ZeroAddress // This is an app call so should be set to 0 address
     ==
+    &&
     gtxn 1 CloseRemainderTo
     addr <contractWriterAddr> // contractWriterAddr
     ==
@@ -135,10 +139,6 @@ let delegateTemplate = `#pragma version 3
     &&
     gtxn 2 Sender // proof the close is coming from sender
     addr <contractWriterAddr> // contractWriterAddr
-    ==
-    &&
-    global GroupSize
-    int 3
     ==
     &&
     gtxn 0 TypeEnum
