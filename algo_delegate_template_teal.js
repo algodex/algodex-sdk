@@ -12,6 +12,9 @@ let delegateTemplate = `#pragma version 3
 /// ORDER BOOK OPT IN & REGISTRATION
 //////////////////////////
     // check for optin transaction or orderbook registration transaction
+    // FIRST TXN  - Pay from order creator to escrow account
+    // SECOND TXN - Stateful app opt-in to order book
+    // THIRD TXN  - Possible ASA opt-in for the order creator's original wallet account. Doesn't need checks
     global GroupSize
     int 2
     ==
@@ -43,8 +46,59 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
-    bz notOptInOrOrderReg 
-    // If the above are not true, this is a closeout (without order execution) or pay transaction
+    txn ApplicationID
+    int <orderBookId> // stateful contract app id. orderBookId
+    ==
+    &&
+    gtxn 0 TypeEnum
+    int pay
+    ==
+    &&
+    gtxn 0 Receiver // recipient of pay
+    txn Sender // escrow account
+    ==
+    &&
+    store 0
+
+    global GroupSize // Third transaction is an optional asset opt-in
+    int 3
+    <
+    store 1
+
+    load 1
+    bnz notThreeTxns
+
+    gtxn 2 TypeEnum// Third transaction. 
+    int axfer
+    ==
+    gtxn 2 AssetAmount
+    int 0
+    ==
+    &&
+    gtxn 2 Sender
+    addr <contractWriterAddr> // contractWriterAddr (order creator)
+    ==
+    &&
+    gtxn 2 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 2 OnCompletion
+    int NoOp
+    ==
+    &&
+    gtxn 2 RekeyTo
+    global ZeroAddress
+    ==
+    &&
+    store 1
+
+    notThreeTxns:
+    load 0
+    load 1
+    &&
+    bz notOptInOrOrderReg // Jump if either is 0
+    // If either of the above are not true, this is a closeout (without order execution) or pay transaction
     // Otherwise it is Opt-in so return early
     int 1
     
