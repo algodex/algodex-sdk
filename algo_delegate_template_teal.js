@@ -251,6 +251,18 @@ let delegateTemplate = `#pragma version 3
     int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
+    gtxn 1 Sender // Sender of the pay transaction must be this escrow
+    txn Sender
+    ==
+    &&
+    gtxn 1 Receiver // Receiver of the pay transaction from this escrow
+    gtxn 2 Sender  // Sender of the asset transfer (person trading)
+    ==
+    &&
+    gtxn 2 AssetReceiver // Receiver of asset transfer
+    addr <contractWriterAddr> // contractWriterAddr must receive the asset
+    ==
+    &&
     gtxn 0 RekeyTo // verify no transaction contains a rekey
     global ZeroAddress 
     ==
@@ -299,7 +311,7 @@ let delegateTemplate = `#pragma version 3
     // FIRST TXN - transaction must be a call to a stateful contract
     // SECOND TXN - transaction must be a payment transaction
     // THIRD TXN - transaction must be an asset transfer
-    // FOURTH TXN - fee refund transaction
+    // FOURTH TXN - fee refund transaction (pay transaction)
 
     partialPayTxn:
 
@@ -314,44 +326,51 @@ let delegateTemplate = `#pragma version 3
     int 4
     ==
     &&
-    // The first transaction must be 
-    // an ApplicationCall (ie call stateful smart contract)
-    gtxn 0 TypeEnum
+    gtxn 0 TypeEnum // The first transaction must be an ApplicationCall (ie call stateful smart contract)
     int appl
     ==
     &&
-    // The second transaction must be 
-    // a payment tx 
-    gtxn 1 TypeEnum
+    gtxn 1 TypeEnum // The second transaction must be a payment tx 
     int pay
     ==
     &&
-    // The third transaction must be 
-    // an asset xfer tx 
-    gtxn 2 TypeEnum
+    gtxn 2 TypeEnum // The third transaction must be an asset xfer tx 
     int axfer
     ==
     &&
-    // The fourth transaction must be 
-    // a payment tx for transaction fee reimbursement
-    gtxn 3 TypeEnum //FIXME check amount
+    gtxn 3 TypeEnum // The fourth transaction must be a payment tx for transaction fee reimbursement //FIXME check amount
     int pay
+    ==
+    &&
+    gtxn 3 Amount // Amount can be 2000 or higher (we will take more money if they give it)
+    int 2000
+    >=
+    &&
+    gtxn 3 Receiver // Fee refund recipient
+    txn Sender // The escrow address
     ==
     &&
     txn Fee
     int 1000
     <=
     &&
-    // The specific App ID must be called
-    // This should be changed after creation
-    // This links this contract to the stateful contract
-    gtxn 0 ApplicationID
+    gtxn 0 ApplicationID // The specific App ID for the Algo escrow order book must be called
     int <orderBookId> //stateful contract app id orderBookId
     ==
     &&
-    // verify no transaction
-    // contains a rekey
-    gtxn 0 RekeyTo
+    gtxn 1 Sender // Sender of the pay transaction must be this escrow
+    txn Sender
+    ==
+    &&
+    gtxn 1 Receiver // Receiver of the pay transaction from this escrow
+    gtxn 2 Sender  // Sender of the asset transfer (person trading)
+    ==
+    &&
+    gtxn 2 AssetReceiver // Receiver of asset transfer
+    addr <contractWriterAddr> // contractWriterAddr must receive the asset
+    ==
+    &&
+    gtxn 0 RekeyTo // verify no transaction contains a rekey
     global ZeroAddress
     ==
     &&
@@ -363,11 +382,23 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
+    gtxn 3 RekeyTo
+    global ZeroAddress
+    ==
+    &&
     gtxn 0 CloseRemainderTo
     global ZeroAddress
     ==
     && 
+    gtxn 1 CloseRemainderTo
+    global ZeroAddress
+    ==
+    && 
     gtxn 2 CloseRemainderTo
+    global ZeroAddress
+    ==
+    && 
+    gtxn 3 CloseRemainderTo
     global ZeroAddress
     ==
     && 
