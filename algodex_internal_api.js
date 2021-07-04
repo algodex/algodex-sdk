@@ -196,10 +196,6 @@ const AlgodexInternalApi = {
             } //FIXME: factor in fees
 
 
-           // if (takerCombOrderBalance['asaBalance'] < 1 || takerCombOrderBalance['algoBalance'] < executionFees) {
-            //    console.log("asa escrow here9991b balance too low, returning early!");
-            //    return; //no balance left to use for buying ASAs
-            //}
             if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(escrowAsaTradeAmount) == LESS_THAN) {
                 console.log("asa escrow here9991 takerCombOrderBalance['asaBalance'] < escrowAsaAmount",
                         takerCombOrderBalance['asaBalance'], escrowAsaTradeAmount.getValue());
