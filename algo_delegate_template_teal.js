@@ -210,11 +210,10 @@ let delegateTemplate = `#pragma version 3
 // PAY (ORDER EXECUTION)
 //   WITH CLOSEOUT
 /////////////////////////////////
-    // Must be four transactions
+    // Must be three transactions
     // FIRST TXN - transaction must be a call to a stateful contract
     // SECOND TXN - transaction must be a payment transaction
     // THIRD TXN - transaction must be an asset transfer
-    // FOURTH TXN - transaction must be a payment transaction to refund escrow fees
 
     checkPayWithCloseout:
     
@@ -223,34 +222,24 @@ let delegateTemplate = `#pragma version 3
     ==
     bnz partialPayTxn // Jump to here if close remainder is a zero address. This is *not* a close-out
 
+    // We should be here only if this is a full execution with closeout
+
     gtxn 0 OnCompletion // The application call must be
     int CloseOut  // A general application call or a closeout
     ==
-    gtxn 1 CloseRemainderTo
-    addr <contractWriterAddr> // contractWriterAddr
-    ==
-    &&
-    // this delegate is
-    // only used on an execute order
-    global GroupSize
+    global GroupSize // this delegate is only used on an execute order
     int 3
     ==
     &&
-    // The first transaction must be 
-    // an ApplicationCall (ie call stateful smart contract)
-    gtxn 0 TypeEnum
+    gtxn 0 TypeEnum // The first transaction must be an Application Call (i.e. call stateful smart contract)
     int appl
     ==
     &&
-    // The second transaction must be 
-    // a payment tx 
-    gtxn 1 TypeEnum
+    gtxn 1 TypeEnum // The second transaction must be a payment tx
     int pay
     ==
     &&
-    // The third transaction must be 
-    // an asset xfer tx 
-    gtxn 2 TypeEnum
+    gtxn 2 TypeEnum // The third transaction must be an asset xfer tx 
     int axfer
     ==
     &&
@@ -258,17 +247,12 @@ let delegateTemplate = `#pragma version 3
     int 1000
     <=
     &&
-    // The specific App ID must be called
-    // This should be changed after creation
-    // This links this contract to the stateful contract
-    gtxn 0 ApplicationID
+    gtxn 0 ApplicationID // The specific Order Book App ID must be called
     int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
-    // verify no transaction
-    // contains a rekey
-    gtxn 0 RekeyTo
-    global ZeroAddress
+    gtxn 0 RekeyTo // verify no transaction contains a rekey
+    global ZeroAddress 
     ==
     &&
     gtxn 1 RekeyTo
@@ -282,7 +266,11 @@ let delegateTemplate = `#pragma version 3
     gtxn 0 CloseRemainderTo
     global ZeroAddress
     ==
-    && 
+    &&
+    gtxn 1 CloseRemainderTo
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
     gtxn 2 CloseRemainderTo
     global ZeroAddress
     ==
@@ -299,59 +287,20 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
-    bz fail
-    // min algos spent
-    gtxn 1 Amount
-    int <min>
-    >=
-    // asset id to trade for
-    int <assetid>
-    gtxn 2 XferAsset
-    ==
-    &&
     assert
-    // handle the rate
-    // future sell order (not in this contract)
-    // gtxn[1].Amount * N >= gtxn[2].AssetAmount * D
-    // BUY ORDER
-    // gtxn[2].AssetAmount * D >= gtxn[1].Amount * N
-    // N units of the asset per D microAlgos
-    gtxn 2 AssetAmount
-    int <D> // put D value here
-    mulw // AssetAmount * D => (high 64 bits, low 64 bits)
-    store 2 // move aside low 64 bits
-    store 1 // move aside high 64 bits
-    gtxn 1 Amount
-    int <N> // put N value here
-    mulw
-    store 4 // move aside low 64 bits
-    store 3 // move aside high 64 bits
-    // compare high bits to high bits
-    load 1
-    load 3
-    >
-    bnz done
-    load 1
-    load 3
-    ==
-    load 2
-    load 4
-    >=
-    && // high bits are equal and low bits are ok
-    bnz done
-    err
-    done:
-    int 1
-    return
-    fail:
-    int 0 
-    return
 
+    b handle_rate_check
 
 ///////////////////////////////////
 // PAY (ORDER EXECUTION)
 //   PARTIAL EXECUTION
 /////////////////////////////////
+    // Must be four transactions
+    // FIRST TXN - transaction must be a call to a stateful contract
+    // SECOND TXN - transaction must be a payment transaction
+    // THIRD TXN - transaction must be an asset transfer
+    // FOURTH TXN - fee refund transaction
+
     partialPayTxn:
 
     gtxn 0 OnCompletion // The application call must be a NoOp
@@ -361,9 +310,7 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
-    // this delegate is
-    // only used on an execute order
-    global GroupSize
+    global GroupSize // this delegate is only used on an execute order
     int 4
     ==
     &&
@@ -436,7 +383,13 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
+    gtxn 3 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
     assert
+
+    handle_rate_check:
     // min algos spent
     gtxn 1 Amount
     int <min>
