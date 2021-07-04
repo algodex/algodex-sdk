@@ -104,9 +104,9 @@ let delegateTemplate = `#pragma version 3
     
     return
 
-///////////////////////
-//// CLOSEOUT ////////
-/////////////////////
+////////////////////////////////////////
+//// CLOSEOUT (ORDER CANCELLED) ////////
+////////////////////////////////////////
 
 //TODO: add more checks for 3rd transaction 
     // FIRST  TXN - application call to order book contract for closeout
