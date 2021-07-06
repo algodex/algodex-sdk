@@ -90,7 +90,6 @@ const AlgodexInternalApi = {
             let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,orderCreatorAddr, isASAEscrow);
             const enableLsigLogging = constants.DEBUG_SMART_CONTRACT_SOURCE; // escrow logging 
             let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, escrowSource,enableLsigLogging);
-
             if (!isASAEscrow) {
                 console.log("NOT asa escrow");
                 return await this.getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient

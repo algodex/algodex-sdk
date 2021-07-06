@@ -128,8 +128,6 @@ ret_success:
 int 1
 return
 
-
-
 ////////////
 // CLOSE   /
 ////////////

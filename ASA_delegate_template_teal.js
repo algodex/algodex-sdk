@@ -27,23 +27,87 @@ const asaDelegateTemplate = {
     global GroupSize
     int 4
     ==
+    gtxn 0 Receiver
+    txn Sender
+    ==
+    &&
+    gtxn 0 TypeEnum
+    int pay
+    ==
+    &&
     gtxn 1 TypeEnum
     int appl
     ==
     &&
+    gtxn 2 TypeEnum
+    int axfer
+    ==
+    &&
+    gtxn 3 TypeEnum
+    int axfer
+    ==
+    &&
+    //gtxn 0 Amount fixme - amount should be higher than 1 algo
+    //int 1000000
+    //== 
+    //&& 
     gtxn 1 Amount
     int 0
+    ==
+    &&
+    gtxn 2 AssetAmount // this is an optin
+    int 0
+    ==
+    &&
+    gtxn 0 CloseRemainderTo
+    global ZeroAddress
     ==
     &&
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
     &&
+    gtxn 2 CloseRemainderTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 3 CloseRemainderTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 0 OnCompletion
+    int NoOp
+    ==
+    &&
     gtxn 1 OnCompletion
-    int OptIn //Check OnCompletion is OptIn or NoOp
+    int OptIn
+    ==
+    &&
+    gtxn 2 OnCompletion
+    int NoOp
+    ==
+    &&
+    gtxn 3 OnCompletion
+    int NoOp
+    ==
+    &&
+    gtxn 0 AssetCloseTo
+    global ZeroAddress
     ==
     &&
     gtxn 1 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 2 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 3 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 0 RekeyTo
     global ZeroAddress
     ==
     &&
@@ -51,8 +115,16 @@ const asaDelegateTemplate = {
     global ZeroAddress
     ==
     &&
+    gtxn 2 RekeyTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 3 RekeyTo
+    global ZeroAddress
+    ==
+    &&
     bz notOptInOrOrderReg 
-    // If the above are not true, this is a closeout (without order execution) or pay transaction
+    // If the above are not true, this is a closeout (without order execution) or a trade execution
     // Otherwise it is Opt-in so return early
     int 1
     
