@@ -20,10 +20,6 @@ const asaDelegateTemplate = {
 // Third trans.   - asset opt in (from escrow)
 // Fourth trans.  - asset transfer (owner to escrow)
 
-//FIXME - check all transactions!!!
-    // check on completion
-    // check for optin transaction or orderbook registration transaction
-    //FIXME - check other transactions in group
     global GroupSize
     int 4
     ==
@@ -31,8 +27,32 @@ const asaDelegateTemplate = {
     int <orderBookId> //stateful contract app id. orderBookId
     ==
     &&
+    gtxn 0 Sender // escrow address
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
     gtxn 0 Receiver
-    txn Sender
+    txn Sender // escrow address
+    ==
+    &&
+    gtxn 1 Sender
+    txn Sender // escrow address
+    ==
+    &&
+    gtxn 2 Sender
+    txn Sender // escrow address
+    ==
+    &&
+    gtxn 2 Sender
+    gtxn 2 AssetReceiver
+    ==
+    &&
+    txn Sender // escrow address
+    gtxn 3 AssetReceiver
+    ==
+    &&
+    gtxn 3 Sender // escrow address
+    addr <contractWriterAddr> // contractWriterAddr
     ==
     &&
     gtxn 0 TypeEnum
@@ -62,6 +82,10 @@ const asaDelegateTemplate = {
     gtxn 2 AssetAmount // this is an optin
     int 0
     ==
+    &&
+    gtxn 3 AssetAmount // this is an optin
+    int 1 // Needs to put at least one ASA into the account
+    >=
     &&
     gtxn 0 CloseRemainderTo
     global ZeroAddress
