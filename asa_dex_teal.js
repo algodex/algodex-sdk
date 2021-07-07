@@ -52,21 +52,6 @@ int 1
 return
 not_update:
 
-//int OptIn
-//txn OnCompletion
-//==
-//bz not_optin
-//int 1
-//return
-//not_optin:
-
-// the call support
-// either open, close or execute
-// every call has two/three params
-//txn NumAppArgs
-//int 2
-//==
-//bz fail
 txna ApplicationArgs 0
 byte "open"
 ==
@@ -89,10 +74,6 @@ err
 // OPEN //
 //////////
 open:
-// only works for app call
-// IMPORTANT TODO: Check both transactions in group
-// for this open call to prevent
-// bad orders from being entered into the order book
 int OptIn
 txn OnCompletion
 ==
@@ -218,6 +199,7 @@ int pay
 &&
 assert
 
+// Check for asset opt-in
 gtxn 2 TypeEnum
 int axfer
 ==
@@ -404,7 +386,6 @@ return
 fail2:
 int 0
 return
-
 
 `;
 

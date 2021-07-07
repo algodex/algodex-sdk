@@ -27,6 +27,10 @@ const asaDelegateTemplate = {
     global GroupSize
     int 4
     ==
+    gtxn 1 ApplicationID
+    int <orderBookId> //stateful contract app id. orderBookId
+    ==
+    &&
     gtxn 0 Receiver
     txn Sender
     ==
@@ -133,6 +137,11 @@ const asaDelegateTemplate = {
 ///////////////////////
 /// CLOSE ORDER
 //////////////////////
+
+// First trans.   - pay transaction into escrow (owner to escrow)
+// Second trans.  - application opt in (from escrow)
+// Third trans.   - asset opt in (from escrow)
+// Fourth trans.  - asset transfer (owner to escrow)
 
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)

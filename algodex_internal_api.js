@@ -948,8 +948,27 @@ const AlgodexInternalApi = {
     },
 
     printTransactionDebug : function printTransactionDebug(signedTxns) {
-        console.log('TxnGroup to debug:');
-        console.log(Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64'));
+        console.log('zzTxnGroup to debug:');
+        const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
+
+        console.log(b64_encoded);
+        if (constants.DEBUG_SMART_CONTRACT_SOURCE) {
+            (async() => {
+                try {
+                    console.log("trying to inspect");
+                    const response = await axios.post('http://localhost:8000/inspect', {
+                    
+                            msgpack: b64_encoded
+                        },
+                    );
+                    console.log(response.data);
+                    return response.data;
+                } catch (error) {
+                    console.error(error);
+                    throw new Error("inspect failed: ", error);
+                }
+            })();
+        }
     },
 
     buildDelegateTemplateFromArgs : 
