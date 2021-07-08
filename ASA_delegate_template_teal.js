@@ -482,6 +482,12 @@ notCloseOut:
 // EXECUTE WITH CLOSE
 //////////////////////////////////////
 
+// Trans 1            - Application call (from escrow) to execute_with_close
+// Trans 2            - Pay transaction (from buyer/executor to escrow owner)
+// (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
+// Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
+//                            - closes out ASA to escrow owner as well
+// Trans 4 or 5       - Pay transaction to close out to escrow owner as well
     execute_with_closeout:
 
     // The first transaction must be 
@@ -532,6 +538,11 @@ notCloseOut:
     global ZeroAddress
     ==
     &&
+    load 3
+    gtxns RekeyTo
+    global ZeroAddress
+    ==
+    &&
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
@@ -539,6 +550,21 @@ notCloseOut:
     load 2
     gtxns CloseRemainderTo
     global ZeroAddress
+    ==
+    &&
+    load 3
+    gtxns CloseRemainderTo
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
+    load 3
+    gtxns Receiver
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
+    load 3
+    gtxns Sender // escrow account
+    txn Sender // escrow account
     ==
     &&
     gtxn 0 AssetCloseTo
@@ -554,11 +580,7 @@ notCloseOut:
     addr <contractWriterAddr> // contractWriterAddr
     ==
     &&
-    gtxn 2 XferAsset // third transaction must be an asset opt-in or transfer
-    int <assetid> // Put <assetid> here. asset id to trade for
-    ==
-    &&
-    load 2
+    load 2 //3nd or 4th transaction
     gtxns XferAsset
     int <assetid> // Put <assetid> here. asset id to trade for
     ==
