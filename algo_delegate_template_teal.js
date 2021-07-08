@@ -432,8 +432,6 @@ let delegateTemplate = `#pragma version 3
     &&
     assert
     // handle the rate
-    // future sell order (not in this contract)
-    // gtxn[1].Amount * N >= gtxn[2].AssetAmount * D
     // BUY ORDER
     // gtxn[2].AssetAmount * D >= gtxn[1].Amount * N
     // N units of the asset per D microAlgos

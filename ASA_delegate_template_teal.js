@@ -179,6 +179,7 @@ const asaDelegateTemplate = {
     gtxn 0 CloseRemainderTo
     global ZeroAddress // This is an app call so should be set to 0 address
     ==
+    &&
     gtxn 0 AssetCloseTo
     global ZeroAddress // should not matter, but add just in case
     ==
@@ -322,22 +323,9 @@ const asaDelegateTemplate = {
     return
 
 notCloseOut:
-////////////////////////////////
-// EXECUTE
-///////////////////////////////
-
-// Trans 1            - Application call (from escrow) to execute
-// Trans 2            - Pay transaction (from buyer/executor to escrow owner)
-// (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
-// Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
-// Trans 4 or 5       - Pay transaction (fee refund from buyer/executor to escrow owner)
-
-    gtxna 0 ApplicationArgs 0
-    byte "execute_with_closeout"
-    ==
-    bnz execute_with_closeout
 
 // First check if we have the optional asset opt-in transaction for the buyer's wallet
+// This happens for both execute and execute_with_close
     gtxn 2 TypeEnum
     int axfer
     ==
@@ -356,11 +344,28 @@ notCloseOut:
     gtxn 2 AssetCloseTo
     global ZeroAddress
     ==
+    &&
     gtxn 2 Sender
     txn Sender // Sender must come from the user's wallet, not the escrow
     !=
     &&
     store 0 //this will store the next transaction offset depending if opt in exists
+
+
+////////////////////////////////
+// EXECUTE
+///////////////////////////////
+
+// Trans 1            - Application call (from escrow) to execute
+// Trans 2            - Pay transaction (from buyer/executor to escrow owner)
+// (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
+// Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
+// Trans 4 or 5       - Pay transaction (fee refund from buyer/executor to escrow owner)
+
+    gtxna 0 ApplicationArgs 0
+    byte "execute_with_closeout"
+    ==
+    bnz execute_with_closeout
 
     int 4
     load 0
@@ -498,15 +503,11 @@ notCloseOut:
 //////////////////////////////////////
 
     execute_with_closeout:
-    //FIXME : add 4th transaction checks
-    // only used on an execute order without closeout
-    global GroupSize
     int 4
+    load 0
+    +
+    global GroupSize // GroupSize must be 4 or 5 according to whether optinal ASA opt in exists
     ==
-    global GroupSize //group size can be 5 for asset opt-in from receiver
-    int 5
-    ==
-    ||
     assert
 
     // The first transaction must be 
@@ -518,21 +519,11 @@ notCloseOut:
     int pay
     ==
     &&
-    assert
-
-    gtxn 2 TypeEnum // check for asset opt in transaction
+    gtxn 2 TypeEnum // third transaction must be an asset opt-in or transfer
     int axfer
     ==
-    gtxn 2 AssetAmount
-    int 0
-    ==
     &&
-    gtxn 2 Sender
-    gtxn 2 AssetReceiver
-    ==
-    &&
-    store 0 //this will store the next transaction offset
-
+    assert
     load 0
     int 2
     + 
@@ -540,7 +531,6 @@ notCloseOut:
     int axfer
     ==
     assert
-
     load 0
     int 3
     +
@@ -549,14 +539,13 @@ notCloseOut:
     ==
     assert
 
-
     txn Fee
-    int 1000
+    int 1000 // all fees must be 1000 or less
     <=
     gtxn 0 ApplicationID // The specific App ID of stateful contract must be called
     int <orderBookId> //stateful contract app id. orderBookId
     ==
-    && // The application call must be a general application call or a closeout
+    && // The application call must be a closeout
     gtxn 0 OnCompletion
     int CloseOut
     ==
@@ -570,7 +559,6 @@ notCloseOut:
     ==
     &&
     assert
-
     load 0
     int 2
     +
@@ -598,7 +586,6 @@ notCloseOut:
     ==
     &&
     assert
-    
     load 0
     int 2
     +
@@ -607,6 +594,10 @@ notCloseOut:
     ==
     assert
 
+    gtxn 2 XferAsset // third transaction must be an asset opt-in or transfer
+    int <assetid> // Put <assetid> here. asset id to trade for
+    ==
+    assert
     load 0
     int 2
     +
@@ -629,10 +620,8 @@ finalExecuteChecks:
     /////////////////////////////////////
 
     // handle the rate
-    // future sell order (not in this contract)
+    // SELL ORDER
     // gtxn[1].Amount * N <= gtxn[2].AssetAmount * D
-    // BUY ORDER
-    // gtxn[2].AssetAmount * D <= gtxn[1].Amount * N
     // N units of the asset per D microAlgos
     load 0
     int 2
