@@ -359,6 +359,14 @@ notCloseOut:
     int 3
     +
     store 3 
+
+    int 4
+    load 0
+    +
+    global GroupSize // GroupSize must be 4 or 5 according to whether optional ASA opt in exists
+    ==
+    assert
+
 ////////////////////////////////
 // EXECUTE
 ///////////////////////////////
@@ -373,13 +381,6 @@ notCloseOut:
     byte "execute_with_closeout"
     ==
     bnz execute_with_closeout
-
-    int 4
-    load 0
-    +
-    global GroupSize // GroupSize must be 4 or 5 according to whether optinal ASA opt in exists
-    ==
-    assert
 
     gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
@@ -492,12 +493,6 @@ notCloseOut:
 //////////////////////////////////////
 
     execute_with_closeout:
-    int 4
-    load 0
-    +
-    global GroupSize // GroupSize must be 4 or 5 according to whether optinal ASA opt in exists
-    ==
-    assert
 
     // The first transaction must be 
     // an ApplicationCall (ie call stateful smart contract)
@@ -512,21 +507,20 @@ notCloseOut:
     int axfer
     ==
     &&
-    assert
     load 2
     gtxns TypeEnum //The next transaction must be an asset transfer
     int axfer
     ==
-    assert
+    &&
     load 3
     gtxns TypeEnum     // The last transaction must be a payment transfer. TODO add additional checks for this
     int pay
     ==
-    assert
-
+    &&
     txn Fee
     int 1000 // all fees must be 1000 or less
     <=
+    &&
     gtxn 0 ApplicationID // The specific App ID of stateful contract must be called
     int <orderBookId> //stateful contract app id. orderBookId
     ==
@@ -543,20 +537,20 @@ notCloseOut:
     global ZeroAddress
     ==
     &&
-    assert
     load 2
     gtxns RekeyTo
     global ZeroAddress
     ==
+    &&
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
     &&
-    assert
     load 2
     gtxns CloseRemainderTo
     global ZeroAddress
     ==
+    &&
     gtxn 0 AssetCloseTo
     global ZeroAddress
     ==
@@ -565,20 +559,20 @@ notCloseOut:
     global ZeroAddress
     ==
     &&
-    assert
     load 2
     gtxns AssetCloseTo // remainder of ASA escrow is being closed out to escrow owner
     addr <contractWriterAddr> // contractWriterAddr
     ==
-    assert
+    &&
     gtxn 2 XferAsset // third transaction must be an asset opt-in or transfer
     int <assetid> // Put <assetid> here. asset id to trade for
     ==
-    assert
+    &&
     load 2
     gtxns XferAsset
     int <assetid> // Put <assetid> here. asset id to trade for
     ==
+    &&
     assert
 
     b finalExecuteChecks
