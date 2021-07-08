@@ -393,21 +393,20 @@ notCloseOut:
     int axfer
     ==
     &&
-    assert
     load 2
     gtxns TypeEnum //The next transaction must be an asset transfer
     int axfer
     ==
-    assert
+    &&
     load 3
     gtxns TypeEnum     // The last transaction must be a payment transfer
     int pay
     ==
-    assert
-
+    &&
     txn Fee // fee for all transactions from the escrow must be low
     int 1000
     <=
+    &&
     gtxn 0 ApplicationID // The specific App ID must be called
     int <orderBookId> //stateful contract app id. orderBookId
     ==
@@ -424,68 +423,59 @@ notCloseOut:
     global ZeroAddress
     ==
     &&
-    assert
-
     load 2
     gtxns RekeyTo
     global ZeroAddress
     ==
-    assert
+    &&
     load 3
     gtxns RekeyTo
     global ZeroAddress
     ==
-    assert
-
+    &&
     gtxn 0 CloseRemainderTo
     global ZeroAddress
     == 
+    &&
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
     &&
-    assert
-
     load 2
     gtxns CloseRemainderTo
     global ZeroAddress
     ==
-    assert
- 
+    &&
     gtxn 0 AssetCloseTo
     global ZeroAddress
     ==
+    &&
     gtxn 1 AssetCloseTo
     global ZeroAddress
     ==
     &&
-    assert
-
     load 2
     gtxns AssetCloseTo
     global ZeroAddress
     ==
-    assert
-
+    &&
     load 3
     gtxns CloseRemainderTo // check fee refund has no close remainder to
     global ZeroAddress
     ==
-    assert
-
+    &&
     load 3
     gtxns Fee // check fee refund has no close remainder to
     int 1000
     ==
-    assert
-
+    &&
     load 2
     gtxns XferAsset
     int <assetid> // asset id to trade for
     ==
+    &&
     assert
 
-//TODO check 3rd transaction
     b finalExecuteChecks  //If the above result is 0, skip next section
 
 ///////////////////////////////////////
