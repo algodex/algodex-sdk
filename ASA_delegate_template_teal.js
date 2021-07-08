@@ -351,7 +351,14 @@ notCloseOut:
     &&
     store 0 //this will store the next transaction offset depending if opt in exists
 
-
+    load 0
+    int 2
+    +
+    store 2
+    load 0
+    int 3
+    +
+    store 3 
 ////////////////////////////////
 // EXECUTE
 ///////////////////////////////
@@ -386,16 +393,12 @@ notCloseOut:
     ==
     &&
     assert
-    load 0
-    int 2
-    + 
+    load 2
     gtxns TypeEnum //The next transaction must be an asset transfer
     int axfer
     ==
     assert
-    load 0
-    int 3
-    +
+    load 3
     gtxns TypeEnum     // The last transaction must be a payment transfer
     int pay
     ==
@@ -422,16 +425,12 @@ notCloseOut:
     &&
     assert
 
-    load 0 //load offset depending on whether there is the asa opt-in transaction
-    int 2
-    +
+    load 2
     gtxns RekeyTo
     global ZeroAddress
     ==
     assert
-    load 0 //load offset depending on whether there is the asa opt-in transaction
-    int 3
-    +
+    load 3
     gtxns RekeyTo
     global ZeroAddress
     ==
@@ -446,9 +445,7 @@ notCloseOut:
     &&
     assert
 
-    load 0
-    int 2
-    +
+    load 2
     gtxns CloseRemainderTo
     global ZeroAddress
     ==
@@ -463,33 +460,25 @@ notCloseOut:
     &&
     assert
 
-    load 0
-    int 2
-    +
+    load 2
     gtxns AssetCloseTo
     global ZeroAddress
     ==
     assert
 
-    load 0
-    int 3
-    +
+    load 3
     gtxns CloseRemainderTo // check fee refund has no close remainder to
     global ZeroAddress
     ==
     assert
 
-    load 0
-    int 3
-    +
+    load 3
     gtxns Fee // check fee refund has no close remainder to
     int 1000
     ==
     assert
 
-    load 0
-    int 2
-    +
+    load 2
     gtxns XferAsset
     int <assetid> // asset id to trade for
     ==
@@ -524,16 +513,12 @@ notCloseOut:
     ==
     &&
     assert
-    load 0
-    int 2
-    + 
+    load 2
     gtxns TypeEnum //The next transaction must be an asset transfer
     int axfer
     ==
     assert
-    load 0
-    int 3
-    +
+    load 3
     gtxns TypeEnum     // The last transaction must be a payment transfer. TODO add additional checks for this
     int pay
     ==
@@ -559,9 +544,7 @@ notCloseOut:
     ==
     &&
     assert
-    load 0
-    int 2
-    +
+    load 2
     gtxns RekeyTo
     global ZeroAddress
     ==
@@ -570,10 +553,7 @@ notCloseOut:
     ==
     &&
     assert
-
-    load 0
-    int 2
-    +
+    load 2
     gtxns CloseRemainderTo
     global ZeroAddress
     ==
@@ -586,21 +566,16 @@ notCloseOut:
     ==
     &&
     assert
-    load 0
-    int 2
-    +
+    load 2
     gtxns AssetCloseTo // remainder of ASA escrow is being closed out to escrow owner
     addr <contractWriterAddr> // contractWriterAddr
     ==
     assert
-
     gtxn 2 XferAsset // third transaction must be an asset opt-in or transfer
     int <assetid> // Put <assetid> here. asset id to trade for
     ==
     assert
-    load 0
-    int 2
-    +
+    load 2
     gtxns XferAsset
     int <assetid> // Put <assetid> here. asset id to trade for
     ==
