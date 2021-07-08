@@ -368,19 +368,13 @@ notCloseOut:
     assert
 
 ////////////////////////////////
-// EXECUTE
+// ANY EXECUTE (with close or not)
 ///////////////////////////////
-
 // Trans 1            - Application call (from escrow) to execute
 // Trans 2            - Pay transaction (from buyer/executor to escrow owner)
 // (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
 // Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
-// Trans 4 or 5       - Pay transaction (fee refund from buyer/executor to escrow owner)
-
-    gtxna 0 ApplicationArgs 0
-    byte "execute_with_closeout"
-    ==
-    bnz execute_with_closeout
+// Trans 4 or 5       - don't check this - dependant on whether closing or not
 
     gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
@@ -409,10 +403,6 @@ notCloseOut:
     &&
     gtxn 0 ApplicationID // The specific App ID must be called
     int <orderBookId> //stateful contract app id. orderBookId
-    ==
-    &&
-    gtxn 0 OnCompletion // The application call must be a general application call
-    int NoOp
     ==
     &&
     gtxn 0 RekeyTo // verify no transaction contains a rekey
@@ -455,6 +445,36 @@ notCloseOut:
     ==
     &&
     load 2
+    gtxns XferAsset
+    int <assetid> // asset id to trade for
+    ==
+    &&
+    load 2
+    gtxns CloseRemainderTo // this is an asset transfer so only assets should be closed
+    global ZeroAddress
+    ==
+    &&
+    assert
+
+////////////////////////////////
+// EXECUTE
+///////////////////////////////
+
+// Trans 1            - Application call (from escrow) to execute
+// Trans 2            - Pay transaction (from buyer/executor to escrow owner)
+// (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
+// Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
+// Trans 4 or 5       - Pay transaction (fee refund from buyer/executor to escrow owner)
+
+    gtxna 0 ApplicationArgs 0
+    byte "execute_with_closeout"
+    ==
+    bnz execute_with_closeout
+
+    gtxn 0 OnCompletion // The application call must be a general application call
+    int NoOp
+    ==
+    load 2
     gtxns AssetCloseTo
     global ZeroAddress
     ==
@@ -469,9 +489,9 @@ notCloseOut:
     int 1000
     ==
     &&
-    load 2
-    gtxns XferAsset
-    int <assetid> // asset id to trade for
+    load 3
+    gtxns Amount // check fee refund amount is 2000
+    int 2000
     ==
     &&
     assert
@@ -492,63 +512,11 @@ notCloseOut:
 
     // The first transaction must be 
     // an ApplicationCall (ie call stateful smart contract)
-    gtxn 0 TypeEnum
-    int appl
-    ==
-    gtxn 1 TypeEnum // The second transaction must be a payment tx 
-    int pay
-    ==
-    &&
-    gtxn 2 TypeEnum // third transaction must be an asset opt-in or transfer
-    int axfer
-    ==
-    &&
-    load 2
-    gtxns TypeEnum //The next transaction must be an asset transfer
-    int axfer
-    ==
-    &&
-    load 3
-    gtxns TypeEnum     // The last transaction must be a payment transfer. TODO add additional checks for this
-    int pay
-    ==
-    &&
-    txn Fee
-    int 1000 // all fees must be 1000 or less
-    <=
-    &&
-    gtxn 0 ApplicationID // The specific App ID of stateful contract must be called
-    int <orderBookId> //stateful contract app id. orderBookId
-    ==
-    && // The application call must be a closeout
+   
     gtxn 0 OnCompletion
     int CloseOut
     ==
-    &&
-    gtxn 0 RekeyTo // verify no transaction
-    global ZeroAddress // contains a rekey
-    ==
-    &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    load 2
-    gtxns RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    load 3
-    gtxns RekeyTo
-    global ZeroAddress
-    ==
-    &&
     gtxn 1 CloseRemainderTo
-    global ZeroAddress
-    ==
-    &&
-    load 2
-    gtxns CloseRemainderTo
     global ZeroAddress
     ==
     &&
@@ -567,22 +535,9 @@ notCloseOut:
     txn Sender // escrow account
     ==
     &&
-    gtxn 0 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
     load 2
     gtxns AssetCloseTo // remainder of ASA escrow is being closed out to escrow owner
     addr <contractWriterAddr> // contractWriterAddr
-    ==
-    &&
-    load 2 //3nd or 4th transaction
-    gtxns XferAsset
-    int <assetid> // Put <assetid> here. asset id to trade for
     ==
     &&
     assert
