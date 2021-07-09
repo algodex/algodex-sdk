@@ -26,13 +26,13 @@ ASA escrow contracts are created by makers who wish to sell an ASA, and put a mi
 
 ============================================================
 
-ALGO Order Book - STATEFUL contract
+ALGO ORDER BOOK - STATEFUL contract
 
 This contains the order information for all "Algo Escrows", which are buy orders of assets. The algo escrows opt-in to the Algo Order Book when they are created.
 
 ============================================================
 
-ASA Order Book - STATEFUL contract
+ASA ORDER BOOK - STATEFUL contract
   
 This contains the order information for all "ASA Escrows", which are sell orders of assets. The ASAs escrows opt-in to the ASA Order Book when they are created.
 
@@ -47,7 +47,7 @@ The order books per entry store these three things:
   min: minimum order execution size. hard-coded to 0 and can be ignored
   assetid: this is the Algorand asset id
   
-  d/n is the price of the asset in terms of algos. Stands for denominator and numerator. For example, n=100 and d=130 implies it costs 1.3 microalgos to buy one unit of the ASA.
+  d/n is the price of the asset in terms of algos. For example, n=100 and d=130 implies it costs 1.3 microalgos to buy one unit of the ASA.
   
 2. creator
 
@@ -56,8 +56,6 @@ This is the creator and owner of the escrow, and is set to the wallet address of
 3. version
 
 This is the version of the escrow, in case we need to change the escrow versions after the product is released.
-
-  
   
 ============================================================
 
@@ -95,7 +93,6 @@ ALGO ESCROW TRANSACTION TYPES
     // TXN 2 - Asset transfer from seller to owner of this escrow
     // TXN 3 - fee refund transaction (pay transaction)
 	
-	
 ============================================================
 
 ASA ESCROW TRANSACTION TYPES
@@ -116,7 +113,6 @@ ASA ESCROW TRANSACTION TYPES
     // TXN 1. - asset transfer (escrow to owner)
     // TXN 2. - pay transaction (from escrow to owner)
     // TXN 3. - proof pay transaction (owner to owner) - proof of ownership
-
 
 ////////////////////////////////
 // EXECUTE
