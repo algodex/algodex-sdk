@@ -7,7 +7,7 @@
 //   ORDER BOOK FOR ASA ESCROWS  /
 //////////////////////////////////
 
-    #pragma version 3
+#pragma version 3
     // check if the app is being created
     // if so save creator
 

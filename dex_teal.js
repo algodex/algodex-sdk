@@ -7,7 +7,7 @@
 //   ORDER BOOK FOR ALGO ESCROWS /
 //////////////////////////////////
 
-    #pragma version 3
+#pragma version 3
 
     // STATEFUL APP CREATION
     // check if the app is being created
