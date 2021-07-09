@@ -11,6 +11,7 @@ const asaDelegateTemplate = {
 ////////////////////////////////////
 // ASA ESCROW (escrow limit order to sell ASA)
 //////////////////////////////////////
+
 ////////////////////////
 // OPT IN
 /////////////////////
@@ -503,12 +504,12 @@ notCloseOut:
 // EXECUTE WITH CLOSE
 //////////////////////////////////////
 
-// TXN 0            - Application call (from escrow) to execute_with_close
-// TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-// (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-// TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
-//                            - closes out ASA to escrow owner as well
-// TXN 3 or 4       - Pay transaction to close out to escrow owner as well
+    // TXN 0            - Application call (from escrow) to execute_with_close
+    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+    //                            - closes out ASA to escrow owner as well
+    // TXN 3 or 4       - Pay transaction to close out to escrow owner as well
     execute_with_closeout:
 
     // The first transaction must be 
