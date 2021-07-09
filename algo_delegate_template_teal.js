@@ -212,8 +212,8 @@ let delegateTemplate = `#pragma version 3
 /////////////////////////////////
     // Must be three transactions
     // TXN 0 - transaction must be a call to a stateful contract
-    // TXN 1 - transaction must be a payment transaction
-    // TXN 2 - transaction must be an asset transfer
+    // TXN 1 - Payment transaction from this escrow (buyer) to seller
+    // TXN 2 - Asset transfer from seller to owner of this escrow
 
     checkPayWithCloseout:
     
@@ -309,8 +309,8 @@ let delegateTemplate = `#pragma version 3
 /////////////////////////////////
     // Must be four transactions
     // TXN 0 - transaction must be a call to a stateful contract
-    // TXN 1 - transaction must be a payment transaction
-    // TXN 2 - transaction must be an asset transfer
+    // TXN 1 - Payment transaction from this escrow (buyer) to seller
+    // TXN 2 - Asset transfer from seller to owner of this escrow
     // TXN 3 - fee refund transaction (pay transaction)
 
     partialPayTxn:
