@@ -15,10 +15,10 @@ const asaDelegateTemplate = {
 // OPT IN
 /////////////////////
 
-// First trans.   - pay transaction into escrow (owner to escrow)
-// Second trans.  - application opt in (from escrow)
-// Third trans.   - asset opt in (from escrow)
-// Fourth trans.  - asset transfer (owner to escrow)
+// TXN 0. - pay transaction into escrow (owner to escrow)
+// TXN 1. - application opt in (from escrow)
+// TXN 2. - asset opt in (from escrow)
+// TXN 3. - asset transfer (owner to escrow)
 
     global GroupSize
     int 4
@@ -162,10 +162,10 @@ const asaDelegateTemplate = {
 /// CLOSE ORDER
 //////////////////////
 
-// First trans.   - pay transaction into escrow (owner to escrow)
-// Second trans.  - application opt in (from escrow)
-// Third trans.   - asset opt in (from escrow)
-// Fourth trans.  - asset transfer (owner to escrow)
+// TXN 0.   - pay transaction into escrow (owner to escrow)
+// TXN 1.  - application opt in (from escrow)
+// TXN 2.   - asset opt in (from escrow)
+// TXN 3.  - asset transfer (owner to escrow)
 
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
@@ -326,6 +326,7 @@ notCloseOut:
 
 // First check if we have the optional asset opt-in transaction for the buyer's wallet
 // This happens for both execute and execute_with_close
+// If this exists, it's the third transaction (gtxn 2).
     gtxn 2 TypeEnum
     int axfer
     ==
@@ -370,11 +371,11 @@ notCloseOut:
 ////////////////////////////////
 // ANY EXECUTE (with close or not)
 ///////////////////////////////
-// Trans 1            - Application call (from escrow) to execute
-// Trans 2            - Pay transaction (from buyer/executor to escrow owner)
-// (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
-// Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
-// Trans 4 or 5       - don't check this - dependant on whether closing or not
+// TXN 0            - Application call (from escrow) to execute
+// TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+// (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+// TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+// TXN 3 or 4       - don't check this - different on whether closing or not
 
     gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
@@ -460,11 +461,11 @@ notCloseOut:
 // EXECUTE
 ///////////////////////////////
 
-// Trans 1            - Application call (from escrow) to execute
-// Trans 2            - Pay transaction (from buyer/executor to escrow owner)
-// (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
-// Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
-// Trans 4 or 5       - Pay transaction (fee refund from buyer/executor to escrow owner)
+// TXN 0            - Application call (from escrow) to execute
+// TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+// (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+// TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+// TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow owner)
 
     gtxna 0 ApplicationArgs 0
     byte "execute_with_closeout"
@@ -502,12 +503,12 @@ notCloseOut:
 // EXECUTE WITH CLOSE
 //////////////////////////////////////
 
-// Trans 1            - Application call (from escrow) to execute_with_close
-// Trans 2            - Pay transaction (from buyer/executor to escrow owner)
-// (Optional) Trans 3 - Optional asset opt-in transaction (for buyer/executor)
-// Trans 3 or 4       - Asset transfer (from escrow owner to buyer/executor)
+// TXN 0            - Application call (from escrow) to execute_with_close
+// TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+// (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+// TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
 //                            - closes out ASA to escrow owner as well
-// Trans 4 or 5       - Pay transaction to close out to escrow owner as well
+// TXN 3 or 4       - Pay transaction to close out to escrow owner as well
     execute_with_closeout:
 
     // The first transaction must be 
