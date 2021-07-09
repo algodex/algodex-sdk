@@ -8,11 +8,13 @@ return `
 //////////////////////////////////
 
 #pragma version 3
+
+// STATEFUL APP CREATION
 // check if the app is being created
 // if so save creator
 
 int 0
-txn ApplicationID
+txn ApplicationID // check if there is no application ID - means it hasn't been created
 ==
 bz not_creation
 byte "Creator"
@@ -22,8 +24,8 @@ app_global_put
 int 1
 return
 not_creation:
-// check if this is deletion transaction
-int DeleteApplication
+
+int DeleteApplication // check if this is deletion transaction
 txn OnCompletion
 ==
 bz not_deletion
@@ -35,15 +37,13 @@ assert
 int 1
 return
 not_deletion:
-//---
-// check if this is update ---
-int UpdateApplication
+
+int UpdateApplication // check if this is update
 txn OnCompletion
 ==
 bz not_update
-// verify that the creator is
-// making the call
-byte "Creator"
+
+byte "Creator" // verify that the creator is making the call
 app_global_get
 txn Sender
 ==
@@ -74,7 +74,16 @@ err
 //////////
 // OPEN //
 //////////
+// This is the situation when a new escrow contract and order book contract is created
+// These are for Algo-only escrow accounts, i.e. buy orders to buy ASAs
+// The orders are unique per users
+
 open:
+
+gtxn 0 Amount // pay transaction must be over 1 algo
+int 1000000 // 1 algo
+>=
+assert
 
 int OptIn
 txn OnCompletion
@@ -289,6 +298,7 @@ app_local_del
 
 int 1
 return
+
 
 `;
 
