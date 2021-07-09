@@ -404,7 +404,7 @@ const AlgodexApi = {
 
             let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder);
             let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
-                        
+            console.log("lsig is: " + lsig.address());            
             if (assetId == null) {
                 console.log("closing order");
                 await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig);

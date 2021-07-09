@@ -90,7 +90,6 @@ const AlgodexInternalApi = {
             let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,orderCreatorAddr, isASAEscrow);
             const enableLsigLogging = constants.DEBUG_SMART_CONTRACT_SOURCE; // escrow logging 
             let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, escrowSource,enableLsigLogging);
-
             if (!isASAEscrow) {
                 console.log("NOT asa escrow");
                 return await this.getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient
@@ -949,8 +948,27 @@ const AlgodexInternalApi = {
     },
 
     printTransactionDebug : function printTransactionDebug(signedTxns) {
-        console.log('TxnGroup to debug:');
-        console.log(Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64'));
+        console.log('zzTxnGroup to debug:');
+        const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
+
+        console.log(b64_encoded);
+        if (constants.DEBUG_SMART_CONTRACT_SOURCE) {
+            (async() => {
+                try {
+                    console.log("trying to inspect");
+                    const response = await axios.post('http://localhost:8000/inspect', {
+                    
+                            msgpack: b64_encoded
+                        },
+                    );
+                    console.log(response.data);
+                    return response.data;
+                } catch (error) {
+                    console.error(error);
+                    throw new Error("inspect failed: ", error);
+                }
+            })();
+        }
     },
 
     buildDelegateTemplateFromArgs : 

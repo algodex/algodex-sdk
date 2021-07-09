@@ -12,6 +12,9 @@ let delegateTemplate = `#pragma version 3
 /// ORDER BOOK OPT IN & REGISTRATION
 //////////////////////////
     // check for optin transaction or orderbook registration transaction
+    // TXN 0 - Pay from order creator to escrow account
+    // TXN 1 - Stateful app opt-in to order book
+    // TXN 2 - Possible ASA opt-in for the order creator's original wallet account. Doesn't need checks
     global GroupSize
     int 2
     ==
@@ -43,33 +46,99 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
-    bz notOptInOrOrderReg 
-    // If the above are not true, this is a closeout (without order execution) or pay transaction
+    txn ApplicationID
+    int <orderBookId> // stateful contract app id. orderBookId
+    ==
+    &&
+    gtxn 0 TypeEnum
+    int pay
+    ==
+    &&
+    gtxn 0 Receiver // recipient of pay
+    txn Sender // escrow account
+    ==
+    &&
+    store 0
+
+    global GroupSize // Third transaction is an optional asset opt-in
+    int 3
+    <
+    store 1
+
+    load 1
+    bnz notThreeTxns
+
+    gtxn 2 TypeEnum// Third transaction. 
+    int axfer
+    ==
+    gtxn 2 AssetAmount
+    int 0
+    ==
+    &&
+    gtxn 2 Sender
+    addr <contractWriterAddr> // contractWriterAddr (order creator)
+    ==
+    &&
+    gtxn 2 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 2 OnCompletion
+    int NoOp
+    ==
+    &&
+    gtxn 2 RekeyTo
+    global ZeroAddress
+    ==
+    &&
+    store 1
+
+    notThreeTxns:
+    load 0
+    load 1
+    &&
+    bz notOptInOrOrderReg // Jump if either is 0
+    // If either of the above are not true, this is a closeout (without order execution) or pay transaction
     // Otherwise it is Opt-in so return early
     int 1
     
     return
 
-///////////////////////
-//// CLOSEOUT ////////
-/////////////////////
+////////////////////////////////////////
+//// CLOSEOUT (ORDER CANCELLED) ////////
+////////////////////////////////////////
 
 //TODO: add more checks for 3rd transaction 
+    // TXN 0 - application call to order book contract for closeout
+    // TXN 1 - close out call
+    // TXN 2 - send transaction for proof that closeout sender owns the escrow
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
+    global GroupSize
+    int 3
+    ==
     gtxn 0 CloseRemainderTo
     global ZeroAddress // This is an app call so should be set to 0 address
     ==
+    &&
     gtxn 1 CloseRemainderTo
     addr <contractWriterAddr> // contractWriterAddr
     ==
     &&
-    gtxn 2 Sender // proof the close is coming from sender
-    addr <contractWriterAddr> // contractWriterAddr
+    gtxn 2 CloseRemainderTo
+    global ZeroAddress
     ==
     &&
-    global GroupSize
-    int 3
+    gtxn 0 Sender // first transaction must come from the escrow
+    txn Sender
+    ==
+    &&
+    gtxn 1 Sender // second transaction must come from the escrow
+    txn Sender
+    ==
+    &&
+    gtxn 2 Sender // proof the close is coming from sender
+    addr <contractWriterAddr> // contractWriterAddr
     ==
     &&
     gtxn 0 TypeEnum
@@ -77,6 +146,10 @@ let delegateTemplate = `#pragma version 3
     ==
     &&
     gtxn 1 TypeEnum
+    int pay
+    ==
+    &&
+    gtxn 2 TypeEnum
     int pay
     ==
     &&
@@ -88,7 +161,19 @@ let delegateTemplate = `#pragma version 3
     int 0 //Check all the funds are being sent to the CloseRemainderTo address
     ==
     &&
+    gtxn 2 Amount
+    int 0 // This is just a proof so amount should be 0
+    ==
+    &&
     gtxn 0 RekeyTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 1 RekeyTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 2 RekeyTo
     global ZeroAddress
     ==
     &&
@@ -96,19 +181,23 @@ let delegateTemplate = `#pragma version 3
     int CloseOut //Check App Call OnCompletion is CloseOut (OptOut)
     ==
     &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
     gtxn 1 OnCompletion
-    int NoOp //Check App Call OnCompletion is CloseOut (OptOut)
+    int NoOp //pay transaction
     ==
     && 
+    gtxn 2 OnCompletion
+    int NoOp //proof pay transaction
+    ==
+    &&
     gtxn 0 AssetCloseTo
     global ZeroAddress // should not matter, but add just in case
     ==
     &&
     gtxn 1 AssetCloseTo
+    global ZeroAddress  // should not matter, but add just in case
+    ==
+    &&
+    gtxn 2 AssetCloseTo
     global ZeroAddress  // should not matter, but add just in case
     ==
     &&
@@ -121,41 +210,36 @@ let delegateTemplate = `#pragma version 3
 // PAY (ORDER EXECUTION)
 //   WITH CLOSEOUT
 /////////////////////////////////
+    // Must be three transactions
+    // TXN 0 - transaction must be a call to a stateful contract
+    // TXN 1 - transaction must be a payment transaction
+    // TXN 2 - transaction must be an asset transfer
+
     checkPayWithCloseout:
     
     gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
-    bnz partialPayTxn // Jump to here if close remainder is a zero address
+    bnz partialPayTxn // Jump to here if close remainder is a zero address. This is *not* a close-out
+
+    // We should be here only if this is a full execution with closeout
 
     gtxn 0 OnCompletion // The application call must be
     int CloseOut  // A general application call or a closeout
     ==
-    gtxn 1 CloseRemainderTo
-    addr <contractWriterAddr> // contractWriterAddr
-    ==
-    &&
-    // this delegate is
-    // only used on an execute order
-    global GroupSize
+    global GroupSize // this delegate is only used on an execute order
     int 3
     ==
     &&
-    // The first transaction must be 
-    // an ApplicationCall (ie call stateful smart contract)
-    gtxn 0 TypeEnum
+    gtxn 0 TypeEnum // The first transaction must be an Application Call (i.e. call stateful smart contract)
     int appl
     ==
     &&
-    // The second transaction must be 
-    // a payment tx 
-    gtxn 1 TypeEnum
+    gtxn 1 TypeEnum // The second transaction must be a payment tx
     int pay
     ==
     &&
-    // The third transaction must be 
-    // an asset xfer tx 
-    gtxn 2 TypeEnum
+    gtxn 2 TypeEnum // The third transaction must be an asset xfer tx 
     int axfer
     ==
     &&
@@ -163,17 +247,24 @@ let delegateTemplate = `#pragma version 3
     int 1000
     <=
     &&
-    // The specific App ID must be called
-    // This should be changed after creation
-    // This links this contract to the stateful contract
-    gtxn 0 ApplicationID
+    gtxn 0 ApplicationID // The specific Order Book App ID must be called
     int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
-    // verify no transaction
-    // contains a rekey
-    gtxn 0 RekeyTo
-    global ZeroAddress
+    gtxn 1 Sender // Sender of the pay transaction must be this escrow
+    txn Sender
+    ==
+    &&
+    gtxn 1 Receiver // Receiver of the pay transaction from this escrow
+    gtxn 2 Sender  // Sender of the asset transfer (person trading)
+    ==
+    &&
+    gtxn 2 AssetReceiver // Receiver of asset transfer
+    addr <contractWriterAddr> // contractWriterAddr must receive the asset
+    ==
+    &&
+    gtxn 0 RekeyTo // verify no transaction contains a rekey
+    global ZeroAddress 
     ==
     &&
     gtxn 1 RekeyTo
@@ -187,7 +278,11 @@ let delegateTemplate = `#pragma version 3
     gtxn 0 CloseRemainderTo
     global ZeroAddress
     ==
-    && 
+    &&
+    gtxn 1 CloseRemainderTo
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
     gtxn 2 CloseRemainderTo
     global ZeroAddress
     ==
@@ -204,59 +299,20 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
-    bz fail
-    // min algos spent
-    gtxn 1 Amount
-    int <min>
-    >=
-    // asset id to trade for
-    int <assetid>
-    gtxn 2 XferAsset
-    ==
-    &&
     assert
-    // handle the rate
-    // future sell order (not in this contract)
-    // gtxn[1].Amount * N >= gtxn[2].AssetAmount * D
-    // BUY ORDER
-    // gtxn[2].AssetAmount * D >= gtxn[1].Amount * N
-    // N units of the asset per D microAlgos
-    gtxn 2 AssetAmount
-    int <D> // put D value here
-    mulw // AssetAmount * D => (high 64 bits, low 64 bits)
-    store 2 // move aside low 64 bits
-    store 1 // move aside high 64 bits
-    gtxn 1 Amount
-    int <N> // put N value here
-    mulw
-    store 4 // move aside low 64 bits
-    store 3 // move aside high 64 bits
-    // compare high bits to high bits
-    load 1
-    load 3
-    >
-    bnz done
-    load 1
-    load 3
-    ==
-    load 2
-    load 4
-    >=
-    && // high bits are equal and low bits are ok
-    bnz done
-    err
-    done:
-    int 1
-    return
-    fail:
-    int 0 
-    return
 
+    b handle_rate_check
 
 ///////////////////////////////////
 // PAY (ORDER EXECUTION)
 //   PARTIAL EXECUTION
 /////////////////////////////////
+    // Must be four transactions
+    // TXN 0 - transaction must be a call to a stateful contract
+    // TXN 1 - transaction must be a payment transaction
+    // TXN 2 - transaction must be an asset transfer
+    // TXN 3 - fee refund transaction (pay transaction)
+
     partialPayTxn:
 
     gtxn 0 OnCompletion // The application call must be a NoOp
@@ -266,50 +322,55 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
-    // this delegate is
-    // only used on an execute order
-    global GroupSize
+    global GroupSize // this delegate is only used on an execute order
     int 4
     ==
     &&
-    // The first transaction must be 
-    // an ApplicationCall (ie call stateful smart contract)
-    gtxn 0 TypeEnum
+    gtxn 0 TypeEnum // The first transaction must be an ApplicationCall (ie call stateful smart contract)
     int appl
     ==
     &&
-    // The second transaction must be 
-    // a payment tx 
-    gtxn 1 TypeEnum
+    gtxn 1 TypeEnum // The second transaction must be a payment tx 
     int pay
     ==
     &&
-    // The third transaction must be 
-    // an asset xfer tx 
-    gtxn 2 TypeEnum
+    gtxn 2 TypeEnum // The third transaction must be an asset xfer tx 
     int axfer
     ==
     &&
-    // The fourth transaction must be 
-    // a payment tx for transaction fee reimbursement
-    gtxn 3 TypeEnum //FIXME check amount
+    gtxn 3 TypeEnum // The fourth transaction must be a payment tx for transaction fee reimbursement //FIXME check amount
     int pay
+    ==
+    &&
+    gtxn 3 Amount // Amount can be 2000 or higher (we will take more money if they give it)
+    int 2000
+    >=
+    &&
+    gtxn 3 Receiver // Fee refund recipient
+    txn Sender // The escrow address
     ==
     &&
     txn Fee
     int 1000
     <=
     &&
-    // The specific App ID must be called
-    // This should be changed after creation
-    // This links this contract to the stateful contract
-    gtxn 0 ApplicationID
+    gtxn 0 ApplicationID // The specific App ID for the Algo escrow order book must be called
     int <orderBookId> //stateful contract app id orderBookId
     ==
     &&
-    // verify no transaction
-    // contains a rekey
-    gtxn 0 RekeyTo
+    gtxn 1 Sender // Sender of the pay transaction must be this escrow
+    txn Sender
+    ==
+    &&
+    gtxn 1 Receiver // Receiver of the pay transaction from this escrow
+    gtxn 2 Sender  // Sender of the asset transfer (person trading)
+    ==
+    &&
+    gtxn 2 AssetReceiver // Receiver of asset transfer
+    addr <contractWriterAddr> // contractWriterAddr must receive the asset
+    ==
+    &&
+    gtxn 0 RekeyTo // verify no transaction contains a rekey
     global ZeroAddress
     ==
     &&
@@ -321,11 +382,23 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
+    gtxn 3 RekeyTo
+    global ZeroAddress
+    ==
+    &&
     gtxn 0 CloseRemainderTo
     global ZeroAddress
     ==
     && 
+    gtxn 1 CloseRemainderTo
+    global ZeroAddress
+    ==
+    && 
     gtxn 2 CloseRemainderTo
+    global ZeroAddress
+    ==
+    && 
+    gtxn 3 CloseRemainderTo
     global ZeroAddress
     ==
     && 
@@ -341,7 +414,13 @@ let delegateTemplate = `#pragma version 3
     global ZeroAddress
     ==
     &&
+    gtxn 3 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
     assert
+
+    handle_rate_check:
     // min algos spent
     gtxn 1 Amount
     int <min>
@@ -353,8 +432,6 @@ let delegateTemplate = `#pragma version 3
     &&
     assert
     // handle the rate
-    // future sell order (not in this contract)
-    // gtxn[1].Amount * N >= gtxn[2].AssetAmount * D
     // BUY ORDER
     // gtxn[2].AssetAmount * D >= gtxn[1].Amount * N
     // N units of the asset per D microAlgos
