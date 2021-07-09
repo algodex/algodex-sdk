@@ -15,10 +15,10 @@ const asaDelegateTemplate = {
 // OPT IN
 /////////////////////
 
-// TXN 0. - pay transaction into escrow (owner to escrow)
-// TXN 1. - application opt in (from escrow)
-// TXN 2. - asset opt in (from escrow)
-// TXN 3. - asset transfer (owner to escrow)
+    // TXN 0. - pay transaction into escrow (owner to escrow)
+    // TXN 1. - application opt in (from escrow)
+    // TXN 2. - asset opt in (from escrow)
+    // TXN 3. - asset transfer (owner to escrow)
 
     global GroupSize
     int 4
@@ -162,10 +162,10 @@ const asaDelegateTemplate = {
 /// CLOSE ORDER
 //////////////////////
 
-// TXN 0.   - pay transaction into escrow (owner to escrow)
-// TXN 1.  - application opt in (from escrow)
-// TXN 2.   - asset opt in (from escrow)
-// TXN 3.  - asset transfer (owner to escrow)
+    // TXN 0. - app call to close order
+    // TXN 1. - asset transfer (escrow to owner)
+    // TXN 2. - pay transaction (from escrow to owner)
+    // TXN 3. - proof pay transaction (owner to owner) - proof of ownership
 
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
@@ -371,11 +371,11 @@ notCloseOut:
 ////////////////////////////////
 // ANY EXECUTE (with close or not)
 ///////////////////////////////
-// TXN 0            - Application call (from escrow) to execute
-// TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-// (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-// TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
-// TXN 3 or 4       - don't check this - different on whether closing or not
+    // TXN 0            - Application call (from escrow) to execute
+    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+    // TXN 3 or 4       - don't check this - different on whether closing or not
 
     gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
@@ -461,11 +461,11 @@ notCloseOut:
 // EXECUTE
 ///////////////////////////////
 
-// TXN 0            - Application call (from escrow) to execute
-// TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-// (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-// TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
-// TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow owner)
+    // TXN 0            - Application call (from escrow) to execute
+    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+    // TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow owner)
 
     gtxna 0 ApplicationArgs 0
     byte "execute_with_closeout"

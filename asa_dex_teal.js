@@ -73,6 +73,12 @@
 ////////////////////////////////
 // OPEN                       //
 ////////////////////////////////
+    //
+    // TXN 0. - pay transaction into escrow (owner to escrow)
+    // TXN 1. - application opt in (from escrow)
+    // TXN 2. - asset opt in (from escrow)
+    // TXN 3. - asset transfer (owner to escrow)
+
     open:
     int OptIn
     txn OnCompletion
@@ -111,6 +117,12 @@
 /////////////////////////////////
 // CLOSE                     ////
 ///////////////////////////////// FIXME check sender addresses? and all 4 transactions
+    //
+    // TXN 0. - app call to close order
+    // TXN 1. - asset transfer (escrow to owner)
+    // TXN 2. - pay transaction (from escrow to owner)
+    // TXN 3. - proof pay transaction (owner to owner) - proof of ownership
+
     close:
     txn OnCompletion
     int CloseOut
@@ -167,6 +179,12 @@
 ///////////////////////////////
 /// EXECUTE                 ///
 ///////////////////////////////
+    // TXN 0            - Application call (from escrow) to execute
+    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+    // TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow owner)
+
     execute:
 
     txn OnCompletion //FIXME check OnCompletion of each individual transaction
@@ -273,6 +291,13 @@
 /////////////////////////////////////////////
 /// EXECUTE WITH CLOSEOUT                  //
 /////////////////////////////////////////////
+    // TXN 0            - Application call (from escrow) to execute_with_close
+    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
+    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
+    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+    //                            - closes out ASA to escrow owner as well
+    // TXN 3 or 4       - Pay transaction to close out to escrow owner as well
+
     execute_with_closeout:
 
     txn OnCompletion

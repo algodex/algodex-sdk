@@ -5,7 +5,8 @@ const algoDelegateTemplate = {
 
     // Stateless delegate contract template to sell algos in an escrow account
 // Stateless delegate contract template to sell algos in an escrow account
-let delegateTemplate = `#pragma version 3
+let delegateTemplate = `
+#pragma version 3
 ////////////////////////
 // ALGO (NON-ASA) ESCROW 
 ///////////////////////////
