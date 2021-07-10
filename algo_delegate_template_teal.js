@@ -428,12 +428,15 @@ let delegateTemplate = `
     assert
 
     handle_rate_check:
-    // min algos spent
-    gtxn 1 Amount
-    int <min>
+    gtxn 1 Amount 
+    int 1 // must be at least one
+    //int <min> NOTE** - leave this commented. We have intentionally disabled the custom min amount check 
     >=
-    // asset id to trade for
-    int <assetid>
+    gtxn 2 AssetAmount
+    int 1 // must be at least one
+    >=
+    &&
+    int <assetid>  // asset id to trade for
     gtxn 2 XferAsset
     ==
     &&

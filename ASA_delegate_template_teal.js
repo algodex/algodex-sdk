@@ -555,8 +555,14 @@ notCloseOut:
 finalExecuteChecks:
 
     gtxn 1 Amount // min algos spent
-    int <min> //Put <min> here
+    //int <min> // NOTE** We have intentionally disabled the custom min amount check 
+    int 1  // must be at least one ASA spent
     >=
+    load 2
+    gtxns AssetAmount
+    int 1  // must be at least one ASA spent
+    >=
+    &&
     bz fail
 
     /////////////////////////////////////
@@ -567,9 +573,7 @@ finalExecuteChecks:
     // SELL ORDER
     // gtxn[1].Amount * N <= gtxn[2].AssetAmount * D
     // N units of the asset per D microAlgos
-    load 0
-    int 2
-    +
+    load 2
     gtxns AssetAmount
     int <D> // put <D> value here
     mulw // AssetAmount * D => (high 64 bits, low 64 bits)
