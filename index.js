@@ -8,13 +8,23 @@
 
 //import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');
+const algoOrderBook = require('./dex_teal.js');
+const asaOrderBook = require('./asa_dex_teal.js');
 
 /*
  * Alert function test
  */
 exports.doAlert = function() {
 	algodex.doAlert();
-}
+};
+
+exports.getAsaOrderBookTeal = function() {
+	return asaOrderBook.getASAOrderBookApprovalProgram();
+};
+
+exports.getAlgoOrderBookTeal = function() {
+	return algoOrderBook.getAlgoOrderBookApprovalProgram();
+};
 
 /*
  * Print console message test

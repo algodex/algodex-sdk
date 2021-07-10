@@ -5,7 +5,9 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
-function getASAOrderBookApprovalProgram() {
+const AsaOrderbookTeal = {
+
+ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `
@@ -420,6 +422,7 @@ function getASAOrderBookApprovalProgram() {
 
     `;
 
-        }
+    }
+};
 
-    window.getOrderBookApprovalProgram = getOrderBookApprovalProgram;
+module.exports = AsaOrderbookTeal;

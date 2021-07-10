@@ -5,7 +5,9 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
-function getOrderBookApprovalProgram() {
+const AlgoOrderbookTeal = {
+
+ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `
@@ -327,6 +329,8 @@ function getOrderBookApprovalProgram() {
 
     `;
 
-        }
+    }
+}
 
-    window.getOrderBookApprovalProgram = getOrderBookApprovalProgram;
+module.exports = AlgoOrderbookTeal;
+

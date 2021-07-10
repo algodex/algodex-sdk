@@ -22,8 +22,8 @@ module.exports = {
     LOCAL_INDEXER_PORT: "",
     LOCAL_INDEXER_TOKEN: "",
     //intentionally same as test, assuming testnet being used on local setup
-    LOCAL_ALGO_ORDERBOOK_APPID: 16021155,
-    LOCAL_ASA_ORDERBOOK_APPID: 16021157, 
+    LOCAL_ALGO_ORDERBOOK_APPID: 18988007,
+    LOCAL_ASA_ORDERBOOK_APPID: 18988134, 
         //const indexer_server = "http://localhost";
         //const indexer_port = "8980";
 
