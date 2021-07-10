@@ -185,7 +185,7 @@ let delegateTemplate = `
     ==
     &&
     gtxn 0 OnCompletion
-    int CloseOut //Check App Call OnCompletion is CloseOut (OptOut)
+    int ClearState // App Call OnCompletion needs to be ClearState (OptOut), which will clear from the order book
     ==
     &&
     gtxn 1 OnCompletion

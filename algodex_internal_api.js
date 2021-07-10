@@ -695,7 +695,7 @@ const AlgodexInternalApi = {
             let params = await algodClient.getTransactionParams().do();
 
             // create unsigned transaction
-            let txn = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, index, appArgs)
+            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, index, appArgs)
             let txId = txn.txID().toString();
             // Submit the transaction
 
@@ -734,7 +734,6 @@ const AlgodexInternalApi = {
                 txns[i].group = groupID;
             }
 
-            //let closeOutTxn = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts);
 
             let signedTx = algosdk.signLogicSigTransactionObject(txn, lsig);
             txId = signedTx.txID;
@@ -816,7 +815,7 @@ const AlgodexInternalApi = {
             let params = await algodClient.getTransactionParams().do();
 
             // create unsigned transaction
-            let txn = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, index, appArgs)
+            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, index, appArgs)
             let txId = txn.txID().toString();
             // Submit the transaction
 
@@ -838,8 +837,6 @@ const AlgodexInternalApi = {
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
             }
-
-            //let closeOutTxn = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts);
 
             let signedTx = algosdk.signLogicSigTransactionObject(txn, lsig);
             txId = signedTx.txID;
