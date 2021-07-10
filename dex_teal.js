@@ -16,7 +16,7 @@ const AlgoOrderbookTeal = {
 //   ORDER BOOK FOR ALGO ESCROWS /
 //////////////////////////////////
 
-#pragma version 3
+#pragma version 4
 
     // STATEFUL APP CREATION
     // check if the app is being created
@@ -157,6 +157,15 @@ const AlgoOrderbookTeal = {
     ==
     &&
     assert
+
+    txn Sender
+    balance
+    gtxn 1 Amount
+    -
+    int 1000000
+    >= // after subtracting the amount, over 1 algo must remain
+    assert
+    
     int 0 // Escrow account containing order
     txn ApplicationID // Current stateful smart contract
     txna ApplicationArgs 1 // 2nd argument is order number
@@ -254,6 +263,7 @@ const AlgoOrderbookTeal = {
 
     int 1
     return
+
 
 
 
