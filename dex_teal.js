@@ -67,10 +67,6 @@ const AlgoOrderbookTeal = {
     ==
     bnz open
     txna ApplicationArgs 0
-    byte "close"
-    ==
-    bnz close
-    txna ApplicationArgs 0
     byte "execute"
     ==
     bnz execute
@@ -123,73 +119,6 @@ const AlgoOrderbookTeal = {
     int 1
     app_local_put
     ret_success:
-    int 1
-    return
-
-////////////
-// CLOSE   /
-////////////
-
-    // TXN 0 - application call to order book contract for closeout
-    // TXN 1 - close out call
-    // TXN 2 - send transaction for proof that closeout sender owns the escrow
-    close:
-    txn OnCompletion
-    int CloseOut
-    ==
-    global GroupSize // only works for app call
-    int 3
-    ==
-    &&
-    assert
-    int 0 //account that opened order
-    gtxn  0 ApplicationID //current smart contract
-    gtxna 0 ApplicationArgs 1 // order number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "creator" //order creator account number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "version" //order creator account number
-    app_local_get_ex
-    assert
-    pop
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
-    gtxn 1 CloseRemainderTo
-    ==
-    assert
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
-    gtxn 1 Receiver
-    ==
-    assert
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
-    gtxn 2 Sender
-    ==
-    assert
-
-    // delete the ordernumber
-    int 0 //escrow account that opened order
-    txna ApplicationArgs 1 // limit order number
-    app_local_del // delete the original account number
-    int 0 //escrow account that opened order
-    byte "creator" // original limit order creator account
-    app_local_del
-    int 0 //escrow account that opened order
-    byte "version"
-    app_local_del
-
     int 1
     return
 
@@ -325,6 +254,7 @@ const AlgoOrderbookTeal = {
 
     int 1
     return
+
 
 
     `;
