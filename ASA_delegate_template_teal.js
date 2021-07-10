@@ -308,7 +308,7 @@ const asaDelegateTemplate = {
     ==
     &&
     gtxn 0 OnCompletion
-    int CloseOut // App Call OnCompletion needs to be CloseOut (OptOut)
+    int ClearState // App Call OnCompletion needs to be ClearState (OptOut), which will clear from the order book
     ==
     &&
     gtxn 1 OnCompletion
