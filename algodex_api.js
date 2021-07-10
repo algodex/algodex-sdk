@@ -1,3 +1,9 @@
+/////////////////////////////
+// Alexander Trefonas      //
+// 7/9/2021                //
+// Copyright Algodev Inc   //
+// All Rights Reserved.    //
+/////////////////////////////
 
 const http = require('http');
 const algosdk = require('algosdk');

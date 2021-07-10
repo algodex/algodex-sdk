@@ -1,3 +1,10 @@
+/////////////////////////////
+// Alexander Trefonas      //
+// 7/9/2021                //
+// Copyright Algodev Inc   //
+// All Rights Reserved.    //
+/////////////////////////////
+
 
 //import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');

@@ -1,4 +1,11 @@
-    function getASAOrderBookApprovalProgram() {
+/////////////////////////////
+// Alexander Trefonas      //
+// 7/9/2021                //
+// Copyright Algodev Inc   //
+// All Rights Reserved.    //
+/////////////////////////////
+
+function getASAOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `

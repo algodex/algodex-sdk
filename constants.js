@@ -1,3 +1,10 @@
+/////////////////////////////
+// Alexander Trefonas      //
+// 7/9/2021                //
+// Copyright Algodev Inc   //
+// All Rights Reserved.    //
+/////////////////////////////
+
 module.exports = {
     DEBUG: 1,
     DEBUG_SMART_CONTRACT_SOURCE: 1,
