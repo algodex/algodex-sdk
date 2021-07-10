@@ -31,32 +31,30 @@ const AsaOrderbookTeal = {
     int 1
     return
     not_creation:
-    // check if this is deletion transaction
     int DeleteApplication
     txn OnCompletion
     ==
-    bz not_deletion
-    byte "Creator"
+    bz not_deletion 
+    byte "Creator" // verify creator is deleting app
     app_global_get
     txn Sender
     ==
-    bz fail
+    assert
     int 1
     return
+    
     not_deletion:
-    //---
-    // check if this is update ---
-    int UpdateApplication
+    
+    int UpdateApplication // check if this is update
     txn OnCompletion
     ==
     bz not_update
-    // verify that the creator is
-    // making the call
-    byte "Creator"
+    
+    byte "Creator" // verify that the creator is making the call
     app_global_get
     txn Sender
     ==
-    bz fail
+    assert
     int 1
     return
     not_update:
@@ -65,10 +63,6 @@ const AsaOrderbookTeal = {
     byte "open"
     ==
     bnz open
-    txna ApplicationArgs 0
-    byte "close"
-    ==
-    bnz close
     txna ApplicationArgs 0
     byte "execute"
     ==
@@ -92,11 +86,12 @@ const AsaOrderbookTeal = {
     int OptIn
     txn OnCompletion
     ==
-    bz fail
-    //global GroupSize
-    //int 2
-    //==
-    //bz fail
+    global GroupSize
+    int 4
+    ==
+    &&
+    assert
+    
     int 0 //address index
     txn ApplicationID //current smart contract
     // 2nd txn app arg is order number
@@ -121,68 +116,6 @@ const AsaOrderbookTeal = {
     app_local_put
     ret_success:
     int 1
-    return
-
-/////////////////////////////////
-// CLOSE                     ////
-///////////////////////////////// FIXME check sender addresses? and all 4 transactions
-    //
-    // TXN 0. - app call to close order
-    // TXN 1. - asset transfer (escrow to owner)
-    // TXN 2. - pay transaction (from escrow to owner)
-    // TXN 3. - proof pay transaction (owner to owner) - proof of ownership
-
-    close:
-    txn OnCompletion
-    int CloseOut
-    ==
-    // only works for app call
-    global GroupSize
-    int 4
-    ==
-    bz fail
-    pop
-
-    int 0 //account that opened order
-    gtxn  0 ApplicationID //current smart contract
-    gtxna 0 ApplicationArgs 1 // order number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "creator" //order creator account number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "version" //order creator account number
-    app_local_get_ex
-    assert
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation to pay verification send
-    gtxn 3 Sender
-    ==
-    assert
-
-    // delete the ordernumber
-    int 0 //escrow account that opened order
-    txna ApplicationArgs 1 // limit order number
-    app_local_del // delete the original account number
-    int 0 //escrow account that opened order
-    byte "creator" // original limit order creator account
-    app_local_del
-    int 0 //escrow account that opened order
-    byte "version"
-    app_local_del
-
-    int 1
-    return
-
-    fail:
-    int 0
     return
 
 ///////////////////////////////
@@ -419,6 +352,7 @@ const AsaOrderbookTeal = {
     fail2:
     int 0
     return
+    
 
     `;
 
