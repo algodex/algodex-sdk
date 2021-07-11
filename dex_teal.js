@@ -90,7 +90,7 @@ const AlgoOrderbookTeal = {
     open:
 
     gtxn 0 Amount // pay transaction must be over 1 algo
-    int 1000000 // 1 algo
+    int 500000 // 0.5 algo. Also checked in the escrow contract
     >=
     assert
 
@@ -162,8 +162,8 @@ const AlgoOrderbookTeal = {
     balance
     gtxn 1 Amount
     -
-    int 1000000
-    >= // after subtracting the amount, over 1 algo must remain
+    int 499000
+    >= // after subtracting the amount, over 0.499 algo must remain (0.5 - original txn fee from maker order)
     assert
     
     int 0 // Escrow account containing order
@@ -263,9 +263,6 @@ const AlgoOrderbookTeal = {
 
     int 1
     return
-
-
-
 
     `;
 
