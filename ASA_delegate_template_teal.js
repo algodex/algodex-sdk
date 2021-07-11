@@ -78,10 +78,10 @@ const asaDelegateTemplate = {
     int axfer
     ==
     &&
-    //gtxn 0 Amount fixme - amount should be higher than 1 algo
-    //int 1000000
-    //== 
-    //&& 
+    gtxn 0 Amount // amount should be higher than 0.5 algo
+    int 500000
+    >= 
+    && 
     gtxn 1 Amount
     int 0
     ==

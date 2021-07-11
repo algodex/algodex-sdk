@@ -33,9 +33,12 @@ let delegateTemplate = `
     int appl
     ==
     &&
-    txn Amount
+    txn Amount // amount sent from escrow for this txn should always be 0
     int 0
     ==
+    gtxn 0 Amount
+    int 500000 // Must be funded with at least 0.5 algo
+    >=
     &&
     txn CloseRemainderTo
     global ZeroAddress
