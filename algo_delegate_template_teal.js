@@ -37,7 +37,7 @@ let delegateTemplate = `
     int 0
     ==
     gtxn 0 Amount
-    int 500000 // Must be funded with at least 0.5 algo
+    int 500000 // Must be funded with at least 0.5 algo.
     >=
     &&
     txn CloseRemainderTo

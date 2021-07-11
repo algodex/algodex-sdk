@@ -362,11 +362,12 @@ notCloseOut:
     load 0
     int 2
     +
-    store 2
+    store 2 // store offset of 2nd transaction, depending on if opt-in exists
+
     load 0
     int 3
     +
-    store 3 
+    store 3 // store offset of 2nd transaction, depending on if opt-in exists
 
     int 4
     load 0

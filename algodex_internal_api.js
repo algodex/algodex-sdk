@@ -251,10 +251,8 @@ const AlgodexInternalApi = {
             console.log("receiving ASA " + escrowAsaTradeAmount + " from  " + lsig.address());
             console.log("sending ALGO amount " + algoTradeAmount + " to " + orderCreatorAddr);
 
-
-            if ((currentEscrowBalance - executionFees < constants.MIN_ASA_ESCROW_BALANCE) 
-                //FIXME: reimburse fees!
-                || closeoutFromASABalance == true) {
+            if (closeoutFromASABalance == true) {
+                // only closeout if there are no more ASA in the account
                 closeRemainderTo = orderCreatorAddr;
             }
             let transaction1 = null;

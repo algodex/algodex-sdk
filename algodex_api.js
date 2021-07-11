@@ -677,7 +677,7 @@ const AlgodexApi = {
             type: 'pay',
             from: makerWalletAddr,
             to:  lsig.address(),
-            amount: (constants.MIN_ASA_ESCROW_BALANCE + 100000), //fund with enough to subtract from later
+            amount: constants.MIN_ASA_ESCROW_BALANCE, //fund with enough to subtract from later
             firstRound: params.firstRound,
             lastRound: params.lastRound,
             genesisHash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
