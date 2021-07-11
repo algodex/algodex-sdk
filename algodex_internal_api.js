@@ -269,13 +269,14 @@ const AlgodexInternalApi = {
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
             appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+            //appArgs.push(enc.encode(assetId));
 
             console.log(appArgs.length);
 
             if (closeRemainderTo == undefined) {
-                transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts);
+                transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
             } else {
-                transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts);
+                transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
             }
             console.log("app call type is: " + appCallType);
 

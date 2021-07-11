@@ -252,6 +252,17 @@ const AsaOrderbookTeal = {
     ==
     bz fail2
 
+    callsub check_asa_optin // this will store transaction offsets into registers if the asa opt-in exists or not
+
+    txn Sender
+    int 0 // foreign asset id 0
+    asset_holding_get AssetBalance // pushes 1 for success, then asset onto stack
+    assert //make sure asset exists
+    load 2
+    gtxns AssetAmount
+    == // Check we are going to transfer the entire ASA amount to the buyer. Otherwise should be a partial execute
+    assert
+
     global GroupSize
     int 4
     ==
@@ -271,8 +282,6 @@ const AsaOrderbookTeal = {
     ==
     &&
     assert
-
-    callsub check_asa_optin // this will store transaction offsets into registers if the asa opt-in exists or not
 
     load 2
     gtxns TypeEnum //The next transaction must be an asset transfer
@@ -335,6 +344,8 @@ const AsaOrderbookTeal = {
   fail2:
     int 0
     return
+    
+    
     
     `;
 
