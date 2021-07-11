@@ -203,6 +203,14 @@ const AlgoOrderbookTeal = {
 
     execute_with_closeout:
 
+    txn Sender
+    balance
+    gtxn 1 Amount
+    -
+    int 500000
+    < // after subtracting the amount, less than 0.5 algo must remain (to be closed out)
+    assert
+
     txn OnCompletion
     int CloseOut
     ==
