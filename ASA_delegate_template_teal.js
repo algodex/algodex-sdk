@@ -557,7 +557,7 @@ finalExecuteChecks:
 
     gtxn 1 Amount // min algos spent
     //int <min> // NOTE** We have intentionally disabled the custom min amount check 
-    int 1  // must be at least one ASA spent
+    int 1  // must be at least one algo spent
     >=
     load 2
     gtxns AssetAmount
