@@ -71,8 +71,8 @@ let delegateTemplate = `
     store 0
 
     global GroupSize // Third transaction is an optional asset opt-in
-    int 3
-    <
+    int 2
+    ==
     store 1
 
     load 1
@@ -104,14 +104,12 @@ let delegateTemplate = `
     store 1
 
     notThreeTxns:
-    load 0
+    load 0 
     load 1
-    &&
+    && // If either of the above are set to 0, this is *not* a place order transaction, so check other types
     bz notOptInOrOrderReg // Jump if either is 0
-    // If either of the above are not true, this is a closeout (without order execution) or pay transaction
-    // Otherwise it is Opt-in so return early
-    int 1
-    
+
+    int 1 // Otherwise it is a valid Opt-in so return early
     return
 
 ////////////////////////////////////////
