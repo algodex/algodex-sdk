@@ -16,7 +16,7 @@ const AsaOrderbookTeal = {
 //   ORDER BOOK FOR ASA ESCROWS  /
 //////////////////////////////////
 
-#pragma version 3
+#pragma version 4
     // check if the app is being created
     // if so save creator
 
@@ -30,45 +30,39 @@ const AsaOrderbookTeal = {
     //4 args on creation
     int 1
     return
-    not_creation:
-    // check if this is deletion transaction
+  not_creation:
     int DeleteApplication
     txn OnCompletion
     ==
-    bz not_deletion
-    byte "Creator"
+    bz not_deletion 
+    byte "Creator" // verify creator is deleting app
     app_global_get
     txn Sender
     ==
-    bz fail
+    assert
     int 1
     return
-    not_deletion:
-    //---
-    // check if this is update ---
-    int UpdateApplication
+    
+  not_deletion:
+    
+    int UpdateApplication // check if this is update
     txn OnCompletion
     ==
     bz not_update
-    // verify that the creator is
-    // making the call
-    byte "Creator"
+    
+    byte "Creator" // verify that the creator is making the call
     app_global_get
     txn Sender
     ==
-    bz fail
+    assert
     int 1
     return
-    not_update:
+  not_update:
 
     txna ApplicationArgs 0
     byte "open"
     ==
     bnz open
-    txna ApplicationArgs 0
-    byte "close"
-    ==
-    bnz close
     txna ApplicationArgs 0
     byte "execute"
     ==
@@ -79,6 +73,31 @@ const AsaOrderbookTeal = {
     bnz execute_with_closeout
     err
 
+  check_asa_optin:
+    // Check for asset opt-in
+    gtxn 2 TypeEnum
+    int axfer
+    ==
+    gtxn 2 AssetAmount
+    int 0
+    ==
+    &&
+    gtxn 2 Sender
+    gtxn 2 AssetReceiver
+    ==
+    &&
+    store 0 //this will store the next transaction offset if opt-in exists
+    load 0
+    int 2
+    +
+    store 2 // store offset of 2nd transaction, depending on if opt-in exists
+    
+    load 0
+    int 3
+    +
+    store 3 // store offset of 3rd transaction, depending on if opt-in exists
+    retsub
+    
 ////////////////////////////////
 // OPEN                       //
 ////////////////////////////////
@@ -88,15 +107,16 @@ const AsaOrderbookTeal = {
     // TXN 2. - asset opt in (from escrow)
     // TXN 3. - asset transfer (owner to escrow)
 
-    open:
+  open:
     int OptIn
     txn OnCompletion
     ==
-    bz fail
-    //global GroupSize
-    //int 2
-    //==
-    //bz fail
+    global GroupSize
+    int 4
+    ==
+    &&
+    assert
+    
     int 0 //address index
     txn ApplicationID //current smart contract
     // 2nd txn app arg is order number
@@ -119,70 +139,8 @@ const AsaOrderbookTeal = {
     byte "version" //store version
     int 1
     app_local_put
-    ret_success:
+  ret_success:
     int 1
-    return
-
-/////////////////////////////////
-// CLOSE                     ////
-///////////////////////////////// FIXME check sender addresses? and all 4 transactions
-    //
-    // TXN 0. - app call to close order
-    // TXN 1. - asset transfer (escrow to owner)
-    // TXN 2. - pay transaction (from escrow to owner)
-    // TXN 3. - proof pay transaction (owner to owner) - proof of ownership
-
-    close:
-    txn OnCompletion
-    int CloseOut
-    ==
-    // only works for app call
-    global GroupSize
-    int 4
-    ==
-    bz fail
-    pop
-
-    int 0 //account that opened order
-    gtxn  0 ApplicationID //current smart contract
-    gtxna 0 ApplicationArgs 1 // order number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "creator" //order creator account number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "version" //order creator account number
-    app_local_get_ex
-    assert
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation to pay verification send
-    gtxn 3 Sender
-    ==
-    assert
-
-    // delete the ordernumber
-    int 0 //escrow account that opened order
-    txna ApplicationArgs 1 // limit order number
-    app_local_del // delete the original account number
-    int 0 //escrow account that opened order
-    byte "creator" // original limit order creator account
-    app_local_del
-    int 0 //escrow account that opened order
-    byte "version"
-    app_local_del
-
-    int 1
-    return
-
-    fail:
-    int 0
     return
 
 ///////////////////////////////
@@ -194,7 +152,7 @@ const AsaOrderbookTeal = {
     // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
     // TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow owner)
 
-    execute:
+  execute:
 
     txn OnCompletion //FIXME check OnCompletion of each individual transaction
     int CloseOut
@@ -203,6 +161,17 @@ const AsaOrderbookTeal = {
     int NoOp
     ==
     ||
+    assert
+    
+    callsub check_asa_optin // this will store transaction offsets into registers if the asa opt-in exists or not
+
+    txn Sender
+    int 0 // foreign asset id 0
+    asset_holding_get AssetBalance // pushes 1 for success, then asset onto stack
+    assert //make sure asset exists
+    load 2
+    gtxns AssetAmount
+    > // The asset balance should be greater than or equal to the amount transferred. Otherwise should be with closeout
     assert
 
     global GroupSize
@@ -225,33 +194,14 @@ const AsaOrderbookTeal = {
     &&
     assert
 
-    // Check for asset opt-in
-    gtxn 2 TypeEnum
-    int axfer
-    ==
-    gtxn 2 AssetAmount
-    int 0
-    ==
-    &&
-    gtxn 2 Sender
-    gtxn 2 AssetReceiver
-    ==
-    &&
-    store 0 //this will store the next transaction offset
-
-    load 0
-    int 2
-    + 
+    
+    load 2
     gtxns TypeEnum //The next transaction must be an asset transfer
     int axfer
     ==
     assert
 
-    load 0
-    int 3
-    +
-    // The last transaction must be a payment transfer
-    //FIXME make sure it goes to right place!
+    load 3
     gtxns TypeEnum
     int pay
     ==
@@ -282,17 +232,15 @@ const AsaOrderbookTeal = {
     ==
     bnz ret_success2
 
-    // Delete the ordernumber
     int 0 //escrow account containing order
-    txna ApplicationArgs 1 // order details
+    txna ApplicationArgs 1 // Delete the order details
     app_local_del
 
-    // Delete other info
     int 0 // escrow account containing order
-    txna ApplicationArgs 2 // creator of order address
+    txna ApplicationArgs 2 // Delete the creator of order address
     app_local_del
 
-    ret_success2:
+  ret_success2:
     int 1
     return
 
@@ -307,12 +255,23 @@ const AsaOrderbookTeal = {
     //                            - closes out ASA to escrow owner as well
     // TXN 3 or 4       - Pay transaction to close out to escrow owner as well
 
-    execute_with_closeout:
+  execute_with_closeout:
 
     txn OnCompletion
     int CloseOut
     ==
     bz fail2
+
+    callsub check_asa_optin // this will store transaction offsets into registers if the asa opt-in exists or not
+
+    txn Sender
+    int 0 // foreign asset id 0
+    asset_holding_get AssetBalance // pushes 1 for success, then asset onto stack
+    assert //make sure asset exists
+    load 2
+    gtxns AssetAmount
+    == // Check we are going to transfer the entire ASA amount to the buyer. Otherwise should be a partial execute
+    assert
 
     global GroupSize
     int 4
@@ -334,32 +293,13 @@ const AsaOrderbookTeal = {
     &&
     assert
 
-    gtxn 2 TypeEnum
-    int axfer
-    ==
-    gtxn 2 AssetAmount
-    int 0
-    ==
-    &&
-    gtxn 2 Sender
-    gtxn 2 AssetReceiver
-    ==
-    &&
-    store 0 //this will store the next transaction offset
-
-    load 0
-    int 2
-    + 
+    load 2
     gtxns TypeEnum //The next transaction must be an asset transfer
     int axfer
     ==
     assert
 
-    load 0
-    int 3
-    +
-    // The last transaction must be a payment transfer
-    //FIXME make sure it goes to right place!
+    load 3 // The last transaction must be a payment transfer
     gtxns TypeEnum
     int pay
     ==
@@ -397,29 +337,25 @@ const AsaOrderbookTeal = {
     ==
     bnz ret_success3
 
-    //FIXME: make sure 4th transaction goes back to escrow creator and for closeout!!!
-
-    // Delete the ordernumber
     int 0 //escrow account containing order
     txna ApplicationArgs 1 // order details
-    app_local_del
-    // Delete other info
+    app_local_del // Delete the ordernumber
     int 0 // escrow account containing order
     byte "creator"
-    app_local_del
-    // Delete other info
+    app_local_del // Delete the creator
     int 0 // escrow account containing order
-    byte "version"
+    byte "version" // Delete the version
     app_local_del
 
-    ret_success3:
+  ret_success3:
     int 1
     return
 
-    fail2:
+  fail2:
     int 0
     return
-
+    
+    
     `;
 
     }

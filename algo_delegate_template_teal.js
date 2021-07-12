@@ -33,9 +33,12 @@ let delegateTemplate = `
     int appl
     ==
     &&
-    txn Amount
+    txn Amount // amount sent from escrow for this txn should always be 0
     int 0
     ==
+    gtxn 0 Amount
+    int 500000 // Must be funded with at least 0.5 algo.
+    >=
     &&
     txn CloseRemainderTo
     global ZeroAddress
@@ -428,12 +431,15 @@ let delegateTemplate = `
     assert
 
     handle_rate_check:
-    // min algos spent
-    gtxn 1 Amount
-    int <min>
+    gtxn 1 Amount 
+    int 1 // must be at least one
+    //int <min> NOTE** - leave this commented. We have intentionally disabled the custom min amount check 
     >=
-    // asset id to trade for
-    int <assetid>
+    gtxn 2 AssetAmount
+    int 1 // must be at least one
+    >=
+    &&
+    int <assetid>  // asset id to trade for
     gtxn 2 XferAsset
     ==
     &&

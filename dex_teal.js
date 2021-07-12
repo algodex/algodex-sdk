@@ -16,7 +16,7 @@ const AlgoOrderbookTeal = {
 //   ORDER BOOK FOR ALGO ESCROWS /
 //////////////////////////////////
 
-#pragma version 3
+#pragma version 4
 
     // STATEFUL APP CREATION
     // check if the app is being created
@@ -67,10 +67,6 @@ const AlgoOrderbookTeal = {
     ==
     bnz open
     txna ApplicationArgs 0
-    byte "close"
-    ==
-    bnz close
-    txna ApplicationArgs 0
     byte "execute"
     ==
     bnz execute
@@ -94,7 +90,7 @@ const AlgoOrderbookTeal = {
     open:
 
     gtxn 0 Amount // pay transaction must be over 1 algo
-    int 1000000 // 1 algo
+    int 500000 // 0.5 algo. Also checked in the escrow contract
     >=
     assert
 
@@ -123,73 +119,6 @@ const AlgoOrderbookTeal = {
     int 1
     app_local_put
     ret_success:
-    int 1
-    return
-
-////////////
-// CLOSE   /
-////////////
-
-    // TXN 0 - application call to order book contract for closeout
-    // TXN 1 - close out call
-    // TXN 2 - send transaction for proof that closeout sender owns the escrow
-    close:
-    txn OnCompletion
-    int CloseOut
-    ==
-    global GroupSize // only works for app call
-    int 3
-    ==
-    &&
-    assert
-    int 0 //account that opened order
-    gtxn  0 ApplicationID //current smart contract
-    gtxna 0 ApplicationArgs 1 // order number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "creator" //order creator account number
-    app_local_get_ex
-    assert
-    pop
-    int 0 //account that opened order
-    gtxn 0  ApplicationID //current smart contract
-    byte "version" //order creator account number
-    app_local_get_ex
-    assert
-    pop
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
-    gtxn 1 CloseRemainderTo
-    ==
-    assert
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
-    gtxn 1 Receiver
-    ==
-    assert
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
-    gtxn 2 Sender
-    ==
-    assert
-
-    // delete the ordernumber
-    int 0 //escrow account that opened order
-    txna ApplicationArgs 1 // limit order number
-    app_local_del // delete the original account number
-    int 0 //escrow account that opened order
-    byte "creator" // original limit order creator account
-    app_local_del
-    int 0 //escrow account that opened order
-    byte "version"
-    app_local_del
-
     int 1
     return
 
@@ -228,6 +157,15 @@ const AlgoOrderbookTeal = {
     ==
     &&
     assert
+
+    txn Sender
+    balance
+    gtxn 1 Amount
+    -
+    int 499000
+    >= // after subtracting the amount, over 0.499 algo must remain (0.5 - original txn fee from maker order)
+    assert
+    
     int 0 // Escrow account containing order
     txn ApplicationID // Current stateful smart contract
     txna ApplicationArgs 1 // 2nd argument is order number
@@ -264,6 +202,14 @@ const AlgoOrderbookTeal = {
     // TXN 2 - Asset transfer from seller to owner of this escrow
 
     execute_with_closeout:
+
+    txn Sender
+    balance
+    gtxn 1 Amount
+    -
+    int 500000
+    < // after subtracting the amount, less than 0.5 algo must remain (to be closed out)
+    assert
 
     txn OnCompletion
     int CloseOut
@@ -325,7 +271,6 @@ const AlgoOrderbookTeal = {
 
     int 1
     return
-
 
     `;
 

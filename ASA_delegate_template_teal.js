@@ -78,10 +78,10 @@ const asaDelegateTemplate = {
     int axfer
     ==
     &&
-    //gtxn 0 Amount fixme - amount should be higher than 1 algo
-    //int 1000000
-    //== 
-    //&& 
+    gtxn 0 Amount // amount should be higher than 0.5 algo
+    int 500000
+    >= 
+    && 
     gtxn 1 Amount
     int 0
     ==
@@ -362,11 +362,12 @@ notCloseOut:
     load 0
     int 2
     +
-    store 2
+    store 2 // store offset of 2nd transaction, depending on if opt-in exists
+
     load 0
     int 3
     +
-    store 3 
+    store 3 // store offset of 2nd transaction, depending on if opt-in exists
 
     int 4
     load 0
@@ -555,8 +556,14 @@ notCloseOut:
 finalExecuteChecks:
 
     gtxn 1 Amount // min algos spent
-    int <min> //Put <min> here
+    //int <min> // NOTE** We have intentionally disabled the custom min amount check 
+    int 1  // must be at least one algo spent
     >=
+    load 2
+    gtxns AssetAmount
+    int 1  // must be at least one ASA spent
+    >=
+    &&
     bz fail
 
     /////////////////////////////////////
@@ -567,9 +574,7 @@ finalExecuteChecks:
     // SELL ORDER
     // gtxn[1].Amount * N <= gtxn[2].AssetAmount * D
     // N units of the asset per D microAlgos
-    load 0
-    int 2
-    +
+    load 2
     gtxns AssetAmount
     int <D> // put <D> value here
     mulw // AssetAmount * D => (high 64 bits, low 64 bits)

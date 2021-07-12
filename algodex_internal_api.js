@@ -251,10 +251,8 @@ const AlgodexInternalApi = {
             console.log("receiving ASA " + escrowAsaTradeAmount + " from  " + lsig.address());
             console.log("sending ALGO amount " + algoTradeAmount + " to " + orderCreatorAddr);
 
-
-            if ((currentEscrowBalance - executionFees < constants.MIN_ASA_ESCROW_BALANCE) 
-                //FIXME: reimburse fees!
-                || closeoutFromASABalance == true) {
+            if (closeoutFromASABalance == true) {
+                // only closeout if there are no more ASA in the account
                 closeRemainderTo = orderCreatorAddr;
             }
             let transaction1 = null;
@@ -271,13 +269,14 @@ const AlgodexInternalApi = {
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
             appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+            //appArgs.push(enc.encode(assetId));
 
             console.log(appArgs.length);
 
             if (closeRemainderTo == undefined) {
-                transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts);
+                transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
             } else {
-                transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts);
+                transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
             }
             console.log("app call type is: " + appCallType);
 
