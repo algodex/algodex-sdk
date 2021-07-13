@@ -962,13 +962,13 @@ const AlgodexInternalApi = {
             (async() => {
                 try {
                     console.log("trying to inspect");
-                    // const response = await axios.post('http://localhost:8000/inspect', {
+                    const response = await axios.post('http://localhost:8000/inspect', {
                     
-                    //         msgpack: b64_encoded
-                    //     },
-                    // );
-                    // console.log(response.data);
-                    // return response.data;
+                            msgpack: b64_encoded
+                        },
+                    );
+                    console.log(response.data);
+                    return response.data;
                 } catch (error) {
                     console.error(error);
                     throw new Error("inspect failed: ", error);
