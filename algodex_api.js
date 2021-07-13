@@ -587,38 +587,9 @@ const AlgodexApi = {
         
         console.log("printing transaction debug");
         this.printTransactionDebug(signed);
-        let groupTx = null;
-        await algodClient.sendRawTransaction(signed).do().then((tx) => {
-            //(async () => {
-            let txId = tx.txId;
-                
-            groupTx = tx;
-            console.log("waiting for confirmation");
-            //return this.waitForConfirmation(client, txId);
-            const promiseTX1 = new Promise((resolve, reject) => {
-                this.waitForConfirmation(algodClient, txId).then((txn) => {
-                    resolve();
-                }).catch((err) => {
-                    console.log("wait for confirm has error!!");
-                    console.log(JSON.stringify(err));
-                    resolve();
-                });
 
-            });
-            return promiseTX1;
-
-            //});
-
-        }).then(() => {
-            
-            console.log("here4");
-            console.log("Order Opened: " + generatedOrderEntry.slice(59));
-        }).catch((err) => {
-                alert("error sending transaction");
-                console.log("has error!!");
-                console.log(JSON.stringify(err));
-            }).finally( () => {
-        });
+        const groupTxn = await algodClient.sendRawTransaction(signed).do()
+        return this.waitForConfirmation(algodClient, groupTxn.txId)
     },
 
     placeASAToSellASAOrderIntoOrderbook : 
@@ -761,35 +732,9 @@ const AlgodexApi = {
         signed.push(signedTxn[1].blob);
         console.log("printing transaction debug");
         this.printTransactionDebug(signed);
-        let groupTx = null;
-        await algodClient.sendRawTransaction(signed).do().then((tx) => {
-            //(async () => {
-            let txId = tx.txId;
-                
-            groupTx = tx;
-            console.log("waiting for confirmation");
-            //return this.waitForConfirmation(client, txId);
-            const promiseTX1 = new Promise((resolve, reject) => {
-                this.waitForConfirmation(algodClient, txId).then((txn) => {
-                    resolve();
-                }).catch((err) => {
-                    console.log("wait for confirm has error!!");
-                    console.log(JSON.stringify(err));
-                    resolve();
-                });
 
-            });
-            return promiseTX1;
-        }).then(() => {
-            console.log("here4");
-            console.log("Order Opened: " + generatedOrderEntry.slice(59));
-        }).catch((err) => {
-                alert("error sending transaction");
-                console.log("has error!!");
-                console.log(JSON.stringify(err));
-            }).finally( () => {
-        });
-
+        const groupTxn = await algodClient.sendRawTransaction(signed).do()
+        return this.waitForConfirmation(algodClient, groupTxn.txId)
     },
 
 /////////////////////////////////
