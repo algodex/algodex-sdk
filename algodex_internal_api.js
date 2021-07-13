@@ -905,22 +905,14 @@ const AlgodexInternalApi = {
                 }
                 if (pendingInfo["pool-error"] !== null && pendingInfo["pool-error"].length > 0) {
                     // If there was a pool error, then the transaction has been rejected!
-                    reject({
-                        txId,
-                        status: "rejected",
-                        statusMsg: "Transaction Rejected"
-                    });
+                    reject(new Error(pendingInfo['pool-error']));
                 }
     
                 nextRound++;
                 await algodClient.statusAfterBlock(nextRound).do();
             }
         
-            reject({
-                txId,
-                status: "timeout",
-                statusMsg: "Transaction Timed Out"
-            })
+            reject(new Error(`Transaction ${txId} timed out`))
         })
     },
 
