@@ -880,39 +880,50 @@ const AlgodexInternalApi = {
     },
 
     // Wait for a transaction to be confirmed
-    waitForConfirmation : async function(algodClient, txId) {
-        let checkPending = await this.checkPending(algodClient, txId, 4);
+    waitForConfirmation : async (algodClient, txId, numRoundTimeout = 4) => {
+        return new Promise(async (resolve, reject) => {
+            const status = await algodClient.status().do()
+            if (!status) {
+                throw new Error("Unable to get node status");
+            }
+            
+            const startingRound = status["last-round"];
+            let nextRound = startingRound;
     
-        return new Promise(function(resolve, reject) {
-
-            let retstatus = {
-                    "txId": txId,
-                };
-
-            if (checkPending == null || checkPending == "Transaction Rejected") {
-                retstatus = {...retstatus,
-                        "status": "rejected",
-                        "statusMsg": "Transaction Rejected"};
+            while (nextRound < startingRound + numRoundTimeout) {
+                // Check the pending transactions
+                const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
+    
+                if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
+                    // Got the completed Transaction
+                    console.log("Transaction " + txId + " confirmed in round " + pendingInfo["confirmed-round"]);
+                    resolve({
+                        txId,
+                        status: "confirmed",
+                        statusMsg: `Transaction confirmed in round ${pendingInfo["confirmed-round"]}`
+                    });
+                }
+                if (pendingInfo["pool-error"] !== null && pendingInfo["pool-error"].length > 0) {
+                    // If there was a pool error, then the transaction has been rejected!
+                    reject({
+                        txId,
+                        status: "rejected",
+                        statusMsg: "Transaction Rejected"
+                    });
+                }
+    
+                nextRound++;
+                await algodClient.statusAfterBlock(nextRound).do();
             }
-            if (checkPending == "Transaction Still Pending") {
-                retstatus = {...retstatus,
-                        "status": "pending",
-                        "statusMsg": "Transaction Pending"};
-            }
-
-            retstatus = {...retstatus,
-                    "status": "confirmed",
-                    "statusMsg": "Transaction confirmed in round " + checkPending["confirmed-round"]};
-            console.log ("here999aabc: ", retstatus);
-
-            if (retstatus['status'] == "confirmed") { // let's say this is a boolean value from line above
-                return resolve(retstatus);
-            } else {
-                return reject(retstatus); // this can be anything, preferably an Error object to catch the stacktrace from this function
-            }
-        });
-
+        
+            reject({
+                txId,
+                status: "timeout",
+                statusMsg: "Transaction Timed Out"
+            })
+        })
     },
+
     // Check the status of pending transactions
     checkPending : async function(algodClient, txid, numRoundTimeout) {
 
@@ -959,13 +970,13 @@ const AlgodexInternalApi = {
             (async() => {
                 try {
                     console.log("trying to inspect");
-                    const response = await axios.post('http://localhost:8000/inspect', {
+                    // const response = await axios.post('http://localhost:8000/inspect', {
                     
-                            msgpack: b64_encoded
-                        },
-                    );
-                    console.log(response.data);
-                    return response.data;
+                    //         msgpack: b64_encoded
+                    //     },
+                    // );
+                    // console.log(response.data);
+                    // return response.data;
                 } catch (error) {
                     console.error(error);
                     throw new Error("inspect failed: ", error);
