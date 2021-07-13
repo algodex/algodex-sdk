@@ -7,7 +7,18 @@
 
 const AsaOrderbookTeal = {
 
- getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
+getClearProgram : function getClearProgram() {
+    const clearProgram = 
+            `
+#pragma version 2
+// This program clears program state
+int 1
+`
+;
+return clearProgram;
+},
+
+getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `

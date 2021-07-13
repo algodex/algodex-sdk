@@ -7,7 +7,19 @@
 
 const AlgoOrderbookTeal = {
 
- getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
+
+getClearProgram : function getClearProgram() {
+    const clearProgram = 
+            `
+#pragma version 2
+// This program clears program state
+int 1
+`
+;
+return clearProgram;
+},
+
+getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `

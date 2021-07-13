@@ -4,7 +4,8 @@
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "node test/test.js",
+    "test-debug": "node --inspect-brk test/test.js"
   },
   "repository": {
     "type": "git",
