@@ -881,39 +881,37 @@ const AlgodexInternalApi = {
 
     // Wait for a transaction to be confirmed
     waitForConfirmation : async (algodClient, txId, numRoundTimeout = 4) => {
-        return new Promise(async (resolve, reject) => {
-            const status = await algodClient.status().do()
-            if (!status) {
-                throw new Error("Unable to get node status");
+        const status = await algodClient.status().do();
+        if (!status) {
+            throw new Error("Unable to get node status");
+        }
+
+        const startingRound = status["last-round"];
+        let nextRound = startingRound;
+
+        while (nextRound < startingRound + numRoundTimeout) {
+            // Check the pending transactions
+            const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
+
+            if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
+                // Got the completed Transaction
+                console.log(`Transaction ${txId} confirmed in round ${pendingInfo["confirmed-round"]}`);
+                return {
+                    txId,
+                    status: "confirmed",
+                    statusMsg: `Transaction confirmed in round ${pendingInfo["confirmed-round"]}`
+                };
             }
-            
-            const startingRound = status["last-round"];
-            let nextRound = startingRound;
-    
-            while (nextRound < startingRound + numRoundTimeout) {
-                // Check the pending transactions
-                const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
-    
-                if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-                    // Got the completed Transaction
-                    console.log("Transaction " + txId + " confirmed in round " + pendingInfo["confirmed-round"]);
-                    resolve({
-                        txId,
-                        status: "confirmed",
-                        statusMsg: `Transaction confirmed in round ${pendingInfo["confirmed-round"]}`
-                    });
-                }
-                if (pendingInfo["pool-error"] !== null && pendingInfo["pool-error"].length > 0) {
-                    // If there was a pool error, then the transaction has been rejected!
-                    reject(new Error(pendingInfo['pool-error']));
-                }
-    
-                nextRound++;
-                await algodClient.statusAfterBlock(nextRound).do();
+            if (pendingInfo["pool-error"] !== null && pendingInfo["pool-error"].length > 0) {
+                // transaction has been rejected
+                throw new Error(pendingInfo["pool-error"]);
             }
-        
-            reject(new Error(`Transaction ${txId} timed out`))
-        })
+
+            nextRound++;
+            await algodClient.statusAfterBlock(nextRound).do();
+        }
+
+        throw new Error(`Transaction ${txId} timed out`);
     },
 
     // Check the status of pending transactions
