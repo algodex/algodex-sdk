@@ -25,13 +25,32 @@ let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
 
 const GenerateTransactions = {
-    getCreateAppTxn : function getCreateAppTxn() {
-        async function getCreateAppTxn(client) {
+    // helper function to compile program source  
+    compileProgram: async function compileProgram(client, programSource) {
+        let encoder = new TextEncoder();
+        let programBytes = encoder.encode(programSource);
+        let compileResponse = await client.compile(programBytes).do();
+        let compiledBytes = new Uint8Array(Buffer.from(compileResponse.result, "base64"));
+        return compiledBytes;
+    },
+
+    getPayTxn : async function (client, fromAcct, toAcct, amount) {
+        let params = await client.getTransactionParams().do();
+        // comment out the next two lines to use suggested fee
+        params.fee = 1000;
+        params.flatFee = true;
+        const receiver = toAcct.addr;
+        const enc = new TextEncoder();
+        let note = enc.encode("Hello World");
+        let txn = algosdk.makePaymentTxnWithSuggestedParams(fromAcct.addr, receiver, amount, undefined, note, params); 
+        return txn;
+    },
+
+    getCreateAppTxn : async function getCreateAppTxn(client, creatorAccount) {
             // define sender as creator
 
-            const approvalProgram = algoOrderBook.getAlgoOrderBookApprovalProgram();
-            const clearProgram = algoOrderBook.getClearProgram();
-            const creatorAccount = testHelper.getOpenAccount();
+            const approvalProgramSource = algoOrderBook.getAlgoOrderBookApprovalProgram();
+            const clearProgramSource = algoOrderBook.getClearProgram();
 
             // declare application state storage (immutable)
             const localInts = 2;
@@ -46,12 +65,15 @@ const GenerateTransactions = {
 
             // get node suggested parameters
             let params = await client.getTransactionParams().do();
-
             // create unsigned transaction
+
+            let approvalProgram = await this.compileProgram(client, approvalProgramSource);
+            let clearProgram = await this.compileProgram(client, clearProgramSource);
+
             let txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
                                                     approvalProgram, clearProgram, 
                                                     localInts, localBytes, globalInts, globalBytes,);
-            let txId = txn.txID().toString();
+            // let txId = txn.txID().toString();
 
             return txn;
             // Sign the transaction
@@ -69,7 +91,6 @@ const GenerateTransactions = {
             //let appId = transactionResponse['application-index'];
             //console.log("Created new app-id: ",appId);
             //return appId;
-        }
 
     }
 }
