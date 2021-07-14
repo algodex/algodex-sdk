@@ -786,7 +786,7 @@ const AlgodexInternalApi = {
         // "https://testnet.algoexplorerapi.io/v2/accounts/"+accountAddr
         try {
             const response = await axios.get(constants.TEST_ALGOD_SERVER + "/v2/accounts/"+accountAddr);
-            console.log(response);
+            //console.log(response);
             return response.data;
         } catch (error) {
             console.error(error);

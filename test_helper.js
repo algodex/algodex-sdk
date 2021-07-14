@@ -17,6 +17,7 @@ const asaOrderBook = require('./asa_dex_teal.js');
 const dexInternal = require('./algodex_internal_api.js');
 const algodex = require('./algodex_api.js');
 const constants = require('./constants.js');
+const transactionGenerator = require('./generate_transaction_types.js');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
@@ -31,11 +32,69 @@ const TestHelper = {
         return algosdk.generateAccount();
     },
 
+    getAccountInfo : function getAccountInfo(addr) {
+        return algodex.getAccountInfo(addr);
+    },
+
     getOpenAccount : function getOpenAccount() {
         //WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI
         let mn = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
         let openAccount = algosdk.mnemonicToSecretKey(mn);
         return openAccount;
+    },
+
+    transferFunds : async function transferFunds (client, fromAccount, toAccount, amount) {
+        const fundTxn = await transactionGenerator.getPayTxn(client, fromAccount, toAccount, amount, false);
+        const fundTxnId = fundTxn.txID().toString();
+
+        let signedFundTxn = fundTxn.signTxn(fromAccount.sk);
+        console.log("Signed transaction with txID: %s", fundTxnId);
+
+        // Submit the transaction
+        try {
+            await client.sendRawTransaction(signedFundTxn).do();
+        } catch (e) {
+            console.log(JSON.stringify(e));
+        }
+
+        // Wait for confirmation
+        await this.waitForConfirmation(client, fundTxnId);
+    },
+
+    closeAccount : async function closeAccount (client, fromAccount, toAccount) {
+        const fundTxn = await transactionGenerator.getPayTxn(client, fromAccount, toAccount, 0, true);
+        const fundTxnId = fundTxn.txID().toString();
+        let signedTxn = fundTxn.signTxn(fromAccount.sk);
+        console.log("Signed transaction with txID: %s", fundTxnId);
+        // Submit the transaction
+        try {
+            await client.sendRawTransaction(signedTxn).do();
+        } catch (e) {
+            console.log(JSON.stringify(e));
+        }
+        // Wait for confirmation
+        await this.waitForConfirmation(client, fundTxnId);
+    },
+
+    deleteApplication : async function deleteApplication (client, sender, appId) {
+        // create unsigned transaction
+        let params = await client.getTransactionParams().do();
+        let txn = algosdk.makeApplicationDeleteTxn(sender.addr, params, appId);
+
+        // sign, send, await
+        let signedTxn = txn.signTxn(sender.sk);
+        let txId = txn.txID().toString();
+
+        console.log("Signed transaction with txID: %s", txId);
+        // Submit the transaction
+        try {
+            await client.sendRawTransaction(signedTxn).do();
+        } catch (e) {
+            console.log(JSON.stringify(e));
+        }
+        // display results
+        let transactionResponse = await client.pendingTransactionInformation(txId).do();
+        console.log("Deleted app-id: ",appId);
     },
 
     getExecuteAccount : function getExecuteAccount() {

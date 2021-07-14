@@ -7,32 +7,14 @@ const transactionGenerator = require('../generate_transaction_types.js');
 const test1 = async() => {
 
 
+
   const client = testHelper.getLocalClient();
   console.log("starting the test");
-  
   let openAccount = testHelper.getOpenAccount();
-
   let creatorAccount = testHelper.getRandomAccount();
 
-  const fundTxn = await transactionGenerator.getPayTxn(client, openAccount, creatorAccount, 1000000);
-  const fundTxnId = fundTxn.txID().toString();
-
-  let signedFundTxn = fundTxn.signTxn(openAccount.sk);
-  console.log("Signed transaction with txID: %s", fundTxnId);
-
-  // Submit the transaction
-  try {
-    await client.sendRawTransaction(signedFundTxn).do();
-  } catch (e) {
-    console.log(JSON.stringify(e));
-  }
-
-  // Wait for confirmation
-  await testHelper.waitForConfirmation(client, fundTxnId);
-
-
-
-
+  await testHelper.transferFunds(client, openAccount, creatorAccount, 300000);
+  
   const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount);
   let txId = createTxn.txID().toString();
   console.log("txID: " + txId);
@@ -57,6 +39,15 @@ const test1 = async() => {
   let appId = transactionResponse['application-index'];
   console.log("Created new app-id: ",appId);
 
+  let accountInfo = await testHelper.getAccountInfo(creatorAccount.addr);
+  console.log( "amount: " , accountInfo.amount );
+
+  console.log("deleting app: " + appId);
+
+  await testHelper.deleteApplication(client, creatorAccount, appId);
+
+  console.log("closing account: " + openAccount.addr + " to " + creatorAccount.addr);
+  await testHelper.closeAccount(client, creatorAccount, openAccount);
 
 };
 
