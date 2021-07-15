@@ -34,7 +34,7 @@ const GenerateTransactions = {
         return compiledBytes;
     },
 
-    getPayTxn : async function (client, fromAcct, toAcct, amount) {
+    getPayTxn : async function (client, fromAcct, toAcct, amount, shouldClose) {
         let params = await client.getTransactionParams().do();
         // comment out the next two lines to use suggested fee
         params.fee = 1000;
@@ -42,7 +42,11 @@ const GenerateTransactions = {
         const receiver = toAcct.addr;
         const enc = new TextEncoder();
         let note = enc.encode("Hello World");
-        let txn = algosdk.makePaymentTxnWithSuggestedParams(fromAcct.addr, receiver, amount, undefined, note, params); 
+        let closeAddr = undefined;
+        if (shouldClose === true) {
+            closeAddr = toAcct.addr;
+        }
+        let txn = algosdk.makePaymentTxnWithSuggestedParams(fromAcct.addr, receiver, amount, closeAddr, note, params); 
         return txn;
     },
 
