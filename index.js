@@ -212,7 +212,7 @@ exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, 
  */
 
 exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize) {
-	return algodex.placeAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true);
+	return algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true);
 };
 
 /*
@@ -227,7 +227,7 @@ exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWallet
  * @returns {Object} Promise for when the transaction is fully confirmed
  */
 exports.placeASAToSellASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount) {
-	return algodex.placeASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, true);
+	return algodex.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, true);
 };
 
 
