@@ -174,8 +174,8 @@ const AlgodexApi = {
         return orderEntry;
     },
 
-    executeOrderAsTaker : async function executeOrderAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
+    executeOrder : async function executeOrder (algodClient, isSellingASA_AsTakerOrder, assetId, 
+        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
 
         console.log("in executeOrderClick");
         let queuedOrders = dexInternal.getQueuedTakerOrders(takerWalletAddr, isSellingASA_AsTakerOrder, allOrderBookOrders);
@@ -244,6 +244,7 @@ const AlgodexApi = {
             'takerAddr': takerWalletAddr,
             'walletMinBalance': takerMinBalance
         };
+
         console.log("initial taker orderbalance: ", this.dumpVar(takerOrderBalance));
 
         //let walletBalance = 10; // wallet balance
@@ -291,6 +292,12 @@ const AlgodexApi = {
                 }
             }
             groupNum++;
+           
+        }
+
+        if (isSellingASA_AsTakerOrder) {
+            let leftoverASABalance = takerOrderBalance['asaBalance'];
+        } else {
            
         }
 
@@ -592,11 +599,69 @@ const AlgodexApi = {
         return this.waitForConfirmation(algodClient, groupTxn.txId)
     },
 
+    signAndSendTransactions :
+        async function signAndSendTransactions(algodClient, outerTxns) {
+            console.log("inside signAndSend transactions");
+            let txnsForSig = [];
+            let txns = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                txns.push(outerTxns[i].unsignedTxn);
+                if (outerTxns[i].needsUserSig == true) {
+                    txnsForSig.push(outerTxns[i].unsignedTxn);
+                }
+            }
+
+            const groupID = algosdk.computeGroupID(txns)
+            for (let i = 0; i < txns.length; i++) {
+                txns[i].group = groupID;
+            }
+
+            let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
+
+            if (Array.isArray(signedTxnsFromUser)) {
+                let userSigIndex = 0;
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
+                        userSigIndex++;
+                    }
+                }
+            } else {
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
+                        break;
+                    }
+                }
+            }
+            
+            for (let i = 0; i < outerTxns.length; i++) {
+                if (!outerTxns[i].needsUserSig) {
+                    let signedLsig = await algosdk.signLogicSigTransactionObject(outerTxns[i].unsignedTxn, outerTxns[i].lsig);
+                    outerTxns[i].signedTxn = signedLsig.blob;
+                }
+            }
+
+            let signed = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                signed.push(outerTxns[i].signedTxn);
+            }
+            console.log("printing transaction debug");
+            this.printTransactionDebug(signed);
+
+            const groupTxn = await algodClient.sendRawTransaction(signed).do()
+            return this.waitForConfirmation(algodClient, groupTxn.txId)
+    },
+
     placeASAToSellASAOrderIntoOrderbook : 
-        async function placeASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount) {
+        async function placeASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend) {
 
         console.log("checking assetId type");
         assetId = parseInt(assetId+"");
+
+        let outerTxns = [];
 
         let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, true);
 
@@ -631,20 +696,22 @@ const AlgodexApi = {
             amount: assetAmount
         };
 
+
         console.log("herez88888 ", this.dumpVar(assetSendTrans));
 
         if (alreadyOptedIn) {
-            // already opted in so only send this single transaction and return
-            let signedTxn =  await myAlgoWallet.signTransaction(assetSendTrans);
-            console.log("signed txn: " + signedTxn.txID);
-            // .then((signedTxn) => {
-            console.log("sending trans: " + signedTxn.txID);
-            let txn = await algodClient.sendRawTransaction(signedTxn.blob).do();
-            await this.waitForConfirmation(algodClient, txn.txId);
-            return;
+            outerTxns.push({
+                unsignedTxn: assetSendTrans,
+                needsUserSig: true
+            });
+            if (signAndSend) {
+                return await this.signAndSendTransactions(algodClient, outerTxns);
+            } else {
+                return outerTxns;
+            }
         }
 
-        let txn = {
+        let payTxn = {
             type: 'pay',
             from: makerWalletAddr,
             to:  lsig.address(),
@@ -654,12 +721,12 @@ const AlgodexApi = {
             genesisHash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
             genesisID: "testnet-v1.0"
         };
-        myAlgoWalletUtil.setTransactionFee(txn);
+        myAlgoWalletUtil.setTransactionFee(payTxn);
 
-        console.log("typeof: " + typeof txn.txId);
-        console.log("the val: " + txn.txId);
+        console.log("typeof: " + typeof payTxn.txId);
+        console.log("the val: " + payTxn.txId);
 
-        let payTxId = txn.txId;
+        let payTxId = payTxn.txId;
         //console.log("confirmed!!");
         // create unsigned transaction
 
@@ -700,41 +767,29 @@ const AlgodexApi = {
             revocationTarget,
             amount, undefined, assetId, params);
 
-        let txns = [txn, logSigTrans, logSigAssetOptInTrans, assetSendTrans];
-        const groupID = algosdk.computeGroupID(txns);
-        for (let i = 0; i < txns.length; i++) {
-            txns[i].group = groupID;
+        outerTxns.push({
+            unsignedTxn: payTxn,
+            needsUserSig: true
+        });
+        outerTxns.push({
+            unsignedTxn: logSigTrans,
+            needsUserSig: false,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: logSigAssetOptInTrans,
+            needsUserSig: false,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: assetSendTrans,
+            needsUserSig: true
+        });
+
+        if (signAndSend) {
+            return await this.signAndSendTransactions(algodClient, outerTxns);
         }
-
-        // first put the algos into the account 
-        let signedTxn =  await myAlgoWallet.signTransaction([txn, assetSendTrans]);
-        console.log("signed txn: " + signedTxn.txID);
-            // .then((signedTxn) => {
-
-        // register order into the order book
-        let signedTxn2 = await algosdk.signLogicSigTransactionObject(logSigTrans, lsig);
-        let txId = signedTxn2.txID;
-        //console.log("signedTxn:" + JSON.stringify(signedTxn));
-        console.log("Signed transaction with txID: %s", txId);
-        console.log("sending trans2: " + signedTxn2.txID);
-
-        let signedTxn3 = await algosdk.signLogicSigTransactionObject(logSigAssetOptInTrans, lsig);
-        txId = signedTxn3.txID;
-        //console.log("signedTxn:" + JSON.stringify(signedTxn));
-        console.log("Signed transaction with txID: %s", txId);
-        console.log("sending trans3: " + signedTxn3.txID);
-        
-
-        let signed = [];
-        signed.push(signedTxn[0].blob);
-        signed.push(signedTxn2.blob);
-        signed.push(signedTxn3.blob);
-        signed.push(signedTxn[1].blob);
-        console.log("printing transaction debug");
-        this.printTransactionDebug(signed);
-
-        const groupTxn = await algodClient.sendRawTransaction(signed).do()
-        return this.waitForConfirmation(algodClient, groupTxn.txId)
+        return outerTxns;
     },
 
 /////////////////////////////////
