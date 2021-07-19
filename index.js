@@ -168,20 +168,20 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
  * Executes a limit order as a maker and taker and submits it to the blockchain
  *
  * @param {Object}                algodClient: object that has been initialized via initAlgodClient()
- * @param {Boolean} isSellingASA_AsTakerOrder: boolean true if the taker is selling the ASA to an ALGO-only escrow buy order
+ * @param {Boolean}              isSellingASA: boolean true if the user is selling the ASA
  * @param {Number}                    assetId: Algorand ASA ID for the asset.
- * @param {String}            takerWalletAddr: public address of the taker/maker's wallet address
+ * @param {String}            userWalletAddr: public address of the taker/maker's wallet address
  * @param {Number}                 limitPrice: price of the base unit ASA in terms of microALGO
  * @param {Number}           orderAssetAmount: Must be integer. max amount of the asset to buy or sell in base units
  * @param {Number}            orderAlgoAmount: Must be integer. max amount of algo to buy or sell in microAlgos
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-exports.executeOrderAsMakerAndTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
+exports.executeOrderAsMakerAndTaker = function(algodClient, isSellingASA, assetId, 
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
 
-	return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true);
+	return algodex.executeOrder(algodClient, isSellingASA, assetId, 
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true);
 
 };
 

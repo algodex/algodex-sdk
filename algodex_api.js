@@ -151,7 +151,7 @@ const AlgodexApi = {
 
         d = Math.floor(d);
         n = Math.floor(n);
-        
+
         return {
             n: n,
             d: d
@@ -177,15 +177,15 @@ const AlgodexApi = {
         return orderEntry;
     },
 
-    executeOrder : async function executeOrder (algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
+    executeOrder : async function executeOrder (algodClient, isSellingASA, assetId, 
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
 
         console.log("in executeOrderClickz");
-        let queuedOrders = dexInternal.getQueuedTakerOrders(takerWalletAddr, isSellingASA_AsTakerOrder, allOrderBookOrders);
+        let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
         let transNeededUserSigList = [];
         
-        let execAccountInfo = await this.getAccountInfo(takerWalletAddr);
+        let execAccountInfo = await this.getAccountInfo(userWalletAddr);
         let alreadyOptedIn = false;
         console.log("herezz56");
         console.log({execAccountInfo});
@@ -222,7 +222,7 @@ const AlgodexApi = {
         orderAssetAmount = Math.max(1, orderAssetAmount);
         orderAlgoAmount = Math.max(1, orderAlgoAmount);
 
-        if (isSellingASA_AsTakerOrder) {
+        if (isSellingASA) {
             // we are selling an ASA so check wallet balance
             orderAssetBalance = Math.min(orderAssetAmount, walletAssetAmount);
         } else {
@@ -230,7 +230,7 @@ const AlgodexApi = {
             orderAssetBalance = orderAssetAmount;
         }
 
-        if (!isSellingASA_AsTakerOrder) {
+        if (!isSellingASA) {
             //we are buying with algos. so check algo balance
             orderAlgoBalance = Math.min(orderAlgoAmount, walletAlgoAmount);
         } else {
@@ -244,7 +244,7 @@ const AlgodexApi = {
             'walletAlgoBalance': walletAlgoAmount,
             'walletASABalance': walletAssetAmount,
             'limitPrice': limitPrice,
-            'takerAddr': takerWalletAddr,
+            'takerAddr': userWalletAddr,
             'walletMinBalance': takerMinBalance
         };
 
@@ -271,11 +271,11 @@ const AlgodexApi = {
                 continue;
             }
 
-            if (isSellingASA_AsTakerOrder && parseFloat(takerOrderBalance['limitPrice']) > queuedOrders[i]['price']) {
+            if (isSellingASA && parseFloat(takerOrderBalance['limitPrice']) > queuedOrders[i]['price']) {
                 //buyer & seller prices don't match
                 continue;
             }
-            if (!isSellingASA_AsTakerOrder && parseFloat(takerOrderBalance['limitPrice']) < queuedOrders[i]['price']) {
+            if (!isSellingASA && parseFloat(takerOrderBalance['limitPrice']) < queuedOrders[i]['price']) {
                 //buyer & seller prices don't match
                 continue;
             }
@@ -309,17 +309,17 @@ const AlgodexApi = {
             let leftoverASABalance = Math.floor(takerOrderBalance['asaBalance']);
             let leftoverAlgoBalance = Math.floor(takerOrderBalance['algoBalance']);
             console.log("includeMaker is true");
-            if (isSellingASA_AsTakerOrder && leftoverASABalance > 0) {
+            if (isSellingASA && leftoverASABalance > 0) {
                 console.log("leftover ASA balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
-                    takerWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);
 
-            } else if (!isSellingASA_AsTakerOrder && leftoverAlgoBalance > 0) {
+            } else if (!isSellingASA && leftoverAlgoBalance > 0) {
                 console.log("leftover Algo balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
-                    takerWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false);            
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false);            
             }
         }
 
