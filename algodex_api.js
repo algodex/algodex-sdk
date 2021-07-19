@@ -493,6 +493,8 @@ const AlgodexApi = {
                 }
             }
 
+            this.assignGroups(txns);
+
             let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
 
             if (Array.isArray(signedTxnsFromUser)) {
