@@ -149,6 +149,9 @@ const AlgodexApi = {
         let d = 10**origDecCount * limitPrice;
         let n = 10**origDecCount;
 
+        d = Math.floor(d);
+        n = Math.floor(n);
+        
         return {
             n: n,
             d: d
@@ -249,9 +252,12 @@ const AlgodexApi = {
 
         //let walletBalance = 10; // wallet balance
         //let walletASABalance = 15;
-        if (queuedOrders == null) {
+        if (queuedOrders == null && !includeMaker) {
             console.log("null queued orders, returning early");
             return;
+        }
+        if (queuedOrders == null) {
+            queuedOrders = [];
         }
         let txOrderNum = 0;
         let groupNum = 0;
@@ -300,8 +306,8 @@ const AlgodexApi = {
         console.log('here55999a');
         if (includeMaker) {
             const numAndDenom = this.getNumeratorAndDenominatorFromPrice(limitPrice);
-            let leftoverASABalance = takerOrderBalance['asaBalance'];
-            let leftoverAlgoBalance = takerOrderBalance['algoBalance'];
+            let leftoverASABalance = Math.floor(takerOrderBalance['asaBalance']);
+            let leftoverAlgoBalance = Math.floor(takerOrderBalance['algoBalance']);
             console.log("includeMaker is true");
             if (isSellingASA_AsTakerOrder && leftoverASABalance > 0) {
                 console.log("leftover ASA balance is: " + leftoverASABalance);
@@ -336,6 +342,9 @@ const AlgodexApi = {
             groupNum++;
         }
 
+        if (allTransList == null || allTransList.length == 0) {
+            console.log("no transactions, returning early");
+        }
 
         let txnsForSigning = [];
         for (let i = 0; i < transNeededUserSigList.length; i++) {
