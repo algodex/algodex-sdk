@@ -658,7 +658,7 @@ const AlgodexInternalApi = {
         // takerWalletAddr
         for (let i = 0; i < allOrderBookOrders.length; i++) {
             let orderBookEntry = allOrderBookOrders[i];
-            console.log("orderBookEntry: ", this.dumpVar(orderBookEntry) );
+            //console.log("orderBookEntry: ", this.dumpVar(orderBookEntry) );
 
             if (orderBookEntry['escrowOrderType'] == 'buy' && !isSellingASA_AsTakerOrder) {
                 // only look for sell orders in this case
@@ -682,7 +682,7 @@ const AlgodexInternalApi = {
             queuedOrders.sort((a, b) => (a.price > b.price) ? 1 : (a.price === b.price) ? ((a.price > b.price) ? 1 : -1) : -1 )
         }
 
-        console.log("queued orders: ", this.dumpVar(queuedOrders));
+        //console.log("queued orders: ", this.dumpVar(queuedOrders));
         return queuedOrders;
     },
 

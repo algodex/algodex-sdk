@@ -149,6 +149,9 @@ const AlgodexApi = {
         let d = 10**origDecCount * limitPrice;
         let n = 10**origDecCount;
 
+        d = Math.floor(d);
+        n = Math.floor(n);
+
         return {
             n: n,
             d: d
@@ -174,15 +177,15 @@ const AlgodexApi = {
         return orderEntry;
     },
 
-    executeOrderAsTaker : async function executeOrderAsTaker (algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
+    executeOrder : async function executeOrder (algodClient, isSellingASA, assetId, 
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
 
-        console.log("in executeOrderClick");
-        let queuedOrders = dexInternal.getQueuedTakerOrders(takerWalletAddr, isSellingASA_AsTakerOrder, allOrderBookOrders);
+        console.log("in executeOrderClickz");
+        let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
         let transNeededUserSigList = [];
         
-        let execAccountInfo = await this.getAccountInfo(takerWalletAddr);
+        let execAccountInfo = await this.getAccountInfo(userWalletAddr);
         let alreadyOptedIn = false;
         console.log("herezz56");
         console.log({execAccountInfo});
@@ -219,7 +222,7 @@ const AlgodexApi = {
         orderAssetAmount = Math.max(1, orderAssetAmount);
         orderAlgoAmount = Math.max(1, orderAlgoAmount);
 
-        if (isSellingASA_AsTakerOrder) {
+        if (isSellingASA) {
             // we are selling an ASA so check wallet balance
             orderAssetBalance = Math.min(orderAssetAmount, walletAssetAmount);
         } else {
@@ -227,7 +230,7 @@ const AlgodexApi = {
             orderAssetBalance = orderAssetAmount;
         }
 
-        if (!isSellingASA_AsTakerOrder) {
+        if (!isSellingASA) {
             //we are buying with algos. so check algo balance
             orderAlgoBalance = Math.min(orderAlgoAmount, walletAlgoAmount);
         } else {
@@ -241,21 +244,26 @@ const AlgodexApi = {
             'walletAlgoBalance': walletAlgoAmount,
             'walletASABalance': walletAssetAmount,
             'limitPrice': limitPrice,
-            'takerAddr': takerWalletAddr,
+            'takerAddr': userWalletAddr,
             'walletMinBalance': takerMinBalance
         };
+
         console.log("initial taker orderbalance: ", this.dumpVar(takerOrderBalance));
 
         //let walletBalance = 10; // wallet balance
         //let walletASABalance = 15;
-        if (queuedOrders == null) {
+        if (queuedOrders == null && !includeMaker) {
+            console.log("null queued orders, returning early");
             return;
+        }
+        if (queuedOrders == null) {
+            queuedOrders = [];
         }
         let txOrderNum = 0;
         let groupNum = 0;
         let txnFee = 0.004 * 1000000 //FIXME minimum fee;
 
-        console.log("queued orders: ", this.dumpVar(queuedOrders));
+        //console.log("queued orders: ", this.dumpVar(queuedOrders));
 
         for (let i = 0; i < queuedOrders.length; i++) {
             if (takerOrderBalance['orderAlgoAmount'] <= txnFee) {
@@ -263,11 +271,11 @@ const AlgodexApi = {
                 continue;
             }
 
-            if (isSellingASA_AsTakerOrder && parseFloat(takerOrderBalance['limitPrice']) > queuedOrders[i]['price']) {
+            if (isSellingASA && parseFloat(takerOrderBalance['limitPrice']) > queuedOrders[i]['price']) {
                 //buyer & seller prices don't match
                 continue;
             }
-            if (!isSellingASA_AsTakerOrder && parseFloat(takerOrderBalance['limitPrice']) < queuedOrders[i]['price']) {
+            if (!isSellingASA && parseFloat(takerOrderBalance['limitPrice']) < queuedOrders[i]['price']) {
                 //buyer & seller prices don't match
                 continue;
             }
@@ -294,10 +302,55 @@ const AlgodexApi = {
            
         }
 
+        let makerTxns = null;
+        console.log('here55999a');
+        if (includeMaker) {
+            const numAndDenom = this.getNumeratorAndDenominatorFromPrice(limitPrice);
+            let leftoverASABalance = Math.floor(takerOrderBalance['asaBalance']);
+            let leftoverAlgoBalance = Math.floor(takerOrderBalance['algoBalance']);
+            console.log("includeMaker is true");
+            if (isSellingASA && leftoverASABalance > 0) {
+                console.log("leftover ASA balance is: " + leftoverASABalance);
+
+                makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);
+
+            } else if (!isSellingASA && leftoverAlgoBalance > 0) {
+                console.log("leftover Algo balance is: " + leftoverASABalance);
+
+                makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false);            
+            }
+        }
+
+        if (makerTxns != null) {
+            for (let k = 0; k < makerTxns.length; k++) {
+                let trans = makerTxns[k];
+                trans['txOrderNum'] = txOrderNum;
+                trans['groupNum'] = groupNum;
+                txOrderNum++;
+                allTransList.push(trans);
+                if (trans['needsUserSig'] === true) {
+                    transNeededUserSigList.push(trans);
+                }
+
+                if (typeof(trans.lsig) !== 'undefined') {
+                    let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
+                    trans.signedTxn = signedTxn.blob;
+                } 
+            }
+            groupNum++;
+        }
+
+        if (allTransList == null || allTransList.length == 0) {
+            console.log("no transactions, returning early");
+        }
+
         let txnsForSigning = [];
         for (let i = 0; i < transNeededUserSigList.length; i++) {
             txnsForSigning.push(transNeededUserSigList[i]['unsignedTxn']);
         }
+
         console.log("here 8899b signing!!");
         if (txnsForSigning == null || txnsForSigning.length == 0) {
             return;
@@ -420,8 +473,66 @@ const AlgodexApi = {
             }
     },
 
-    placeAlgosToBuyASAOrderIntoOrderbook : async function 
-        placeAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize) {
+    assignGroups: function assignGroups (txns) {
+        const groupID = algosdk.computeGroupID(txns)
+        for (let i = 0; i < txns.length; i++) {
+            txns[i].group = groupID;
+        }
+    },
+
+    signAndSendTransactions :
+        async function signAndSendTransactions(algodClient, outerTxns) {
+            console.log("inside signAndSend transactions");
+            let txnsForSig = [];
+            let txns = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                txns.push(outerTxns[i].unsignedTxn);
+                if (outerTxns[i].needsUserSig == true) {
+                    txnsForSig.push(outerTxns[i].unsignedTxn);
+                }
+            }
+
+            let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
+
+            if (Array.isArray(signedTxnsFromUser)) {
+                let userSigIndex = 0;
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
+                        userSigIndex++;
+                    }
+                }
+            } else {
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
+                        break;
+                    }
+                }
+            }
+            
+            for (let i = 0; i < outerTxns.length; i++) {
+                if (!outerTxns[i].needsUserSig) {
+                    let signedLsig = await algosdk.signLogicSigTransactionObject(outerTxns[i].unsignedTxn, outerTxns[i].lsig);
+                    outerTxns[i].signedTxn = signedLsig.blob;
+                }
+            }
+
+            let signed = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                signed.push(outerTxns[i].signedTxn);
+            }
+            console.log("printing transaction debug");
+            this.printTransactionDebug(signed);
+
+            const groupTxn = await algodClient.sendRawTransaction(signed).do()
+            return this.waitForConfirmation(algodClient, groupTxn.txId)
+    },
+
+    getPlaceAlgosToBuyASAOrderIntoOrderbook : async function 
+        getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend) {
 
         console.log("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
             makerWalletAddr, n, d, min, assetId);
@@ -485,13 +596,6 @@ const AlgodexApi = {
 
         myAlgoWalletUtil.setTransactionFee(txn);
 
-        console.log("typeof: " + typeof txn.txId);
-        console.log("the val: " + txn.txId);
-
-        let payTxId = txn.txId;
-        //console.log("confirmed!!");
-        // create unsigned transaction
-
         console.log("here3 calling app from logic sig to open order");
         let appArgs = [];
         var enc = new TextEncoder();
@@ -513,7 +617,8 @@ const AlgodexApi = {
             logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn");
             outerTxns.push({
                 unsignedTxn: logSigTrans,
-                needsUserSig: false
+                needsUserSig: false,
+                lsig: lsig
             });
         }
         // asset opt-in transfer
@@ -533,70 +638,26 @@ const AlgodexApi = {
                 needsUserSig: true
             });
         }
+        
+        if (signAndSend) {
+            return await this.signAndSendTransactions(algodClient, outerTxns);
+        }
 
-        let txns = [];
-        let txnsForSig = [];
+        unsignedTxns = [];
         for (let i = 0; i < outerTxns.length; i++) {
-            txns.push(outerTxns[i].unsignedTxn);
-            if (outerTxns[i].needsUserSig == true) {
-                txnsForSig.push(outerTxns[i].unsignedTxn);
-            }
+            unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
-
-        const groupID = algosdk.computeGroupID(txns)
-        for (let i = 0; i < txns.length; i++) {
-            txns[i].group = groupID;
-        }
-        
-        // first put the algos into the account
-        let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
-        if (Array.isArray(signedTxnsFromUser)) {
-            let userSigIndex = 0;
-            for (let i = 0; i < outerTxns.length; i++) {
-                if (outerTxns[i].needsUserSig) {
-                    outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
-                    userSigIndex++;
-                }
-            }
-        } else {
-           for (let i = 0; i < outerTxns.length; i++) {
-                if (outerTxns[i].needsUserSig) {
-                    outerTxns[i].signedTxn = signedTxnsFromUser.blob;
-                    break;
-                }
-            }
-        }
-            // .then((signedTxn) => {
-
-        // register order into the order book
-        if (logSigTrans != null) {
-            let signedLsig = await algosdk.signLogicSigTransactionObject(logSigTrans, lsig);
-            for (let i = 0; i < outerTxns.length; i++) {
-                if (!outerTxns[i].needsUserSig) {
-                    outerTxns[i].signedTxn = signedLsig.blob;
-                    break;
-                }
-            }
-        }
-        
-        let signed = [];
-
-        for (let i = 0; i < outerTxns.length; i++) {
-            signed.push(outerTxns[i].signedTxn);
-        }
-        
-        console.log("printing transaction debug");
-        this.printTransactionDebug(signed);
-
-        const groupTxn = await algodClient.sendRawTransaction(signed).do()
-        return this.waitForConfirmation(algodClient, groupTxn.txId)
+        this.assignGroups(unsignedTxns);
+        return outerTxns;
     },
 
-    placeASAToSellASAOrderIntoOrderbook : 
-        async function placeASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount) {
+    getPlaceASAToSellASAOrderIntoOrderbook : 
+        async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend) {
 
         console.log("checking assetId type");
         assetId = parseInt(assetId+"");
+
+        let outerTxns = [];
 
         let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, true);
 
@@ -631,20 +692,22 @@ const AlgodexApi = {
             amount: assetAmount
         };
 
+
         console.log("herez88888 ", this.dumpVar(assetSendTrans));
 
         if (alreadyOptedIn) {
-            // already opted in so only send this single transaction and return
-            let signedTxn =  await myAlgoWallet.signTransaction(assetSendTrans);
-            console.log("signed txn: " + signedTxn.txID);
-            // .then((signedTxn) => {
-            console.log("sending trans: " + signedTxn.txID);
-            let txn = await algodClient.sendRawTransaction(signedTxn.blob).do();
-            await this.waitForConfirmation(algodClient, txn.txId);
-            return;
+            outerTxns.push({
+                unsignedTxn: assetSendTrans,
+                needsUserSig: true
+            });
+            if (signAndSend) {
+                return await this.signAndSendTransactions(algodClient, outerTxns);
+            } else {
+                return outerTxns;
+            }
         }
 
-        let txn = {
+        let payTxn = {
             type: 'pay',
             from: makerWalletAddr,
             to:  lsig.address(),
@@ -654,12 +717,12 @@ const AlgodexApi = {
             genesisHash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
             genesisID: "testnet-v1.0"
         };
-        myAlgoWalletUtil.setTransactionFee(txn);
+        myAlgoWalletUtil.setTransactionFee(payTxn);
 
-        console.log("typeof: " + typeof txn.txId);
-        console.log("the val: " + txn.txId);
+        console.log("typeof: " + typeof payTxn.txId);
+        console.log("the val: " + payTxn.txId);
 
-        let payTxId = txn.txId;
+        let payTxId = payTxn.txId;
         //console.log("confirmed!!");
         // create unsigned transaction
 
@@ -700,41 +763,35 @@ const AlgodexApi = {
             revocationTarget,
             amount, undefined, assetId, params);
 
-        let txns = [txn, logSigTrans, logSigAssetOptInTrans, assetSendTrans];
-        const groupID = algosdk.computeGroupID(txns);
-        for (let i = 0; i < txns.length; i++) {
-            txns[i].group = groupID;
+        outerTxns.push({
+            unsignedTxn: payTxn,
+            needsUserSig: true
+        });
+        outerTxns.push({
+            unsignedTxn: logSigTrans,
+            needsUserSig: false,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: logSigAssetOptInTrans,
+            needsUserSig: false,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: assetSendTrans,
+            needsUserSig: true
+        });
+
+        if (signAndSend) {
+            return await this.signAndSendTransactions(algodClient, outerTxns);
         }
+        unsignedTxns = [];
+        for (let i = 0; i < outerTxns.length; i++) {
+            unsignedTxns.push(outerTxns[i].unsignedTxn);
+        }
+        this.assignGroups(unsignedTxns);
 
-        // first put the algos into the account 
-        let signedTxn =  await myAlgoWallet.signTransaction([txn, assetSendTrans]);
-        console.log("signed txn: " + signedTxn.txID);
-            // .then((signedTxn) => {
-
-        // register order into the order book
-        let signedTxn2 = await algosdk.signLogicSigTransactionObject(logSigTrans, lsig);
-        let txId = signedTxn2.txID;
-        //console.log("signedTxn:" + JSON.stringify(signedTxn));
-        console.log("Signed transaction with txID: %s", txId);
-        console.log("sending trans2: " + signedTxn2.txID);
-
-        let signedTxn3 = await algosdk.signLogicSigTransactionObject(logSigAssetOptInTrans, lsig);
-        txId = signedTxn3.txID;
-        //console.log("signedTxn:" + JSON.stringify(signedTxn));
-        console.log("Signed transaction with txID: %s", txId);
-        console.log("sending trans3: " + signedTxn3.txID);
-        
-
-        let signed = [];
-        signed.push(signedTxn[0].blob);
-        signed.push(signedTxn2.blob);
-        signed.push(signedTxn3.blob);
-        signed.push(signedTxn[1].blob);
-        console.log("printing transaction debug");
-        this.printTransactionDebug(signed);
-
-        const groupTxn = await algodClient.sendRawTransaction(signed).do()
-        return this.waitForConfirmation(algodClient, groupTxn.txId)
+        return outerTxns;
     },
 
 /////////////////////////////////
