@@ -250,6 +250,7 @@ const AlgodexApi = {
         //let walletBalance = 10; // wallet balance
         //let walletASABalance = 15;
         if (queuedOrders == null) {
+            console.log("null queued orders, returning early");
             return;
         }
         let txOrderNum = 0;
@@ -295,16 +296,45 @@ const AlgodexApi = {
            
         }
 
-        if (isSellingASA_AsTakerOrder) {
+        let makerTxns = null;
+
+        if (includeMaker) {
+            const numAndDenom = this.getNumeratorAndDenominatorFromPrice(limitPrice);
             let leftoverASABalance = takerOrderBalance['asaBalance'];
-        } else {
-           
+            let leftoverAlgoBalance = takerOrderBalance['algoBalance'];
+
+            if (isSellingASA_AsTakerOrder && includeMaker && leftoverASABalance > 0) {
+                console.log("leftover ASA balance is: " + leftoverASABalance);
+
+                makerTxns = await this.placeASAToSellASAOrderIntoOrderbook(algodClient, 
+                    takerWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);
+
+            } /*else if (isSellingASA_AsTakerOrder && includeMaker && (leftoverAlgoBalance > takerMinBalance)) {
+                makerTxns = await this.placeASAToSellASAOrderIntoOrderbook(algodClient, ALEXHERE
+                    takerWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);            
+            }*/
         }
+
+        if (makerTxns != null) {
+            for (let k = 0; k < makerTxns.length; k++) {
+                let trans = makerTxns[k];
+                trans['txOrderNum'] = txOrderNum;
+                trans['groupNum'] = groupNum;
+                txOrderNum++;
+                allTransList.push(trans);
+                if (trans['needsUserSig'] === true) {
+                    transNeededUserSigList.push(trans);
+                }
+            }
+            groupNum++;
+        }
+
 
         let txnsForSigning = [];
         for (let i = 0; i < transNeededUserSigList.length; i++) {
             txnsForSigning.push(transNeededUserSigList[i]['unsignedTxn']);
         }
+
         console.log("here 8899b signing!!");
         if (txnsForSigning == null || txnsForSigning.length == 0) {
             return;
@@ -427,6 +457,63 @@ const AlgodexApi = {
             }
     },
 
+
+    signAndSendTransactions :
+        async function signAndSendTransactions(algodClient, outerTxns) {
+            console.log("inside signAndSend transactions");
+            let txnsForSig = [];
+            let txns = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                txns.push(outerTxns[i].unsignedTxn);
+                if (outerTxns[i].needsUserSig == true) {
+                    txnsForSig.push(outerTxns[i].unsignedTxn);
+                }
+            }
+
+            const groupID = algosdk.computeGroupID(txns)
+            for (let i = 0; i < txns.length; i++) {
+                txns[i].group = groupID;
+            }
+
+            let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
+
+            if (Array.isArray(signedTxnsFromUser)) {
+                let userSigIndex = 0;
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
+                        userSigIndex++;
+                    }
+                }
+            } else {
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
+                        break;
+                    }
+                }
+            }
+            
+            for (let i = 0; i < outerTxns.length; i++) {
+                if (!outerTxns[i].needsUserSig) {
+                    let signedLsig = await algosdk.signLogicSigTransactionObject(outerTxns[i].unsignedTxn, outerTxns[i].lsig);
+                    outerTxns[i].signedTxn = signedLsig.blob;
+                }
+            }
+
+            let signed = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                signed.push(outerTxns[i].signedTxn);
+            }
+            console.log("printing transaction debug");
+            this.printTransactionDebug(signed);
+
+            const groupTxn = await algodClient.sendRawTransaction(signed).do()
+            return this.waitForConfirmation(algodClient, groupTxn.txId)
+    },
+
     placeAlgosToBuyASAOrderIntoOrderbook : async function 
         placeAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend) {
 
@@ -546,62 +633,6 @@ const AlgodexApi = {
             return await this.signAndSendTransactions(algodClient, outerTxns);
         }
         return outerTxns;
-    },
-
-    signAndSendTransactions :
-        async function signAndSendTransactions(algodClient, outerTxns) {
-            console.log("inside signAndSend transactions");
-            let txnsForSig = [];
-            let txns = [];
-
-            for (let i = 0; i < outerTxns.length; i++) {
-                txns.push(outerTxns[i].unsignedTxn);
-                if (outerTxns[i].needsUserSig == true) {
-                    txnsForSig.push(outerTxns[i].unsignedTxn);
-                }
-            }
-
-            const groupID = algosdk.computeGroupID(txns)
-            for (let i = 0; i < txns.length; i++) {
-                txns[i].group = groupID;
-            }
-
-            let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
-
-            if (Array.isArray(signedTxnsFromUser)) {
-                let userSigIndex = 0;
-                for (let i = 0; i < outerTxns.length; i++) {
-                    if (outerTxns[i].needsUserSig) {
-                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
-                        userSigIndex++;
-                    }
-                }
-            } else {
-                for (let i = 0; i < outerTxns.length; i++) {
-                    if (outerTxns[i].needsUserSig) {
-                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
-                        break;
-                    }
-                }
-            }
-            
-            for (let i = 0; i < outerTxns.length; i++) {
-                if (!outerTxns[i].needsUserSig) {
-                    let signedLsig = await algosdk.signLogicSigTransactionObject(outerTxns[i].unsignedTxn, outerTxns[i].lsig);
-                    outerTxns[i].signedTxn = signedLsig.blob;
-                }
-            }
-
-            let signed = [];
-
-            for (let i = 0; i < outerTxns.length; i++) {
-                signed.push(outerTxns[i].signedTxn);
-            }
-            console.log("printing transaction debug");
-            this.printTransactionDebug(signed);
-
-            const groupTxn = await algodClient.sendRawTransaction(signed).do()
-            return this.waitForConfirmation(algodClient, groupTxn.txId)
     },
 
     placeASAToSellASAOrderIntoOrderbook : 
