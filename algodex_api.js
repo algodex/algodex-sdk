@@ -428,7 +428,7 @@ const AlgodexApi = {
     },
 
     placeAlgosToBuyASAOrderIntoOrderbook : async function 
-        placeAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize) {
+        placeAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend) {
 
         console.log("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
             makerWalletAddr, n, d, min, assetId);
@@ -520,7 +520,8 @@ const AlgodexApi = {
             logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn");
             outerTxns.push({
                 unsignedTxn: logSigTrans,
-                needsUserSig: false
+                needsUserSig: false,
+                lsig: lsig
             });
         }
         // asset opt-in transfer
@@ -540,63 +541,11 @@ const AlgodexApi = {
                 needsUserSig: true
             });
         }
-
-        let txns = [];
-        let txnsForSig = [];
-        for (let i = 0; i < outerTxns.length; i++) {
-            txns.push(outerTxns[i].unsignedTxn);
-            if (outerTxns[i].needsUserSig == true) {
-                txnsForSig.push(outerTxns[i].unsignedTxn);
-            }
-        }
-
-        const groupID = algosdk.computeGroupID(txns)
-        for (let i = 0; i < txns.length; i++) {
-            txns[i].group = groupID;
-        }
         
-        // first put the algos into the account
-        let signedTxnsFromUser =  await myAlgoWallet.signTransaction(txnsForSig);
-        if (Array.isArray(signedTxnsFromUser)) {
-            let userSigIndex = 0;
-            for (let i = 0; i < outerTxns.length; i++) {
-                if (outerTxns[i].needsUserSig) {
-                    outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
-                    userSigIndex++;
-                }
-            }
-        } else {
-           for (let i = 0; i < outerTxns.length; i++) {
-                if (outerTxns[i].needsUserSig) {
-                    outerTxns[i].signedTxn = signedTxnsFromUser.blob;
-                    break;
-                }
-            }
+        if (signAndSend) {
+            return await this.signAndSendTransactions(algodClient, outerTxns);
         }
-            // .then((signedTxn) => {
-
-        // register order into the order book
-        if (logSigTrans != null) {
-            let signedLsig = await algosdk.signLogicSigTransactionObject(logSigTrans, lsig);
-            for (let i = 0; i < outerTxns.length; i++) {
-                if (!outerTxns[i].needsUserSig) {
-                    outerTxns[i].signedTxn = signedLsig.blob;
-                    break;
-                }
-            }
-        }
-        
-        let signed = [];
-
-        for (let i = 0; i < outerTxns.length; i++) {
-            signed.push(outerTxns[i].signedTxn);
-        }
-        
-        console.log("printing transaction debug");
-        this.printTransactionDebug(signed);
-
-        const groupTxn = await algodClient.sendRawTransaction(signed).do()
-        return this.waitForConfirmation(algodClient, groupTxn.txId)
+        return outerTxns;
     },
 
     signAndSendTransactions :
