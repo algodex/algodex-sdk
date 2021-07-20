@@ -472,8 +472,8 @@ notCloseOut:
     // TXN 0            - Application call (from escrow) to execute
     // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
     // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
-    // TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow owner)
+    // TXN 2 or 3       - Asset transfer (from escrow to buyer/executor)
+    // TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow)
 
     gtxna 0 ApplicationArgs 0
     byte "execute_with_closeout"
@@ -514,9 +514,9 @@ notCloseOut:
     // TXN 0            - Application call (from escrow) to execute_with_close
     // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
     // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
+    // TXN 2 or 3       - Asset transfer (from escrow to buyer/executor)
     //                            - closes out ASA to escrow owner as well
-    // TXN 3 or 4       - Pay transaction to close out to escrow owner as well
+    // TXN 3 or 4       - Pay transaction to close out to escrow owner
     execute_with_closeout:
 
     // The first transaction must be 

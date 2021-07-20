@@ -15,13 +15,16 @@ let delegateTemplate = `
 #pragma version 3
 ////////////////////////
 // ALGO (NON-ASA) ESCROW 
+/////////////////////////
+
 ///////////////////////////
 /// ORDER BOOK OPT IN & REGISTRATION
+//    Placing an Algo Escrow Order
 //////////////////////////
     // check for optin transaction or orderbook registration transaction
-    // TXN 0 - Pay from order creator to escrow account
-    // TXN 1 - Stateful app opt-in to order book
-    // TXN 2 - Possible ASA opt-in for the order creator's original wallet account. Doesn't need checks
+    // TXN 0 - BUYER TO ESCROW:     Pay from order creator to escrow account
+    // TXN 1 - ESCROW TO ORDERBOOK: Stateful app opt-in to order book
+    // TXN 2 - BUYER TO BUYER:      (Optional) ASA opt-in for the order creator's original wallet account.
     global GroupSize
     int 2
     ==
@@ -117,9 +120,9 @@ let delegateTemplate = `
 ////////////////////////////////////////
 
 //TODO: add more checks for 3rd transaction 
-    // TXN 0 - application call to order book contract for closeout
-    // TXN 1 - close out call
-    // TXN 2 - send transaction for proof that closeout sender owns the escrow
+    // TXN 0 - ESCROW TO ORDERBOOK: application call to order book contract for closeout
+    // TXN 1 - ESCROW TO BUYER:     pay txn close out call
+    // TXN 2 - BUYER TO BUYER:      send transaction for proof that closeout sender owns the escrow
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
     global GroupSize
@@ -219,9 +222,9 @@ let delegateTemplate = `
 //   WITH CLOSEOUT
 /////////////////////////////////
     // Must be three transactions
-    // TXN 0 - transaction must be a call to a stateful contract
-    // TXN 1 - Payment transaction from this escrow (buyer) to seller
-    // TXN 2 - Asset transfer from seller to owner of this escrow
+    // TXN 0 - ESCROW TO ORDERBOOK: transaction must be a call to a stateful contract
+    // TXN 1 - ESCROW TO SELLER:    Payment transaction from this escrow to seller, with closeout to owner (buyer)
+    // TXN 2 - SELLER TO BUYER:     Asset transfer from seller to owner of this escrow (buyer)
 
     checkPayWithCloseout:
     
@@ -316,10 +319,10 @@ let delegateTemplate = `
 //   PARTIAL EXECUTION
 /////////////////////////////////
     // Must be four transactions
-    // TXN 0 - transaction must be a call to a stateful contract
-    // TXN 1 - Payment transaction from this escrow (buyer) to seller
-    // TXN 2 - Asset transfer from seller to owner of this escrow
-    // TXN 3 - fee refund transaction (pay transaction)
+    // TXN 0 - ESCROW TO ORDERBOOK: Transaction must be a call to a stateful contract
+    // TXN 1 - ESCROW TO SELLER:    Payment transaction from this escrow to seller
+    // TXN 2 - SELLER TO BUYER:     Asset transfer from seller to owner of this escrow (buyer)
+    // TXN 3 - SELLER TO ESCROW:    Pay fee refund transaction
 
     partialPayTxn:
 
