@@ -18,10 +18,9 @@ let delegateTemplate = `
 /////////////////////////
 
 ///////////////////////////
-/// ORDER BOOK OPT IN & REGISTRATION
+/// OPEN - ORDER BOOK OPT IN & REGISTRATION
 //    Placing an Algo Escrow Order
 //////////////////////////
-    // check for optin transaction or orderbook registration transaction
     // TXN 0 - BUYER TO ESCROW:     Pay from order creator to escrow account
     // TXN 1 - ESCROW TO ORDERBOOK: Stateful app opt-in to order book
     // TXN 2 - BUYER TO BUYER:      (Optional) ASA opt-in for the order creator's original wallet account.
@@ -118,11 +117,10 @@ let delegateTemplate = `
 ////////////////////////////////////////
 //// CLOSEOUT (ORDER CANCELLED) ////////
 ////////////////////////////////////////
-
-//TODO: add more checks for 3rd transaction 
     // TXN 0 - ESCROW TO ORDERBOOK: application call to order book contract for closeout
     // TXN 1 - ESCROW TO BUYER:     pay txn close out call
     // TXN 2 - BUYER TO BUYER:      send transaction for proof that closeout sender owns the escrow
+
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
     global GroupSize
@@ -218,10 +216,9 @@ let delegateTemplate = `
     return
 
 ///////////////////////////////
-// PAY (ORDER EXECUTION)
+// EXECUTE (ORDER EXECUTION)
 //   WITH CLOSEOUT
 /////////////////////////////////
-    // Must be three transactions
     // TXN 0 - ESCROW TO ORDERBOOK: transaction must be a call to a stateful contract
     // TXN 1 - ESCROW TO SELLER:    Payment transaction from this escrow to seller, with closeout to owner (buyer)
     // TXN 2 - SELLER TO BUYER:     Asset transfer from seller to owner of this escrow (buyer)
@@ -315,10 +312,9 @@ let delegateTemplate = `
     b handle_rate_check
 
 ///////////////////////////////////
-// PAY (ORDER EXECUTION)
-//   PARTIAL EXECUTION
+// EXECUTE
+//   (PARTIAL ORDER EXECUTION)
 /////////////////////////////////
-    // Must be four transactions
     // TXN 0 - ESCROW TO ORDERBOOK: Transaction must be a call to a stateful contract
     // TXN 1 - ESCROW TO SELLER:    Payment transaction from this escrow to seller
     // TXN 2 - SELLER TO BUYER:     Asset transfer from seller to owner of this escrow (buyer)

@@ -88,16 +88,17 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     bnz execute_with_closeout
     err
 
-//////////
-// OPEN //
-//////////
+///////////////////////////
+/// OPEN - ORDER BOOK OPT IN & REGISTRATION
+//    Placing an Algo Escrow Order
+//////////////////////////
+    // TXN 0 - BUYER TO ESCROW:     Pay from order creator to escrow account
+    // TXN 1 - ESCROW TO ORDERBOOK: Stateful app opt-in to order book
+    // TXN 2 - BUYER TO BUYER:      (Optional) ASA opt-in for the order creator's original wallet account.
+
     // This is the situation when a new escrow contract and order book contract is created
     // These are for Algo-only escrow accounts, i.e. buy orders to buy ASAs
     // The orders are unique per users
-    
-    // TXN 0 - Pay from order creator to escrow account
-    // TXN 1 - Stateful app opt-in to order book
-    // TXN 2 - Possible ASA opt-in for the order creator's original wallet account. Doesn't need checks
 
     open:
 
@@ -132,14 +133,14 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     int 1
     return
 
-/////////////
-/// EXECUTE /
-/////////////
-    // Must be four transactions
-    // TXN 0 - transaction must be a call to a stateful contract
-    // TXN 1 - Payment transaction from this escrow (buyer) to seller
-    // TXN 2 - Asset transfer from seller to owner of this escrow
-    // TXN 3 - fee refund transaction (pay transaction)
+///////////////////////////////////
+// EXECUTE
+//   (PARTIAL ORDER EXECUTION)
+/////////////////////////////////
+    // TXN 0 - ESCROW TO ORDERBOOK: Transaction must be a call to a stateful contract
+    // TXN 1 - ESCROW TO SELLER:    Payment transaction from this escrow to seller
+    // TXN 2 - SELLER TO BUYER:     Asset transfer from seller to owner of this escrow (buyer)
+    // TXN 3 - SELLER TO ESCROW:    Pay fee refund transaction
 
     execute:
 
@@ -203,13 +204,13 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     int 1
     return
 
-///////////////////////////
-/// EXECUTE WITH CLOSEOUT /
-///////////////////////////
-    // Must be three transactions
-    // TXN 0 - transaction must be a call to a stateful contract
-    // TXN 1 - Payment transaction from this escrow (buyer) to seller
-    // TXN 2 - Asset transfer from seller to owner of this escrow
+///////////////////////////////
+// EXECUTE (ORDER EXECUTION)
+//   WITH CLOSEOUT
+/////////////////////////////////
+    // TXN 0 - ESCROW TO ORDERBOOK: transaction must be a call to a stateful contract
+    // TXN 1 - ESCROW TO SELLER:    Payment transaction from this escrow to seller, with closeout to owner (buyer)
+    // TXN 2 - SELLER TO BUYER:     Asset transfer from seller to owner of this escrow (buyer)
 
     execute_with_closeout:
 

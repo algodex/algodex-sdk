@@ -107,14 +107,14 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     store 3 // store offset of 3rd transaction, depending on if opt-in exists
     retsub
     
-////////////////////////////////
-// OPEN                       //
-////////////////////////////////
-    //
-    // TXN 0. - pay transaction into escrow (owner to escrow)
-    // TXN 1. - application opt in (from escrow)
-    // TXN 2. - asset opt in (from escrow)
-    // TXN 3. - asset transfer (owner to escrow)
+///////////////////////////////////////////////////////////////////////
+// OPEN - ORDER BOOK OPT IN & REGISTRATION
+//   Placing an ASA Escrow Order. The escrow opts into the order book.
+///////////////////////////////////////////////////////////////////////
+    // TXN 0 - SELLER TO ESCROW:    pay transaction into escrow
+    // TXN 1 - ESCROW TO ORDERBOOK: application opt in
+    // TXN 2 - ESCROW TO ESCROW:    asset opt in
+    // TXN 3 - SELLER TO ESCROW:    asset transfer
 
   open:
     int OptIn
@@ -148,14 +148,15 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int 1
     return
 
-///////////////////////////////
-/// EXECUTE                 ///
-///////////////////////////////
-    // TXN 0            - Application call (from escrow) to execute
-    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
-    // TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow owner)
+//////////////////////////////////////////////////////////////////////////////
+// EXECUTE (partial)                                                        
+//  Partial execution of an ASA escrow, where an ASA balance remains in it  
+//////////////////////////////////////////////////////////////////////////////
+    // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
+    // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
+    // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
+    // TXN 2/3 - ESCROW TO BUYER:     Asset transfer (from escrow to buyer/executor)
+    // TXN 3/4 - BUYER TO ESCROW:     Pay transaction for fee refund (from buyer/executor to escrow)
 
   execute:
 
@@ -247,15 +248,16 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     return
 
 
-/////////////////////////////////////////////
-/// EXECUTE WITH CLOSEOUT                  //
-/////////////////////////////////////////////
-    // TXN 0            - Application call (from escrow) to execute_with_close
-    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
-    //                            - closes out ASA to escrow owner as well
-    // TXN 3 or 4       - Pay transaction to close out to escrow owner as well
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// EXECUTE WITH CLOSE
+//   Full order execution where the remaining minimum algo balance is closed to the escrow owner
+/////////////////////////////////////////////////////////////////////////////////////////////////
+    // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
+    // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
+    // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
+    // TXN 2/3 - ESCROW TO BUYER:     Asset transfer (from escrow to buyer/executor)
+    //                                 - closes out any remaining ASA to seller (escrow owner) as well
+    // TXN 3/4 - ESCROW TO SELLER:    Pay transaction to close out to escrow owner
 
   execute_with_closeout:
 

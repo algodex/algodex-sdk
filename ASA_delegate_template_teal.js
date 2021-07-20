@@ -18,9 +18,10 @@ const asaDelegateTemplate = {
 // ASA ESCROW (escrow limit order to sell ASA)
 //////////////////////////////////////
 
-////////////////////////
-// OPT IN
-/////////////////////
+///////////////////////////////////////////////////////////////////////
+// OPEN - ORDER BOOK OPT IN & REGISTRATION
+//   Placing an ASA Escrow Order. The escrow opts into the order book.
+///////////////////////////////////////////////////////////////////////
 
     // TXN 0 - SELLER TO ESCROW:    pay transaction into escrow
     // TXN 1 - ESCROW TO ORDERBOOK: application opt in
@@ -165,10 +166,10 @@ const asaDelegateTemplate = {
     
     return
 
-///////////////////////
+////////////////////////////////////////////////////////
 /// CLOSE ORDER
 //    Cancelling an order and refunding the amounts
-//////////////////////
+////////////////////////////////////////////////////////
 
     // TXN 0 - ESCROW TO ORDERBOOK: app call to close order
     // TXN 1 - ESCROW TO SELLER: asset transfer (escrow to owner)
@@ -377,9 +378,10 @@ notCloseOut:
     ==
     assert
 
-////////////////////////////////
+///////////////////////////////////////////////////////
 // ANY EXECUTE (with close or not)
-///////////////////////////////
+//   Preamble for any order execution transaction
+///////////////////////////////////////////////////////
     // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
     // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
     // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
@@ -466,10 +468,10 @@ notCloseOut:
     &&
     assert
 
-////////////////////////////////
-// EXECUTE
-///////////////////////////////
-
+//////////////////////////////////////////////////////////////////////////////
+// EXECUTE (partial)                                                        
+//  Partial execution of an ASA escrow, where an ASA balance remains in it  
+//////////////////////////////////////////////////////////////////////////////
     // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
     // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
     // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
@@ -508,15 +510,15 @@ notCloseOut:
 
     b finalExecuteChecks  //If the above result is 0, skip next section
 
-///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
 // EXECUTE WITH CLOSE
-//////////////////////////////////////
-
+//   Full order execution where the remaining minimum algo balance is closed to the escrow owner
+/////////////////////////////////////////////////////////////////////////////////////////////////
     // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
     // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
     // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
     // TXN 2/3 - ESCROW TO BUYER:     Asset transfer (from escrow to buyer/executor)
-    //                                 - closes out ASA to seller (escrow owner) as well
+    //                                 - closes out any remaining ASA to seller (escrow owner) as well
     // TXN 3/4 - ESCROW TO SELLER:    Pay transaction to close out to escrow owner
     execute_with_closeout:
 
