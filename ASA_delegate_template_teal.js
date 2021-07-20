@@ -22,10 +22,10 @@ const asaDelegateTemplate = {
 // OPT IN
 /////////////////////
 
-    // TXN 0. - pay transaction into escrow (owner to escrow)
-    // TXN 1. - application opt in (from escrow)
-    // TXN 2. - asset opt in (from escrow)
-    // TXN 3. - asset transfer (owner to escrow)
+    // TXN 0 - SELLER TO ESCROW:    pay transaction into escrow
+    // TXN 1 - ESCROW TO ORDERBOOK: application opt in
+    // TXN 2 - ESCROW TO ESCROW:    asset opt in
+    // TXN 3 - SELLER TO ESCROW:    asset transfer
 
     global GroupSize
     int 4
@@ -167,12 +167,13 @@ const asaDelegateTemplate = {
 
 ///////////////////////
 /// CLOSE ORDER
+//    Cancelling an order and refunding the amounts
 //////////////////////
 
-    // TXN 0. - app call to close order
-    // TXN 1. - asset transfer (escrow to owner)
-    // TXN 2. - pay transaction (from escrow to owner)
-    // TXN 3. - proof pay transaction (owner to owner) - proof of ownership
+    // TXN 0 - ESCROW TO ORDERBOOK: app call to close order
+    // TXN 1 - ESCROW TO SELLER: asset transfer (escrow to owner)
+    // TXN 2 - ESCROW TO SELLER: pay transaction (from escrow to owner)
+    // TXN 3 - SELLER TO SELLER: proof of ownership pay transaction (owner to owner)
 
     notOptInOrOrderReg:
     // Check for close out transaction (without execution)
@@ -379,11 +380,11 @@ notCloseOut:
 ////////////////////////////////
 // ANY EXECUTE (with close or not)
 ///////////////////////////////
-    // TXN 0            - Application call (from escrow) to execute
-    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-    // TXN 2 or 3       - Asset transfer (from escrow owner to buyer/executor)
-    // TXN 3 or 4       - don't check this - different on whether closing or not
+    // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
+    // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
+    // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
+    // TXN 2/3 - SELLER TO BUYER:     Asset transfer (from escrow owner to buyer/executor)
+    // TXN 3/4 - DEPENDS: don't check this here - different on whether closing or not
 
     gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
@@ -469,11 +470,11 @@ notCloseOut:
 // EXECUTE
 ///////////////////////////////
 
-    // TXN 0            - Application call (from escrow) to execute
-    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-    // TXN 2 or 3       - Asset transfer (from escrow to buyer/executor)
-    // TXN 3 or 4       - Pay transaction (fee refund from buyer/executor to escrow)
+    // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
+    // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
+    // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
+    // TXN 2/3 - ESCROW TO BUYER:     Asset transfer (from escrow to buyer/executor)
+    // TXN 3/4 - BUYER TO ESCROW:     Pay transaction for fee refund (from buyer/executor to escrow)
 
     gtxna 0 ApplicationArgs 0
     byte "execute_with_closeout"
@@ -511,12 +512,12 @@ notCloseOut:
 // EXECUTE WITH CLOSE
 //////////////////////////////////////
 
-    // TXN 0            - Application call (from escrow) to execute_with_close
-    // TXN 1            - Pay transaction (from buyer/executor to escrow owner)
-    // (Optional) TXN 2 - Optional asset opt-in transaction (for buyer/executor)
-    // TXN 2 or 3       - Asset transfer (from escrow to buyer/executor)
-    //                            - closes out ASA to escrow owner as well
-    // TXN 3 or 4       - Pay transaction to close out to escrow owner
+    // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
+    // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
+    // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
+    // TXN 2/3 - ESCROW TO BUYER:     Asset transfer (from escrow to buyer/executor)
+    //                                 - closes out ASA to seller (escrow owner) as well
+    // TXN 3/4 - ESCROW TO SELLER:    Pay transaction to close out to escrow owner
     execute_with_closeout:
 
     // The first transaction must be 
