@@ -116,16 +116,14 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     app_local_get_ex // if the value already exists return without setting anything
     bnz ret_success
     pop
-    // Store the order number as the key
     int 0 //address index
     txna ApplicationArgs 1 //order number
     int 1 // value - just set to 1
-    app_local_put
-    // Store creator as value
+    app_local_put // Store the order number as the key
     int 0 //address index
     byte "creator" //creator key
     gtxn 0 Sender
-    app_local_put
+    app_local_put // Store creator as value
     int 0 //address index
     byte "version" //store version
     int 1
@@ -270,19 +268,20 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     assert // If the value doesnt exists fail
     pop
 
-    // Delete the order from the order book
+    
     int 0 //escrow account containing order
     txna ApplicationArgs 1 // order details
-    app_local_del
-    int 0 // Delete creator from args
+    app_local_del // Delete the order details from the order book
+    int 0 
     byte "creator"
-    app_local_del
-    int 0 // Delete version from args
-    byte "version"
+    app_local_del // Delete creator from order book
+    int 0
+    byte "version" // Delete version from order book
     app_local_del
 
     int 1
     return
+
 
     `;
 
