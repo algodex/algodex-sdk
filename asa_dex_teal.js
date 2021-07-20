@@ -38,7 +38,6 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     byte "Creator"
     txn Sender
     app_global_put
-    //4 args on creation
     int 1
     return
   not_creation:
@@ -85,8 +84,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     err
 
   check_asa_optin:
-    // Check for asset opt-in
-    gtxn 2 TypeEnum
+    gtxn 2 TypeEnum // Check for asset opt-in
     int axfer
     ==
     gtxn 2 AssetAmount
@@ -130,21 +128,17 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     
     int 0 //address index
     txn ApplicationID //current smart contract
-    // 2nd txn app arg is order number
-    txna ApplicationArgs 1
-    app_local_get_ex
-    // if the value already exists return without setting anything
-    bnz ret_success
+    txna ApplicationArgs 1 // 2nd txn app arg is order number
+    app_local_get_ex    
+    bnz ret_success // if the value already exists return without setting anything
     pop
-    // store the ordernumber as the key
     int 0 //address index
     txna ApplicationArgs 1 //order number
     int 1 // value - just set to 1
-    app_local_put
-    // store creator as value
+    app_local_put // store the ordernumber as the key
     int 0 //address index
     byte "creator" //creator key
-    gtxn 0 Sender
+    gtxn 0 Sender // store creator as value
     app_local_put
     int 0 //address index
     byte "version" //store version
@@ -194,12 +188,10 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     ||
     assert
 
-    // First Transaction must be a call to a stateful contract
-    gtxn 0 TypeEnum
+    gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
     ==
-    // The second transaction must be a payment transaction
-    gtxn 1 TypeEnum
+    gtxn 1 TypeEnum // The second transaction must be a payment transaction
     int pay
     ==
     &&
@@ -211,7 +203,6 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int axfer
     ==
     assert
-
     load 3
     gtxns TypeEnum
     int pay
@@ -293,12 +284,10 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     ||
     assert
 
-    // First Transaction must be a call to a stateful contract
-    gtxn 0 TypeEnum
+    gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
     ==
-    // The second transaction must be a payment transaction
-    gtxn 1 TypeEnum
+    gtxn 1 TypeEnum // The second transaction must be a payment transaction
     int pay
     ==
     &&
@@ -365,6 +354,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
   fail2:
     int 0
     return
+    
     
     
     `;
