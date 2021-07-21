@@ -77,25 +77,8 @@ const GenerateTransactions = {
             let txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
                                                     approvalProgram, clearProgram, 
                                                     localInts, localBytes, globalInts, globalBytes,);
-            // let txId = txn.txID().toString();
 
             return txn;
-            // Sign the transaction
-            //let signedTxn = txn.signTxn(creatorAccount.sk);
-            //console.log("Signed transaction with txID: %s", txId);
-
-            // Submit the transaction
-            //await client.sendRawTransaction(signedTxn).do();
-
-            // Wait for confirmation
-            //await waitForConfirmation(client, txId);
-
-            // display results
-            //let transactionResponse = await client.pendingTransactionInformation(txId).do();
-            //let appId = transactionResponse['application-index'];
-            //console.log("Created new app-id: ",appId);
-            //return appId;
-
     }
 }
 
