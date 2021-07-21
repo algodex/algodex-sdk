@@ -224,18 +224,12 @@ const AlgodexApi = {
 
         if (isSellingASA) {
             // we are selling an ASA so check wallet balance
+            orderAlgoBalance = walletAlgoAmount;
             orderAssetBalance = Math.min(orderAssetAmount, walletAssetAmount);
         } else {
             // wallet ASA balance doesn't matter since we are selling algos
-            orderAssetBalance = orderAssetAmount;
-        }
-
-        if (!isSellingASA) {
-            //we are buying with algos. so check algo balance
             orderAlgoBalance = Math.min(orderAlgoAmount, walletAlgoAmount);
-        } else {
-            // wallet balance doesn't matter since we are selling an ASA
-            orderAlgoBalance = orderAlgoAmount;
+            orderAssetBalance = walletAssetAmount;
         }
 
         const takerOrderBalance = {

@@ -83,7 +83,7 @@ const AlgodexInternalApi = {
     },
     getExecuteOrderTransactionsAsTakerFromOrderEntry : 
         async function getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, orderBookEscrowEntry, takerCombOrderBalance) {
-            console.log("getExecuteOrderTransactionsFromOrderEntry orderBookEscrowEntry: " + this.dumpVar(orderBookEscrowEntry));
+            console.log("looking at another orderbook entry to execute orderBookEscrowEntry: " + this.dumpVar(orderBookEscrowEntry));
 
             // rec contains the original order creators address
             let orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
@@ -243,8 +243,8 @@ const AlgodexInternalApi = {
             takerCombOrderBalance['walletAlgoBalance'] -= executionFees;
             takerCombOrderBalance['walletAlgoBalance'] -= algoTradeAmount;
 
-            takerCombOrderBalance['asaBalance'] -= escrowAsaTradeAmount;
-            takerCombOrderBalance['walletASABalance'] -= escrowAsaTradeAmount;
+            takerCombOrderBalance['asaBalance'] += escrowAsaTradeAmount;
+            takerCombOrderBalance['walletASABalance'] += escrowAsaTradeAmount;
             console.log("ASA here110 algoAmount asaAmount txnFee takerOrderBalance: ", algoTradeAmount,
                         escrowAsaTradeAmount, executionFees, this.dumpVar(takerCombOrderBalance));
 
@@ -524,7 +524,7 @@ const AlgodexInternalApi = {
                 return;
             }
             takerCombOrderBalance['algoBalance'] -= txnFee;
-            takerCombOrderBalance['algoBalance'] -= algoAmountReceiving;
+            takerCombOrderBalance['algoBalance'] += algoAmountReceiving;
             takerCombOrderBalance['asaBalance'] -= asaAmount;
             console.log("here11 algoAmount asaAmount txnFee takerOrderBalance: ", algoAmountReceiving,
                         asaAmount, txnFee, this.dumpVar(takerCombOrderBalance));
