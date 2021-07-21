@@ -3,15 +3,13 @@
 const testHelper = require('../test_helper.js');
 const transactionGenerator = require('../generate_transaction_types.js');
 
+let appId = -1;
+let creatorAccount = testHelper.getRandomAccount();;
+let openAccount = testHelper.getOpenAccount();
+const client = testHelper.getLocalClient();
 
-const test1 = async() => {
-
-
-
-  const client = testHelper.getLocalClient();
+const createAppTest = async() => {
   console.log("starting the test");
-  let openAccount = testHelper.getOpenAccount();
-  let creatorAccount = testHelper.getRandomAccount();
 
   await testHelper.transferFunds(client, openAccount, creatorAccount, 300000);
   
@@ -36,24 +34,30 @@ const test1 = async() => {
 
   // display results
   let transactionResponse = await client.pendingTransactionInformation(txId).do();
-  let appId = transactionResponse['application-index'];
+  appId = transactionResponse['application-index'];
   console.log("Created new app-id: ",appId);
 
   let accountInfo = await testHelper.getAccountInfo(creatorAccount.addr);
   console.log( "amount: " , accountInfo.amount );
 
+
+};
+
+const deleteAppTest = async() => {
   console.log("deleting app: " + appId);
 
   await testHelper.deleteApplication(client, creatorAccount, appId);
 
   console.log("closing account: " + openAccount.addr + " to " + creatorAccount.addr);
   await testHelper.closeAccount(client, creatorAccount, openAccount);
+}
 
+const runTests = async() => {
+  await createAppTest();
+  await deleteAppTest();
 };
 
-test1();
-
-
+runTests();
 
 
   // Uncomment for mocha test format

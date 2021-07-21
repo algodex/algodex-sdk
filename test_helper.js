@@ -58,7 +58,7 @@ const TestHelper = {
         }
 
         // Wait for confirmation
-        await this.waitForConfirmation(client, fundTxnId);
+        await this.checkPending(client, fundTxnId);
     },
 
     closeAccount : async function closeAccount (client, fromAccount, toAccount) {
@@ -73,7 +73,7 @@ const TestHelper = {
             console.log(JSON.stringify(e));
         }
         // Wait for confirmation
-        await this.waitForConfirmation(client, fundTxnId);
+        await this.checkPending(client, fundTxnId);
     },
 
     deleteApplication : async function deleteApplication (client, sender, appId) {
@@ -111,14 +111,25 @@ const TestHelper = {
         while (true) {
             const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
             if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-            //Got the completed Transaction
-            console.log("Transaction " + txId + " confirmed in round " + pendingInfo["confirmed-round"]);
-            break;
+                //Got the completed Transaction
+                console.log("Transaction " + txId + " confirmed in round " + pendingInfo["confirmed-round"]);
+                break;
             }
             lastRound++;
             await algodClient.statusAfterBlock(lastRound).do();
         }
+    },
+
+    // helper function to await transaction confirmation
+    checkPending : async function checkPending (algodClient, txId) {
+        while (true) {
+            const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
+            if (pendingInfo != null && pendingInfo.txn != null && pendingInfo.txn.txn != null) {
+                break;
+            }
+        }
     }
+
 
 }
 
