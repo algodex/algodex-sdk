@@ -1,6 +1,6 @@
 const testHelper = require('../../test_helper.js');
 const transactionGenerator = require('../../generate_transaction_types.js');
-const { appendSignMultisigTransaction } = require('algosdk');
+const algosdk = require('algosdk');
 
 const Test = {
     runTest : createAppTest = async(config) => {

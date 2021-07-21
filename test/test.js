@@ -3,32 +3,19 @@
 const testHelper = require('../test_helper.js');
 const transactionGenerator = require('../generate_transaction_types.js');
 const createAppTest = require('./teal_tests/createAppTest.js');
+const deleteAppTest = require('./teal_tests/deleteAppTest.js');
 
-appId = -1;
-const creatorAccount = testHelper.getRandomAccount();;
-const openAccount = testHelper.getOpenAccount();
-const client = testHelper.getLocalClient();
 
 config = {
-  appId: appId,
-  creatorAccount: creatorAccount,
-  openAccount: openAccount,
-  client: client,
+  appId: -1,
+  creatorAccount: testHelper.getRandomAccount(),
+  openAccount: testHelper.getOpenAccount(),
+  client: testHelper.getLocalClient(),
 };
 
-const deleteAppTest = async() => {
-  console.log("deleting app: " + appId);
-
-  await testHelper.deleteApplication(client, creatorAccount, appId);
-
-  console.log("closing account: " + openAccount.addr + " to " + creatorAccount.addr);
-  await testHelper.closeAccount(client, creatorAccount, openAccount);
-}
-
 const runTests = async() => {
-  appId = await createAppTest.runTest(config);
-  config.appId = appId;
-  await deleteAppTest();
+  config.appId = await createAppTest.runTest(config);
+  await deleteAppTest.runTest(config);
 };
 
 runTests();
