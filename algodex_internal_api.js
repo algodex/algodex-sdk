@@ -962,7 +962,8 @@ const AlgodexInternalApi = {
                     console.log("trying to inspect");
                     const response = await axios.post('http://localhost:8000/inspect', {
                     
-                            msgpack: b64_encoded
+                            msgpack: b64_encoded,
+                            responseType: 'text/plain',
                         },
                     );
                     console.log(response.data);
@@ -982,6 +983,13 @@ const AlgodexInternalApi = {
             orderBookId = ASA_ESCROW_ORDER_BOOK_ID;
         } else {
             orderBookId = ALGO_ESCROW_ORDER_BOOK_ID;
+        }
+
+        // This is only used for test cases. Possibly refactor.
+        if (isASAEscrow && global.ASA_ESCROW_APP_ID != undefined) {
+            orderBookId = global.ASA_ESCROW_APP_ID;
+        } else if (!isASAEscrow && global.ALGO_ESCROW_APP_ID != undefined) {
+            orderBookId = global.ALGO_ESCROW_APP_ID;
         }
 
         if (isNaN(min) || isNaN(assetid) || isNaN(N) || isNaN(D) || isNaN(orderBookId) ) {

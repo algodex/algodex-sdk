@@ -15,7 +15,7 @@ const Test = {
 
         await testHelper.deleteApplication(client, creatorAccount, appId);
 
-        console.log("closing account: " + openAccount.addr + " to " + creatorAccount.addr);
+        console.log("closing account: " + creatorAccount.addr + " to " + openAccount.addr);
         await testHelper.closeAccount(client, creatorAccount, openAccount);
     }
 }

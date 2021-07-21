@@ -43,7 +43,7 @@ const TestHelper = {
         return openAccount;
     },
 
-    transferFunds : async function transferFunds (client, fromAccount, toAccount, amount) {
+    transferFunds : async function (client, fromAccount, toAccount, amount) {
         const fundTxn = await transactionGenerator.getPayTxn(client, fromAccount, toAccount, amount, false);
         const fundTxnId = fundTxn.txID().toString();
 
@@ -61,7 +61,46 @@ const TestHelper = {
         await this.checkPending(client, fundTxnId);
     },
 
+    sendAndCheckConfirmed : async function(client, signedTxns) {
+        // Submit the transaction
+        let txId = null;
+        try {
+            let sentTxns = await client.sendRawTransaction(signedTxns).do();
+            txId = sentTxns.txId;
+        } catch (e) {
+            console.log(JSON.stringify(e));
+        }
+        // Wait for confirmation
+        await this.waitForConfirmation(client, txId);
+    },
+    sendAndCheckPending : async function(client, signedTxns) {
+        // Submit the transaction
+        let txId = null;
+        try {
+            let sentTxns = await client.sendRawTransaction(signedTxns).do();
+            txId = sentTxns.txId;
+        } catch (e) {
+            console.log(JSON.stringify(e));
+        }
+        // Wait for confirmation
+        await this.checkPending(client, txId);
+    },
+
     closeAccount : async function closeAccount (client, fromAccount, toAccount) {
+        console.log("checking account info for: " + fromAccount.addr)
+        const fromAccountInfo = await this.getAccountInfo(fromAccount.addr);
+        if (fromAccountInfo != null && fromAccountInfo['assets'] != null
+            && fromAccountInfo['assets'].length > 0) {
+            for (let i = 0; i < fromAccountInfo['assets'].length; i++) {
+                let asset = fromAccountInfo['assets'][i];
+                let assetId = asset['asset-id'];
+                console.log("closing asset: " + assetId + " for account: " + fromAccount.addr);
+                let txn = await transactionGenerator.getAssetSendTxn(client, fromAccount, toAccount, 0, assetId, true);
+                let signedTxn = algosdk.signTransaction(txn, fromAccount.sk);
+                await this.sendAndCheckPending(client, [signedTxn.blob]);
+            }
+        }
+
         const fundTxn = await transactionGenerator.getPayTxn(client, fromAccount, toAccount, 0, true);
         const fundTxnId = fundTxn.txID().toString();
         let signedTxn = fundTxn.signTxn(fromAccount.sk);
@@ -72,7 +111,6 @@ const TestHelper = {
         } catch (e) {
             console.log(JSON.stringify(e));
         }
-        // Wait for confirmation
         await this.checkPending(client, fundTxnId);
     },
 
@@ -128,7 +166,43 @@ const TestHelper = {
                 break;
             }
         }
-    }
+    },
+
+    groupAndSignTransactions :
+        function (outerTxns) {
+            console.log("inside signAndSend transactions");
+            let txns = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                txns.push(outerTxns[i].unsignedTxn);
+            }
+
+            const groupID = algosdk.computeGroupID(txns);
+            for (let i = 0; i < txns.length; i++) {
+                txns[i].group = groupID;
+            }
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                let txn = outerTxns[i];
+                if (txn.lsig != null) {
+                    let signedLsig = algosdk.signLogicSigTransactionObject(txn.unsignedTxn, txn.lsig);
+                    txn.signedTxn = signedLsig.blob;
+                } else {
+                    let signedTxn = algosdk.signTransaction(txn.unsignedTxn, txn.senderAcct.sk);
+                    txn.signedTxn = signedTxn.blob;
+                }
+            }
+
+            let signed = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                signed.push(outerTxns[i].signedTxn);
+            }
+            console.log("printing transaction debug");
+            algodex.printTransactionDebug(signed);
+
+            return signed;
+    },
 
 
 }

@@ -4,6 +4,8 @@ const testHelper = require('../test_helper.js');
 const transactionGenerator = require('../generate_transaction_types.js');
 const createAppTest = require('./teal_tests/createAppTest.js');
 const deleteAppTest = require('./teal_tests/deleteAppTest.js');
+const placeOrderTest = require('./teal_tests/placeAlgoEscrowOrder.js');
+const AlgodexApi = require('../algodex_api.js');
 
 
 config = {
@@ -15,7 +17,15 @@ config = {
 
 const runTests = async() => {
   config.appId = await createAppTest.runTest(config);
+  global.ALGO_ESCROW_APP_ID = config.appId;
+
+  try {
+    await placeOrderTest.runTest(config);
+  } catch (e) {
+    console.log( e.Error );
+  }
   await deleteAppTest.runTest(config);
+
 };
 
 runTests();

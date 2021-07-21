@@ -11,7 +11,7 @@ const Test = {
 
         console.log("starting the test");
 
-        await testHelper.transferFunds(client, openAccount, creatorAccount, 300000);
+        await testHelper.transferFunds(client, openAccount, creatorAccount, 5000000); //5 algos
         
         const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount);
         let txId = createTxn.txID().toString();

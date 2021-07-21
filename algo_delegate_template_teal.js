@@ -38,6 +38,7 @@ let delegateTemplate = `
     txn Amount // amount sent from escrow for this txn should always be 0
     int 0
     ==
+    &&
     gtxn 0 Amount
     int 500000 // Must be funded with at least 0.5 algo.
     >=
@@ -107,7 +108,7 @@ let delegateTemplate = `
 
     notThreeTxns:
     load 0 
-    load 1
+    load 1 // Both should now be set to 1 if this is an open order transaction
     && // If either of the above are set to 0, this is *not* a place order transaction, so check other types
     bz notOptInOrOrderReg // Jump if either is 0
 
