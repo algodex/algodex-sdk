@@ -2,45 +2,18 @@
 
 const testHelper = require('../test_helper.js');
 const transactionGenerator = require('../generate_transaction_types.js');
+const createAppTest = require('./teal_tests/createAppTest.js');
 
-let appId = -1;
-let creatorAccount = testHelper.getRandomAccount();;
-let openAccount = testHelper.getOpenAccount();
+appId = -1;
+const creatorAccount = testHelper.getRandomAccount();;
+const openAccount = testHelper.getOpenAccount();
 const client = testHelper.getLocalClient();
 
-const createAppTest = async() => {
-  console.log("starting the test");
-
-  await testHelper.transferFunds(client, openAccount, creatorAccount, 300000);
-  
-  const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount);
-  let txId = createTxn.txID().toString();
-  console.log("txID: " + txId);
-
-    // Sign the transaction
-
-  let signedTxn = createTxn.signTxn(creatorAccount.sk);
-  console.log("Signed transaction with txID: %s", txId);
-
-  // Submit the transaction
-  try {
-    await client.sendRawTransaction(signedTxn).do();
-  } catch (e) {
-    console.log(JSON.stringify(e));
-  }
-
-  // Wait for confirmation
-  await testHelper.waitForConfirmation(client, txId);
-
-  // display results
-  let transactionResponse = await client.pendingTransactionInformation(txId).do();
-  appId = transactionResponse['application-index'];
-  console.log("Created new app-id: ",appId);
-
-  let accountInfo = await testHelper.getAccountInfo(creatorAccount.addr);
-  console.log( "amount: " , accountInfo.amount );
-
-
+config = {
+  appId: appId,
+  creatorAccount: creatorAccount,
+  openAccount: openAccount,
+  client: client,
 };
 
 const deleteAppTest = async() => {
@@ -53,7 +26,8 @@ const deleteAppTest = async() => {
 }
 
 const runTests = async() => {
-  await createAppTest();
+  appId = await createAppTest.runTest(config);
+  config.appId = appId;
   await deleteAppTest();
 };
 
