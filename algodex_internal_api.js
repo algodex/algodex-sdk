@@ -795,12 +795,12 @@ const AlgodexInternalApi = {
       
     },
     // close order 
-    closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig) {
+    closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig) {
         let accountInfo = await this.getAccountInfo(lsig.address());
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['assets'] != null
             && accountInfo['assets'].length > 0 && accountInfo['assets'][0] != null) {
-            await closeASAOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig);
+            await closeASAOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig);
             return;
         }
         //        && accountInfo['apps-local-state'].length > 0
@@ -814,7 +814,7 @@ const AlgodexInternalApi = {
             let params = await algodClient.getTransactionParams().do();
 
             // create unsigned transaction
-            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, index, appArgs)
+            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, appIndex, appArgs)
             let txId = txn.txID().toString();
             // Submit the transaction
 
@@ -985,7 +985,7 @@ const AlgodexInternalApi = {
             orderBookId = ALGO_ESCROW_ORDER_BOOK_ID;
         }
 
-        // This is only used for test cases. Possibly refactor.
+        // This is only used for test cases to override the app IDs. Possibly refactor.
         if (isASAEscrow && global.ASA_ESCROW_APP_ID != undefined) {
             orderBookId = global.ASA_ESCROW_APP_ID;
         } else if (!isASAEscrow && global.ALGO_ESCROW_APP_ID != undefined) {
