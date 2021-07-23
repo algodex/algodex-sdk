@@ -30,7 +30,7 @@ const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 
 let myAlgoWallet = null;
 if (MyAlgo != null) {
-    console.log("pointing to bridge URL");
+    // console.log("pointing to bridge URL");
     myAlgoWallet = new MyAlgo();
 }
 const constants = require('./constants.js');
