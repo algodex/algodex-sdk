@@ -5,9 +5,10 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
+
 module.exports = {
     DEBUG: 1,
-    DEBUG_SMART_CONTRACT_SOURCE: 0,
+    DEBUG_SMART_CONTRACT_SOURCE: ("DEBUG_SMART_CONTRACT_SOURCE" in process.env) ? process.env.DEBUG_SMART_CONTRACT_SOURCE : 0,
 
     MIN_ESCROW_BALANCE: 500000,
     MIN_ASA_ESCROW_BALANCE: 500000,
