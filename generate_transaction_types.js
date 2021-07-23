@@ -164,6 +164,82 @@ const GenerateTransactions = {
         return outerTxns;
     },
 
+    getCloseASAEscrowOrderTxns : async function (algodClient, creator, price, assetId, appId) {
+        let numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
+        let n = numAndDenom.n;
+        let d = numAndDenom.d;
+        let creatorAddr = creator.addr;
+
+        let escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, creatorAddr, true);
+        let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
+        let escrowAccountAddr = lsig.address();
+
+        let outerTxns = [];
+        // "2500-625-0-15322902"
+        let orderBookEntry = n + "-" + d + "-0-" + assetId;
+        console.log("closing order from order book entry!");
+        console.log("escrowAccountAddr, creatorAddr, orderBookEntry", 
+            escrowAccountAddr, creatorAddr, orderBookEntry);
+
+        let appArgs = [];
+        let enc = new TextEncoder();
+        appArgs.push(enc.encode("close"));
+        appArgs.push(enc.encode(orderBookEntry));
+        appArgs.push(enc.encode(creatorAddr));
+        console.log("args length: " + appArgs.length);
+
+        // get node suggested parameters
+        let params = await algodClient.getTransactionParams().do();
+
+        // create unsigned transaction
+        let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, appId, appArgs)
+        let txId = txn.txID().toString();
+        // Submit the transaction
+
+        // create optin transaction
+        // sender and receiver are both the same
+        let sender = lsig.address();
+        let recipient = creatorAddr;
+        // We set revocationTarget to undefined as 
+        // This is not a clawback operation
+        let revocationTarget = undefined;
+        // CloseReaminerTo is set to undefined as
+        // we are not closing out an asset
+        let closeRemainderTo = creatorAddr;
+        // We are sending 0 assets
+        let amount = 0;
+
+        // signing and sending "txn" allows sender to begin accepting asset specified by creator and index
+        let txn2 = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo, revocationTarget,
+            amount, undefined, assetId, params);
+
+        // Make payment tx signed with lsig
+        let txn3 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr, 
+                undefined, params);
+
+        // proof of ownership transaction
+        let txn4 = algosdk.makePaymentTxnWithSuggestedParams(creatorAddr, creatorAddr, 0, undefined, undefined, params);
+
+        outerTxns.push({
+            unsignedTxn: txn,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: txn2,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: txn3,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: txn4,
+            senderAcct: creator
+        });
+
+        return outerTxns;
+    },
+
     getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false) {
         const makerAddr = makerAccount.addr;
         const min = 0;
