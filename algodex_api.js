@@ -23,8 +23,8 @@ const dexInternal = require('./algodex_internal_api.js');
 
 if (MyAlgo != null) {
     myAlgoWallet = new MyAlgo();
-    console.log("printing my algo wallet");
-    console.log(myAlgoWallet)
+    // console.log("printing my algo wallet");
+    // console.log(myAlgoWallet)
 }
 
 const constants = require('./constants.js');
