@@ -213,7 +213,109 @@ const GenerateTransactions = {
             senderAcct: makerAccount
         });
         return outerTxns;
-    }
+    },
+
+    getPlaceASAEscrowOrderTxns : async function (algodClient, makerAccount, asaOrderSize, price, assetId, appId, isExistingEscrow = false) {
+        console.log("checking assetId type");
+        assetId = parseInt(assetId+"");
+
+        const makerAddr = makerAccount.addr;
+        const min = 0;
+        const numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
+        const n = numAndDenom.n;
+        const d = numAndDenom.d;
+
+        let outerTxns = [];
+
+        let program = algodex.buildDelegateTemplateFromArgs(min, assetId, n, d, makerAddr, true);
+
+        let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
+        let generatedOrderEntry = algodex.generateOrder(makerAddr, n, d, min, assetId);
+        console.log("address is: " + lsig.address());
+        
+        // check if the lsig has already opted in
+        let accountInfo = await algodex.getAccountInfo(lsig.address());
+        let alreadyOptedIn = false;
+        if (accountInfo != null && accountInfo['apps-local-state'] != null
+                && accountInfo['apps-local-state'].length > 0
+                && accountInfo['apps-local-state'][0].id == appId) {
+            alreadyOptedIn = true;
+        }
+        console.log("alreadyOptedIn: " + alreadyOptedIn);
+        console.log("acct info:" + JSON.stringify(accountInfo));
+
+        let params = await algodClient.getTransactionParams().do();
+        console.log("sending trans to: " + lsig.address());
+
+
+        let assetSendTrans = await this.getAssetSendTxn(algodClient, makerAddr, lsig.address(), asaOrderSize, assetId,
+                 false);
+
+        let payTxn = await this.getPayTxn(algodClient, makerAddr, lsig.address(), constants.MIN_ASA_ESCROW_BALANCE,
+            false);
+       
+        myAlgoWalletUtil.setTransactionFee(payTxn);
+
+        console.log("typeof: " + typeof payTxn.txId);
+        console.log("the val: " + payTxn.txId);
+
+        //console.log("confirmed!!");
+        // create unsigned transaction
+
+        console.log("here3 calling app from logic sig to open order");
+        let appArgs = [];
+        var enc = new TextEncoder();
+        appArgs.push(enc.encode("open"));
+
+        appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
+
+        // add owners address as arg
+        //ownersAddr = "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI";
+        //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
+        appArgs.push(enc.encode(makerAddr));
+        console.log(appArgs.length);
+
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, appId, 
+                    appArgs, "appOptIn");
+
+        // create optin transaction
+        // sender and receiver are both the same
+        let sender = lsig.address();
+        let recipient = sender;
+        // We set revocationTarget to undefined as 
+        // This is not a clawback operation
+        let revocationTarget = undefined;
+        // CloseReaminerTo is set to undefined as
+        // we are not closing out an asset
+        let closeRemainderTo = undefined;
+        // We are sending 0 assets
+        let amount = 0;
+
+        // signing and sending "txn" allows sender to begin accepting asset specified by creator and index
+        let logSigAssetOptInTrans = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo, 
+            revocationTarget,
+            amount, undefined, assetId, params);
+
+        outerTxns.push({
+            unsignedTxn: payTxn,
+            senderAcct: makerAccount
+        });
+        outerTxns.push({
+            unsignedTxn: logSigTrans,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: logSigAssetOptInTrans,
+            lsig: lsig
+        });
+        outerTxns.push({
+            unsignedTxn: assetSendTrans,
+            senderAcct: makerAccount
+        });
+
+        return outerTxns;
+    },
+
 }
 
 module.exports = GenerateTransactions;

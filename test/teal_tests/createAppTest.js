@@ -13,7 +13,9 @@ const Test = {
         console.log("starting the test");
 
         await testHelper.transferFunds(client, openAccount, creatorAccount, 5000000); //5 algos
-        
+        await testHelper.transferASA(client, creatorAccount, creatorAccount, 0, config.assetId); //opt in transaction
+        await testHelper.transferASA(client, openAccount, creatorAccount, 2000000, config.assetId); //5 algos
+
         const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount, isAlgoEscrowApp);
         let txId = createTxn.txID().toString();
         console.log("txID: " + txId);
@@ -36,7 +38,7 @@ const Test = {
         // display results
         let transactionResponse = await client.pendingTransactionInformation(txId).do();
         appId = transactionResponse['application-index'];
-        console.log("Created new app-id: ",appId);
+        console.log("Created new app-id: ", appId);
 
         let accountInfo = await testHelper.getAccountInfo(creatorAccount.addr);
         console.log( "amount: " , accountInfo.amount );

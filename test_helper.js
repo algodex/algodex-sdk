@@ -43,6 +43,24 @@ const TestHelper = {
         return openAccount;
     },
 
+    transferASA : async function (client, fromAccount, toAccount, amount, assetId) {
+        const asaTransferTxn = await transactionGenerator.getAssetSendTxn(client, fromAccount, toAccount, amount, assetId, false);
+        const asaTxnId = asaTransferTxn.txID().toString();
+
+        let signedFundTxn = asaTransferTxn.signTxn(fromAccount.sk);
+        console.log("Signed transaction with txID: %s", asaTxnId);
+
+        // Submit the transaction
+        try {
+            await client.sendRawTransaction(signedFundTxn).do();
+        } catch (e) {
+            console.log(JSON.stringify(e));
+        }
+
+        // Wait for confirmation
+        await this.checkPending(client, asaTxnId);
+    },
+
     transferFunds : async function (client, fromAccount, toAccount, amount) {
         const fundTxn = await transactionGenerator.getPayTxn(client, fromAccount, toAccount, amount, false);
         const fundTxnId = fundTxn.txID().toString();

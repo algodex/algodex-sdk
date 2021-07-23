@@ -5,6 +5,7 @@ const transactionGenerator = require('../generate_transaction_types.js');
 const createAppTest = require('./teal_tests/createAppTest.js');
 const deleteAppTest = require('./teal_tests/deleteAppTest.js');
 const placeOrderTest = require('./teal_tests/placeAlgoEscrowOrder.js');
+const placeASAOrderTest = require('./teal_tests/placeASAEscrowOrder.js');
 const closeOrderTest = require('./teal_tests/closeAlgoEscrowOrder.js');
 
 //const deleteAppTest = require('./teal_tests/deleteASAAppTest.js');
@@ -25,6 +26,8 @@ config = {
 
 const runTests = async() => {
   console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
+
+  // ALGO ORDERBOOK TESTS
   config.appId = await createAppTest.runTest(config, true);
   global.ALGO_ESCROW_APP_ID = config.appId;
 
@@ -36,9 +39,14 @@ const runTests = async() => {
   //}
 
   await deleteAppTest.runTest(config);
-
+ // ASA ORDERBOOK TESTS
   config.creatorAccount = testHelper.getRandomAccount();
   config.appId = await createAppTest.runTest(config, false);
+  global.ASA_ESCROW_APP_ID = config.appId;
+
+  await placeASAOrderTest.runTest(config);
+  //await closeOrderTest.runTest(config);
+
   await deleteAppTest.runTest(config);
 
 };
