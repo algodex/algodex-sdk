@@ -76,10 +76,14 @@ const GenerateTransactions = {
         return txn;
     },
 
-    getCreateAppTxn : async function (client, creatorAccount) {
+    getCreateAppTxn : async function (client, creatorAccount, isAlgoEscrowApp = true) {
             // define sender as creator
-
-            const approvalProgramSource = algoOrderBook.getAlgoOrderBookApprovalProgram();
+            let approvalProgramSource = null;
+            if (isAlgoEscrowApp) {
+                approvalProgramSource = algoOrderBook.getAlgoOrderBookApprovalProgram();
+            } else {
+                approvalProgramSource = asaOrderBook.getASAOrderBookApprovalProgram();
+            }
             const clearProgramSource = algoOrderBook.getClearProgram();
 
             // declare application state storage (immutable)

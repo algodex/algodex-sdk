@@ -3,8 +3,9 @@ const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
 
 const Test = {
-    runTest : createAppTest = async(config) => {
-        console.log("STARTING createAppTest");
+    runTest : createAppTest = async(config, isAlgoEscrowApp = true) => {
+        
+        console.log("STARTING createAppTest: ", {isAlgoEscrowApp} );
         const client = config.client;
         const openAccount = config.openAccount;
         const creatorAccount = config.creatorAccount;
@@ -13,7 +14,7 @@ const Test = {
 
         await testHelper.transferFunds(client, openAccount, creatorAccount, 5000000); //5 algos
         
-        const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount);
+        const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount, isAlgoEscrowApp);
         let txId = createTxn.txID().toString();
         console.log("txID: " + txId);
 
