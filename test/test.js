@@ -16,6 +16,7 @@ const closeASAOrderTest = require('./teal_tests/closeASAEscrowOrder.js');
 
 const AlgodexApi = require('../algodex_api.js');
 const constants = require('../constants.js');
+const JEST_MINUTE_TIMEOUT = 60 * 1000;
 
 config = {
   appId: -1,
@@ -25,34 +26,73 @@ config = {
   assetId: 15322902,
 };
 
-const runTests = async() => {
+//const runTests = async() => {
   console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
+describe('ALGO ESCROW ORDER BOOK', () => {
   // ALGO ORDERBOOK TESTS
-  config.appId = await createAppTest.runTest(config, true);
-  global.ALGO_ESCROW_APP_ID = config.appId;
+  test('Create algo escrow order book', async () => {
+    config.appId = await createAppTest.runTest(config, true);
+    global.ALGO_ESCROW_APP_ID = config.appId;
+    expect (config.appId).toBeGreaterThan(0);
+  }, JEST_MINUTE_TIMEOUT);
+
+
 
   //try {
-  await placeOrderTest.runTest(config);
-  await closeOrderTest.runTest(config);
+
+  test ('Place algo escrow order', async () => {
+    const result = await placeOrderTest.runTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close algo escrow order', async () => {
+    const result = await closeOrderTest.runTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  
   //} catch (e) {
     //console.log( e.Error );
   //}
 
-  await deleteAppTest.runTest(config);
-
+  test ('Delete algo escrow order book', async () => {
+      const result = await deleteAppTest.runTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+  
  // ASA ORDERBOOK TESTS
-  config.creatorAccount = testHelper.getRandomAccount();
-  config.appId = await createAppTest.runTest(config, false);
-  global.ASA_ESCROW_APP_ID = config.appId;
+});
 
-  await placeASAOrderTest.runTest(config);
-  await closeASAOrderTest.runTest(config);
+describe('ASA ESCROW ORDER BOOK', () => {
 
-  await deleteAppTest.runTest(config);
-};
+  test ('Create asa escrow order book', async () => {
+      config.creatorAccount = testHelper.getRandomAccount();
+      config.appId = await createAppTest.runTest(config, false);
+      global.ASA_ESCROW_APP_ID = config.appId;
+      expect (config.appId).toBeGreaterThan(0);
+  }, JEST_MINUTE_TIMEOUT);
 
-runTests();
+  test ('Place asa escrow order', async () => {
+      const result = await placeASAOrderTest.runTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order', async () => {
+      const result = await closeASAOrderTest.runTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Delete asa escrow order book', async () => {
+      const result = await deleteAppTest.runTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+});
+
+//};
+
+//runTests();
 
 
   // Uncomment for mocha test format

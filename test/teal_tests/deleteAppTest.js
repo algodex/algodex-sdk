@@ -17,6 +17,8 @@ const Test = {
 
         console.log("closing account: " + creatorAccount.addr + " to " + openAccount.addr);
         await testHelper.closeAccount(client, creatorAccount, openAccount);
+
+        return true;
     }
 }
 module.exports = Test;

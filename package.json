@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "node test/test.js",
-    "test-debug": "node --inspect-brk test/test.js"
+    "jest": "jest",
+    "jestDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
+    "test-debug": "node --inspect-brk test/test.js "
   },
   "repository": {
     "type": "git",
@@ -32,5 +34,8 @@
     "mocha": "^9.0.2",
     "text-encoding": "^0.7.0",
     "util": "^0.12.4"
+  },
+  "devDependencies": {
+    "jest": "^27.0.6"
   }
 }

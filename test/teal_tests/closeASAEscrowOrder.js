@@ -15,6 +15,8 @@ const Test = {
         let signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
         await testHelper.sendAndCheckConfirmed(client, signedTxns);
+
+        return true;
     }
 }
 module.exports = Test;
