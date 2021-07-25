@@ -125,7 +125,7 @@ const AlgodexInternalApi = {
             let escrowAsaTradeAmount = orderBookEscrowEntry['asaBalance'];
             let escrowAlgoAmount = orderBookEscrowEntry['algoBalance'];
             const currentEscrowBalance = escrowAlgoAmount;
-            const currentASABalance = escrowAsaTradeAmount;
+            const currentEscrowASABalance = orderBookEscrowEntry['asaBalance'];
             const assetId = orderBookEscrowEntry['assetId'];
 
             appAccts.push(orderCreatorAddr);
@@ -202,7 +202,8 @@ const AlgodexInternalApi = {
             } //FIXME: factor in fees
 
 
-            if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(escrowAsaTradeAmount) == LESS_THAN) {
+            // TODO: section below not needed?
+            /*if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(escrowAsaTradeAmount) == LESS_THAN) {
                 console.log("asa escrow here9991 takerCombOrderBalance['asaBalance'] < escrowAsaAmount",
                         takerCombOrderBalance['asaBalance'], escrowAsaTradeAmount.getValue());
                 escrowAsaTradeAmount = new bigDecimal(takerCombOrderBalance['asaBalance']);
@@ -210,13 +211,13 @@ const AlgodexInternalApi = {
                 if (algoTradeAmount.getValue().includes('.')) {
                     algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
                 }
-            }
+            }*/
 
-            if (new bigDecimal(currentASABalance).subtract(escrowAsaTradeAmount)
+            if (new bigDecimal(currentEscrowASABalance).subtract(escrowAsaTradeAmount)
                     .compareTo(new bigDecimal(min_asa_balance)) == GREATER_THAN) {
 
                 console.log("asa escrow here9992 (currentASABalance - escrowAsaAmount) > min_asa_balance",
-                        currentASABalance, escrowAsaTradeAmount.getValue(), min_asa_balance);
+                        currentEscrowASABalance, escrowAsaTradeAmount.getValue(), min_asa_balance);
                 closeoutFromASABalance = false;
             }
 
