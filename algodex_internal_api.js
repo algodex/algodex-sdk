@@ -230,11 +230,11 @@ const AlgodexInternalApi = {
             algoTradeAmount = parseInt(algoTradeAmount.getValue());
 
             if (escrowAsaTradeAmount <= 0) {
-                console.log("here77zz escrowAsaAmount is at 0 or below. returning early! nothing to do");
+                console.log("here77zz escrowAsaTradeAmount is at 0 or below. returning early! nothing to do");
                 return;
             }
             if (algoTradeAmount <= 0) {
-                console.log("here77zz escrowAsaAmount is at 0 or below. returning early! nothing to do");
+                console.log("here77zb algoTradeAmount is at 0 or below. returning early! nothing to do");
                 return;
             }
 
