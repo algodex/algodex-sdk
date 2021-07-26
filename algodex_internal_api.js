@@ -229,10 +229,15 @@ const AlgodexInternalApi = {
             escrowAsaTradeAmount = parseInt(escrowAsaTradeAmount.getValue());
             algoTradeAmount = parseInt(algoTradeAmount.getValue());
 
-            if (escrowAsaTradeAmount == 0) {
-                console.log("here77zz escrowAsaAmount is 0. returning early! nothing to do");
+            if (escrowAsaTradeAmount <= 0) {
+                console.log("here77zz escrowAsaAmount is at 0 or below. returning early! nothing to do");
                 return;
             }
+            if (algoTradeAmount <= 0) {
+                console.log("here77zz escrowAsaAmount is at 0 or below. returning early! nothing to do");
+                return;
+            }
+
             //FIXME - need more logic to transact correct price in case balances dont match order balances
             console.log("closeoutFromASABalance: " + closeoutFromASABalance);
 
