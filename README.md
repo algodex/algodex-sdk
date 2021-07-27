@@ -9,11 +9,15 @@ Client-side JavaScript API calls for Algodex as an npm package
 
 ## Automated smart contract tests
 
-`npm run jest`
+`npm test`
 
 With Chrome debugger support:
 
-`npm run jestDebug`
+`npm run testDebug`
+
+## Enabling smart contract debugging
+
+export DEBUG_SMART_CONTRACT_SOURCE=1
 
 ## Manual testing
 
