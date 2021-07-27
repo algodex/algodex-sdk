@@ -11,6 +11,14 @@ Client-side JavaScript API calls for Algodex as an npm package
 
 `npm test`
 
+With Chrome debugger support:
+
+`npm run testDebug`
+
+## Enabling smart contract source logs in the console output
+
+export DEBUG_SMART_CONTRACT_SOURCE=1
+
 ## Manual testing
 
 1. Download and set up https://github.com/algodex/algodex-experimental
@@ -22,3 +30,7 @@ Client-side JavaScript API calls for Algodex as an npm package
 
 `rm -rf 'node_modules/@algodex'`
 `npm link @algodex/algodex-sdk`
+
+# Architecture Documentation
+
+https://github.com/algodex/algodex-architecture
