@@ -240,6 +240,9 @@ const GenerateTransactions = {
         return outerTxns;
     },
 
+    getExecuteAlgoEscrowOrder : async function () {
+    },
+
     getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false) {
         const makerAddr = makerAccount.addr;
         const min = 0;

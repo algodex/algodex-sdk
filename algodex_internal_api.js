@@ -975,8 +975,7 @@ const AlgodexInternalApi = {
                     console.log(response.data);
                     return response.data;
                 } catch (error) {
-                    console.error(error);
-                    throw new Error("inspect failed: ", error);
+                    console.error("Could not print out transaction details: " + error);
                 }
             })();
         }

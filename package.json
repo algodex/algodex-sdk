@@ -4,10 +4,8 @@
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
   "scripts": {
-    "test": "node test/test.js",
-    "jest": "jest",
-    "jestDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
-    "test-debug": "node --inspect-brk test/test.js "
+    "test": "jest",
+    "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand "
   },
   "repository": {
     "type": "git",
