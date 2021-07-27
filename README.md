@@ -26,3 +26,7 @@ With Chrome debugger support:
 
 `rm -rf 'node_modules/@algodex'`
 `npm link @algodex/algodex-sdk`
+
+# Architecture Documentation
+
+https://github.com/algodex/algodex-architecture
