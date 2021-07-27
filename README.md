@@ -15,7 +15,7 @@ With Chrome debugger support:
 
 `npm run testDebug`
 
-## Enabling smart contract debugging
+## Enabling smart contract source logs in the console output
 
 export DEBUG_SMART_CONTRACT_SOURCE=1
 
