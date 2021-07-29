@@ -3,7 +3,7 @@ const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
 
 const Test = {
-    runTest : createAppTest = async(config, isAlgoEscrowApp = true) => {
+    runTest : createAppTest = async(config, isAlgoEscrowApp = true, optIntoASAForExecutor = true) => {
         
         console.log("STARTING createAppTest: ", {isAlgoEscrowApp} );
         const client = config.client;
@@ -17,9 +17,10 @@ const Test = {
         await testHelper.transferFunds(client, openAccount, executorAccount, 5000000); //5 algos
         await testHelper.transferASA(client, creatorAccount, creatorAccount, 0, config.assetId); //opt in transaction
         await testHelper.transferASA(client, openAccount, creatorAccount, 2000000, config.assetId); //5 algos
-        await testHelper.transferASA(client, executorAccount, executorAccount, 0, config.assetId); //opt in transaction
-        await testHelper.transferASA(client, openAccount, executorAccount, 2000000, config.assetId); //5 algos
-
+        if (optIntoASAForExecutor) {
+            await testHelper.transferASA(client, executorAccount, executorAccount, 0, config.assetId); //opt in transaction
+            await testHelper.transferASA(client, openAccount, executorAccount, 2000000, config.assetId); //5 algos
+        }
         const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount, isAlgoEscrowApp);
         let txId = createTxn.txID().toString();
         console.log("txID: " + txId);

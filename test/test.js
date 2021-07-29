@@ -123,3 +123,76 @@ describe('ASA ESCROW ORDER BOOK', () => {
 
 });
 
+
+
+
+describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (PARTIAL EXECUTION)', () => {
+
+  test ('Create asa escrow order book and account without optin', async () => {
+      config.creatorAccount = testHelper.getRandomAccount();
+      config.executorAccount = testHelper.getRandomAccount();
+      config.appId = await createAppTest.runTest(config, false, false);
+      global.ASA_ESCROW_APP_ID = config.appId;
+      expect (config.appId).toBeGreaterThan(0);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place asa escrow order', async () => {
+      const asaAmount = 735000;
+      const price = 1.55;
+      const result = await placeASAOrderTest.runTest(config, asaAmount, price);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Partially execute asa escrow order', async () => {
+    const asaAmountReceiving = 90000;
+    const price = 1.55;
+
+    const result = await executeAsaOrderTest.runPartialExecutionTest(config, asaAmountReceiving, price);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order', async () => {
+      const price = 1.55;
+      const result = await closeASAOrderTest.runTest(config, price);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Delete asa escrow order book', async () => {
+      const result = await deleteAppTest.runTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+});
+
+
+
+describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (FULL EXECUTION)', () => {
+
+  test ('Create asa escrow order book and account without optin', async () => {
+      config.creatorAccount = testHelper.getRandomAccount();
+      config.executorAccount = testHelper.getRandomAccount();
+      config.appId = await createAppTest.runTest(config, false, false);
+      global.ASA_ESCROW_APP_ID = config.appId;
+      expect (config.appId).toBeGreaterThan(0);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place asa escrow order', async () => {
+      const asaAmount = 735000;
+      const price = 1.55;
+      const result = await placeASAOrderTest.runTest(config, asaAmount, price);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Fully execute asa escrow order', async () => {
+    const price = 1.55;
+
+    const result = await executeAsaOrderTest.runFullExecutionTest(config, price);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Delete asa escrow order book', async () => {
+      const result = await deleteAppTest.runTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+});
