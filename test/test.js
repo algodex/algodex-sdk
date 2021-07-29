@@ -25,8 +25,45 @@ config = {
   assetId: 15322902,
 };
 
-//const runTests = async() => {
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
+
+
+describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
+  test('Create algo escrow order book', async () => {
+    config.appId = await createAppTest.runTest(config, true);
+    global.ALGO_ESCROW_APP_ID = config.appId;
+    expect (config.appId).toBeGreaterThan(0);
+
+    config.oldCreatorAccount = config.creatorAccount;
+    // make a new creatorAccount that hasn't been opted into any ASA
+    config.creatorAccount = testHelper.getRandomAccount();
+    testHelper.transferFunds(config.client, config.openAccount, config.creatorAccount, 2000000);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place algo escrow order', async () => {
+    let asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
+    expect (asaBalance).toBeNull();
+
+    const result = await placeOrderTest.runTest(config, 800000, 1.2);
+    expect (result).toBeTruthy();
+
+    asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
+    expect (asaBalance).toEqual(0);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close algo escrow order', async () => {
+    const result = await closeOrderTest.runTest(config, 1.2);
+    expect (result).toBeTruthy();
+    await testHelper.closeAccount(config.client, config.creatorAccount, config.openAccount);
+    config.creatorAccount = config.oldCreatorAccount;
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Delete algo escrow order book', async () => {
+      const result = await deleteAppTest.runTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+});
 
 
 describe('ALGO ESCROW ORDER BOOK', () => {
@@ -52,8 +89,8 @@ describe('ALGO ESCROW ORDER BOOK', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Place algo escrow order', async () => {
-    const result = await placeOrderTest.runTest(config, 830000, 1.35);
+  test ('Place algo escrow order with skip ASA opt-in', async () => {
+    const result = await placeOrderTest.runTest(config, 830000, 1.35, false, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
@@ -69,6 +106,7 @@ describe('ALGO ESCROW ORDER BOOK', () => {
  // ASA ORDERBOOK TESTS
 
 });
+
 
 describe('ASA ESCROW ORDER BOOK', () => {
 
@@ -122,7 +160,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
 
 });
 
-describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (PARTIAL EXECUTION)', () => {
+describe('ASA ESCROW ORDER BOOK WITHOUT ASA OPT-IN (PARTIAL EXECUTION)', () => {
 
   test ('Create asa escrow order book and account without optin', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
@@ -167,7 +205,7 @@ describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (PARTIAL EXECUTION)', () => {
 
 });
 
-describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (FULL EXECUTION)', () => {
+describe('ASA ESCROW ORDER BOOK WITHOUT ASA OPT-IN (FULL EXECUTION)', () => {
 
   test ('Create asa escrow order book and account without optin', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
@@ -204,3 +242,4 @@ describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (FULL EXECUTION)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
+

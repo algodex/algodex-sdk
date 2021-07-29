@@ -461,7 +461,8 @@ const GenerateTransactions = {
         return retTxns;
     },
 
-    getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false ) {
+    getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false,
+                                        skipASAOptIn = false) {
         const makerAddr = makerAccount.addr;
         const min = 0;
         const numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
@@ -472,7 +473,6 @@ const GenerateTransactions = {
         let program = algodex.buildDelegateTemplateFromArgs(min, assetId, n, d, makerAddr, false);
         let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let generatedOrderEntry = algodex.generateOrder(makerAddr, n, d, min, assetId);
-        let params = await algodClient.getTransactionParams().do();
         console.log("sending trans to: " + lsig.address());
 
         let txn = await this.getPayTxn(algodClient, makerAddr, lsig.address(), algoOrderSize, false);
@@ -502,13 +502,16 @@ const GenerateTransactions = {
                 lsig: lsig
             });
         }
-        // asset opt-in transfer
-        let assetOptInTxn = await this.getAssetSendTxn(algodClient, makerAddr, makerAddr, 0, assetId, false);;
 
-        outerTxns.push({
-            unsignedTxn: assetOptInTxn,
-            senderAcct: makerAccount
-        });
+        if (!skipASAOptIn) {
+            // asset opt-in transfer
+            let assetOptInTxn = await this.getAssetSendTxn(algodClient, makerAddr, makerAddr, 0, assetId, false);
+
+            outerTxns.push({
+                unsignedTxn: assetOptInTxn,
+                senderAcct: makerAccount
+            });
+        }
         return outerTxns;
     },
 
