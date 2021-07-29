@@ -73,11 +73,15 @@ const AlgodexInternalApi = {
         }
     },
     // Generate order number
-    generateOrder : function generateOrder(makerWalletAddr, N, D, min, assetId) {
-        let rtn = makerWalletAddr + "-" + N + "-" + D + "-" + min + "-" + assetId;
+    generateOrder : function generateOrder(makerWalletAddr, N, D, min, assetId, includeMakerAddr=true) {
+        let rtn = N + "-" + D + "-" + min + "-" + assetId;
+        if (includeMakerAddr) {
+            rtn = makerWalletAddr + "-" + rtn;
+        }
         console.log("generateOrder final str is: " + rtn);
         return rtn;
     },
+
     dumpVar : function dumpVar(x) {
         return JSON.stringify(x, null, 2);
     },

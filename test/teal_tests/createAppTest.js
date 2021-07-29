@@ -9,12 +9,16 @@ const Test = {
         const client = config.client;
         const openAccount = config.openAccount;
         const creatorAccount = config.creatorAccount;
+        const executorAccount = config.executorAccount;
 
         console.log("starting the test");
 
         await testHelper.transferFunds(client, openAccount, creatorAccount, 5000000); //5 algos
+        await testHelper.transferFunds(client, openAccount, executorAccount, 5000000); //5 algos
         await testHelper.transferASA(client, creatorAccount, creatorAccount, 0, config.assetId); //opt in transaction
         await testHelper.transferASA(client, openAccount, creatorAccount, 2000000, config.assetId); //5 algos
+        await testHelper.transferASA(client, executorAccount, executorAccount, 0, config.assetId); //opt in transaction
+        await testHelper.transferASA(client, openAccount, executorAccount, 2000000, config.assetId); //5 algos
 
         const createTxn = await transactionGenerator.getCreateAppTxn(client, creatorAccount, isAlgoEscrowApp);
         let txId = createTxn.txID().toString();

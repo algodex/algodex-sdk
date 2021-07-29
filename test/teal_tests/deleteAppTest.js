@@ -8,15 +8,16 @@ const Test = {
         const client = config.client;
         const openAccount = config.openAccount;
         const creatorAccount = config.creatorAccount;
+        const executorAccount = config.executorAccount;
 
         console.log("starting the test");
-
         console.log("deleting app: " + appId);
 
         await testHelper.deleteApplication(client, creatorAccount, appId);
 
         console.log("closing account: " + creatorAccount.addr + " to " + openAccount.addr);
         await testHelper.closeAccount(client, creatorAccount, openAccount);
+        await testHelper.closeAccount(client, executorAccount, openAccount);
 
         return true;
     }

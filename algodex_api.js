@@ -526,8 +526,8 @@ const AlgodexApi = {
             const groupTxn = await algodClient.sendRawTransaction(signed).do()
             return this.waitForConfirmation(algodClient, groupTxn.txId)
     },
-    generateOrder : function (makerWalletAddr, n, d, min, assetId) {
-        return dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId);
+    generateOrder : function (makerWalletAddr, n, d, min, assetId, includeMakerAddr) {
+        return dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId, includeMakerAddr);
     },
     getPlaceAlgosToBuyASAOrderIntoOrderbook : async function 
         getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend) {

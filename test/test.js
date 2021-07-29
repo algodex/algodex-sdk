@@ -5,6 +5,7 @@ const transactionGenerator = require('../generate_transaction_types.js');
 const createAppTest = require('./teal_tests/createAppTest.js');
 const deleteAppTest = require('./teal_tests/deleteAppTest.js');
 const placeOrderTest = require('./teal_tests/placeAlgoEscrowOrder.js');
+const executeAlgoOrderTest = require('./teal_tests/executeAlgoEscrowOrder.js');
 const placeASAOrderTest = require('./teal_tests/placeASAEscrowOrder.js');
 const closeOrderTest = require('./teal_tests/closeAlgoEscrowOrder.js');
 const closeASAOrderTest = require('./teal_tests/closeASAEscrowOrder.js');
@@ -21,6 +22,7 @@ const JEST_MINUTE_TIMEOUT = 60 * 1000;
 config = {
   appId: -1,
   creatorAccount: testHelper.getRandomAccount(),
+  executorAccount: testHelper.getRandomAccount(),
   openAccount: testHelper.getOpenAccount(),
   client: testHelper.getLocalClient(),
   assetId: 15322902,
@@ -46,28 +48,31 @@ describe('ALGO ESCROW ORDER BOOK', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Execute algo escrow order', async () => {
+    const result = await executeAlgoOrderTest.runTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+
   test ('Close algo escrow order', async () => {
     const result = await closeOrderTest.runTest(config);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  
-  //} catch (e) {
-    //console.log( e.Error );
-  //}
-
   test ('Delete algo escrow order book', async () => {
       const result = await deleteAppTest.runTest(config);
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
-  
  // ASA ORDERBOOK TESTS
+
 });
+
 
 describe('ASA ESCROW ORDER BOOK', () => {
 
   test ('Create asa escrow order book', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
+      config.executorAccount = testHelper.getRandomAccount();
       config.appId = await createAppTest.runTest(config, false);
       global.ASA_ESCROW_APP_ID = config.appId;
       expect (config.appId).toBeGreaterThan(0);
@@ -89,6 +94,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
+
 
 //};
 
