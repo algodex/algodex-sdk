@@ -38,18 +38,27 @@ describe('ALGO ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Place algo escrow order', async () => {
-    const result = await placeOrderTest.runTest(config);
+    const result = await placeOrderTest.runTest(config, 800000, 1.2);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Execute algo escrow order', async () => {
-    const result = await executeAlgoOrderTest.runTest(config);
+  test ('Partially execute algo escrow order', async () => {
+    const result = await executeAlgoOrderTest.runPartialExecTest(config);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Fully execute algo escrow order', async () => {
+    const result = await executeAlgoOrderTest.runFullExecTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place algo escrow order', async () => {
+    const result = await placeOrderTest.runTest(config, 830000, 1.35);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Close algo escrow order', async () => {
-    const result = await closeOrderTest.runTest(config);
+    const result = await closeOrderTest.runTest(config, 1.35);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 

@@ -241,7 +241,9 @@ const GenerateTransactions = {
         return outerTxns;
     },
 
-    getExecuteAlgoEscrowOrderTxns : async function (algodClient, executorAccount, makerAccount, algoAmountReceiving, asaAmountSending, price, assetId, appId, shouldClose = false) {
+    getExecuteAlgoEscrowOrderTxns : async function (algodClient, executorAccount, makerAccount, algoAmountReceiving, asaAmountSending, 
+        price, assetId, appId, shouldClose = false) {
+
         const orderCreatorAddr = makerAccount.addr;
         const min = 0;
         const numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
@@ -459,7 +461,7 @@ const GenerateTransactions = {
         return retTxns;
     },
 
-    getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false) {
+    getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false ) {
         const makerAddr = makerAccount.addr;
         const min = 0;
         const numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);

@@ -104,6 +104,19 @@ const TestHelper = {
         await this.checkPending(client, txId);
     },
 
+    getOrderLsig : async function (algodClient, makerAccount, 
+        price, assetId, isASAEscrow) {
+
+        const orderCreatorAddr = makerAccount.addr;
+        const numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
+        const n = numAndDenom.n;
+        const d = numAndDenom.d;
+
+        const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, isASAEscrow);
+        const lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
+        return lsig;
+    },
+
     closeAccount : async function closeAccount (client, fromAccount, toAccount) {
         console.log("checking account info for: " + fromAccount.addr)
         const fromAccountInfo = await this.getAccountInfo(fromAccount.addr);
