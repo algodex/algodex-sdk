@@ -70,7 +70,6 @@ describe('ALGO ESCROW ORDER BOOK', () => {
 
 });
 
-
 describe('ASA ESCROW ORDER BOOK', () => {
 
   test ('Create asa escrow order book', async () => {
@@ -123,9 +122,6 @@ describe('ASA ESCROW ORDER BOOK', () => {
 
 });
 
-
-
-
 describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (PARTIAL EXECUTION)', () => {
 
   test ('Create asa escrow order book and account without optin', async () => {
@@ -144,11 +140,18 @@ describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (PARTIAL EXECUTION)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Partially execute asa escrow order', async () => {
+    let asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
+    expect (asaBalance).toBeNull();
+
     const asaAmountReceiving = 90000;
     const price = 1.55;
     // The execution will cause it to be opted in
     const result = await executeAsaOrderTest.runPartialExecutionTest(config, asaAmountReceiving, price);
     expect (result).toBeTruthy();
+    
+    asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
+    expect (asaBalance).toBeGreaterThan(0);
+    
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Close asa escrow order', async () => {
@@ -163,8 +166,6 @@ describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (PARTIAL EXECUTION)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
-
-
 
 describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (FULL EXECUTION)', () => {
 
@@ -185,10 +186,16 @@ describe('ASA ESCROW ORDER BOOK WITHOUT OPT-IN (FULL EXECUTION)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Fully execute asa escrow order', async () => {
+    let asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
+    expect (asaBalance).toBeNull();
+
     const price = 1.55;
     // The execution will cause it to be opted in
     const result = await executeAsaOrderTest.runFullExecutionTest(config, price);
     expect (result).toBeTruthy();
+
+    asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
+    expect (asaBalance).toBeGreaterThan(0);
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Delete asa escrow order book', async () => {
