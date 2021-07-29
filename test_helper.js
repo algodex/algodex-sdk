@@ -117,6 +117,22 @@ const TestHelper = {
         return lsig;
     },
 
+    getAssetBalance : async function (accountAddr, assetId) {
+        console.log("checking account info for: " + accountAddr)
+        const accountInfo = await this.getAccountInfo(accountAddr);
+        if (accountInfo != null && accountInfo['assets'] != null
+            && accountInfo['assets'].length > 0) {
+            for (let i = 0; i < accountInfo['assets'].length; i++) {
+                let asset = accountInfo['assets'][i];
+                console.log({asset} );
+                if (asset['asset-id'] == assetId) {
+                    return asset['amount'];
+                }
+            }
+        }
+        return null;
+    },
+
     closeAccount : async function closeAccount (client, fromAccount, toAccount) {
         console.log("checking account info for: " + fromAccount.addr)
         const fromAccountInfo = await this.getAccountInfo(fromAccount.addr);

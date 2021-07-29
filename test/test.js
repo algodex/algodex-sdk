@@ -28,7 +28,7 @@ config = {
 //const runTests = async() => {
   console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
-
+/*
 describe('ALGO ESCROW ORDER BOOK', () => {
   // ALGO ORDERBOOK TESTS
   test('Create algo escrow order book', async () => {
@@ -69,7 +69,7 @@ describe('ALGO ESCROW ORDER BOOK', () => {
  // ASA ORDERBOOK TESTS
 
 });
-
+*/
 
 describe('ASA ESCROW ORDER BOOK', () => {
 
@@ -82,17 +82,37 @@ describe('ASA ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Place asa escrow order', async () => {
-      const result = await placeASAOrderTest.runTest(config);
+      const asaAmount = 400000;
+      const price = 1.25;
+      const result = await placeASAOrderTest.runTest(config, asaAmount, price);
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Execute asa escrow order', async () => {
-    const result = await executeAsaOrderTest.runTest(config);
+  test ('Partially execute asa escrow order', async () => {
+    const asaAmountReceiving = 80000;
+    const price = 1.25;
+
+    const result = await executeAsaOrderTest.runPartialExecutionTest(config, asaAmountReceiving, price);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Fully execute asa escrow order', async () => {
+    const price = 1.25;
+
+    const result = await executeAsaOrderTest.runFullExecutionTest(config, price);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place asa escrow order', async () => {
+      const asaAmount = 725000;
+      const price = 1.45;
+      const result = await placeASAOrderTest.runTest(config, asaAmount, price);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
   test ('Close asa escrow order', async () => {
-      const result = await closeASAOrderTest.runTest(config);
+      const price = 1.45;
+      const result = await closeASAOrderTest.runTest(config, price);
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
