@@ -26,9 +26,9 @@ config = {
 };
 
 //const runTests = async() => {
-  console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
+console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
-/*
+
 describe('ALGO ESCROW ORDER BOOK', () => {
   // ALGO ORDERBOOK TESTS
   test('Create algo escrow order book', async () => {
@@ -69,7 +69,7 @@ describe('ALGO ESCROW ORDER BOOK', () => {
  // ASA ORDERBOOK TESTS
 
 });
-*/
+
 
 describe('ASA ESCROW ORDER BOOK', () => {
 
