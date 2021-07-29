@@ -12,9 +12,9 @@ const Test = {
         const appId = config.appId;
 
         const asaAmountReceiving = 80000;
+        const price = 1.25;
 
         let algoAmountSending = asaAmountReceiving * price;
-        const price = 1.25;
 
         if (Math.floor(algoAmountSending) != algoAmountSending) {
             algoAmountSending = Math.floor(algoAmountSending) + 1; // give slightly better deal to maker

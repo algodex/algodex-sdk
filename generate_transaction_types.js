@@ -343,7 +343,7 @@ const GenerateTransactions = {
         const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
 
         let appCallType = null;
-        const orderBookEntry = algodex.generateOrder(orderCreatorAddr, n, d, min, assetId);
+        const orderBookEntry = algodex.generateOrder(orderCreatorAddr, n, d, min, assetId, false);
 
         const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, true);
         const lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
@@ -353,28 +353,35 @@ const GenerateTransactions = {
         appAccts.push(orderCreatorAddr);
         appAccts.push(takerAddr);
         
-        let appArgs = [];
-        let enc = new TextEncoder();
-        appArgs.push(enc.encode(appCallType));
-        appArgs.push(enc.encode(orderBookEntry));
-        appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+      
 
         let transaction1 = null;
         let closeRemainderTo = undefined;
 
         if (shouldClose) {
             closeRemainderTo = makerAccount.addr;
+            appCallType = "execute_with_closeout";
+        } else {
+            appCallType = "execute";
         }
+
+        let appArgs = [];
+        let enc = new TextEncoder();
+        appArgs.push(enc.encode(appCallType));
+        appArgs.push(enc.encode(orderBookEntry));
+        appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+
         if (closeRemainderTo == undefined) {
             transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
         } else {
             transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
         }
+
         console.log("app call type is: " + appCallType);
 
-        let transaction2 = await this.getAssetSendTxn(algodClient, takerAddr, orderCreatorAddr, algoTradeAmount, assetID, false);
+        let transaction2 = await this.getPayTxn(algodClient, takerAddr, orderCreatorAddr, algoAmountSending, false);
 
-        let accountInfo = await this.getAccountInfo(takerAddr);
+        let accountInfo = await algodex.getAccountInfo(takerAddr);
         let takerAlreadyOptedIntoASA = false;
         if (accountInfo != null && accountInfo['assets'] != null
             && accountInfo['assets'].length > 0) {
@@ -390,21 +397,14 @@ const GenerateTransactions = {
         let transaction2b = null;
 
         if (!takerAlreadyOptedIntoASA) {
-            transaction2b = {
-                type: "axfer",
-                from: takerAddr,
-                to: takerAddr,
-                amount: 0,
-                assetIndex: assetId,
-                ...params
-            };
+            transaction2b = await this.getAssetSendTxn(algodClient, takerAddr, takerAddr, 0, assetId, false);
         }
 
         // Make asset xfer
 
         // Asset transfer from escrow account to order executor
         let transaction3 = algosdk.makeAssetTransferTxnWithSuggestedParams(lsig.address(), takerAddr, closeRemainderTo, undefined,
-            escrowAsaTradeAmount, undefined, assetId, params);
+            asaAmountReceiving, undefined, assetId, params);
 
         let transaction4 = null;
         if (closeRemainderTo != undefined) {
@@ -414,13 +414,7 @@ const GenerateTransactions = {
                 undefined, params);
         } else {
             // Make fee refund transaction
-            transaction4 = {
-                    type: 'pay',
-                    from: takerAddr,
-                    to:  lsig.address(),
-                    amount: refundFees,
-                    ...params
-            };
+            transaction4 = await this.getPayTxn(algodClient, takerAddr, lsig.address(), refundFees, false);
         }
         
         if (transaction2b != null) {
@@ -462,7 +456,7 @@ const GenerateTransactions = {
             });
         }
 
-
+        return retTxns;
     },
 
     getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false) {
