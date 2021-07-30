@@ -79,6 +79,11 @@ describe('ALGO ESCROW ORDER BOOK', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Incorrect price - algo escrow order', async () => {
+    const result = await executeAlgoOrderTest.runIncorrectPriceTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
   test ('Partially execute algo escrow order', async () => {
     const result = await executeAlgoOrderTest.runPartialExecTest(config);
     expect (result).toBeTruthy();
@@ -103,7 +108,6 @@ describe('ALGO ESCROW ORDER BOOK', () => {
       const result = await deleteAppTest.runTest(config);
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
- // ASA ORDERBOOK TESTS
 
 });
 

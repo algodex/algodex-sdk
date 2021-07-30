@@ -29,7 +29,7 @@ const Test = {
         return true;
     },
 
-    runFullExecTest : async function (config) {
+    runFullExecTest : async function (config, returnOuterTransactions = false) {
         console.log("STARTING executeAlgoEscrowOrder runFullExecTest test");
         const client = config.client;
         const executorAccount = config.executorAccount;
@@ -51,11 +51,36 @@ const Test = {
         const outerTxns = await transactionGenerator.getExecuteAlgoEscrowOrderTxns(client, executorAccount, creatorAccount, 
             algoAmountReceiving, asaAmountSending, price, config.assetId, appId, true);
 
+        if (returnOuterTransactions) {
+            return outerTxns;
+        }
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
         await testHelper.sendAndCheckConfirmed(client, signedTxns);
 
         return true;
+    },
+
+    runIncorrectPriceTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+
+        //for (let i = 0; i < outerTxns.length; i++ ) {
+        //    console.log(outerTxns[i]);
+        //}
+
+        // Give the escrow owner 1000 less of the asset
+        outerTxns[2].unsignedTxn.amount -= 1000;
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return true;
+        }
+
+        return false;
     }
 }
 module.exports = Test;
