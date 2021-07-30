@@ -31,6 +31,7 @@ Note: if https://github.com/algodex/algodex-go-api is set up and running, the co
 3. Run the following in the algodex-experimental directory:
 
 `rm -rf 'node_modules/@algodex'`
+
 `npm link @algodex/algodex-sdk`
 
 # Architecture Documentation
