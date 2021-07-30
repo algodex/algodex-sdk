@@ -177,7 +177,7 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Par
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Partially execute asa escrow order', async () => {
+  test ('Partially execute asa escrow order (with asa opt-in txn) ', async () => {
     let asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
     expect (asaBalance).toBeNull();
 
@@ -223,7 +223,7 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Ful
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Fully execute asa escrow order', async () => {
+  test ('Fully execute asa escrow order (with asa opt-in txn) ', async () => {
     let asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
     expect (asaBalance).toBeNull();
 
