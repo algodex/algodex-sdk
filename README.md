@@ -19,6 +19,8 @@ With Chrome debugger support:
 
 export DEBUG_SMART_CONTRACT_SOURCE=1
 
+Note: if https://github.com/algodex/algodex-go-api is set up and running, the console will also print out the transactions in json format
+
 ## Manual testing
 
 1. Download and set up https://github.com/algodex/algodex-experimental
