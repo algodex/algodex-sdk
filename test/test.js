@@ -160,7 +160,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
 
 });
 
-describe('ASA ESCROW ORDER BOOK (without ASA opt-in. Partial execution)', () => {
+describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Partial execution)', () => {
 
   test ('Create asa escrow order book and account without optin', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
@@ -205,7 +205,7 @@ describe('ASA ESCROW ORDER BOOK (without ASA opt-in. Partial execution)', () => 
 
 });
 
-describe('ASA ESCROW ORDER BOOK (without ASA opt-in. Full execution)', () => {
+describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Full execution)', () => {
 
   test ('Create asa escrow order book and account without optin', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
