@@ -1,2 +1,4 @@
 *.diff
 node_modules*
+*.txt
+*.log
