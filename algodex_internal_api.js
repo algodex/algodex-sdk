@@ -813,10 +813,6 @@ const AlgodexInternalApi = {
             await closeASAOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig);
             return;
         }
-        //        && accountInfo['apps-local-state'].length > 0
-        //        && accountInfo['apps-local-state'][0].id == 15789309) {
-        //        alreadyOptedIn = true;
-        //    }
 
 
         try {

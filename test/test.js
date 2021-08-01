@@ -61,6 +61,51 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Wrong group size - #2', async () => {
+    const result = await executeAlgoOrderTest.runGroupSizeWrongTest2(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('App call missing', async () => {
+    const result = await executeAlgoOrderTest.appCallMissing(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Algo amount too large', async () => {
+    const result = await executeAlgoOrderTest.runAlgoAmtTooLargeTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+  
+  test ('Algo amount to wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAlgoAmtWrongAddrTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Algo closeout to wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAlgoWrongAddrCloseToTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('ASA transfer to wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAsaAmtWrongAddrTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Algo payment from wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAlgoPayFromWrongAddrTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Algo payment has closeout to non-owner', async () => {
+    const result = await executeAlgoOrderTest.runAlgoCloseoutToWrongOwnerTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('ASA transfer has closeout', async () => {
+    const result = await executeAlgoOrderTest.runASATransferHasCloseoutTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
   test ('Close algo escrow order', async () => {
     const result = await closeOrderTest.runTest(config, 1.2);
     expect (result).toBeTruthy();

@@ -41,7 +41,24 @@ const TestHelper = {
            console.log(outerTxns[i]);
         }
     },
-    
+
+    checkFailureType : function (error) {
+        let hasKnownError = false;
+
+        if (error != null && error.response.body.message != null) {
+            const msg = error.response.body.message;
+            if (msg.includes("rejected by logic err=assert failed")) {
+                hasKnownError = true;
+            } else if (msg.includes("TEAL runtime encountered err opcode")) {
+                hasKnownError = true;
+            } else {
+                console.log("Unknown error type: " + msg);
+            }
+        }
+
+        return hasKnownError;
+    },
+
     getOpenAccount : function getOpenAccount() {
         //WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI
         let mn = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
@@ -92,7 +109,7 @@ const TestHelper = {
             let sentTxns = await client.sendRawTransaction(signedTxns).do();
             txId = sentTxns.txId;
         } catch (e) {
-            console.log(JSON.stringify(e));
+            throw e;
         }
         // Wait for confirmation
         await this.waitForConfirmation(client, txId);
@@ -104,7 +121,7 @@ const TestHelper = {
             let sentTxns = await client.sendRawTransaction(signedTxns).do();
             txId = sentTxns.txId;
         } catch (e) {
-            console.log(JSON.stringify(e));
+            throw e;
         }
         // Wait for confirmation
         await this.checkPending(client, txId);

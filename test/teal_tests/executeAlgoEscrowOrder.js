@@ -79,7 +79,7 @@ const Test = {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
         } catch (e) {
             // An exception is expected. Return true for success
-            return true;
+            return testHelper.checkFailureType(e);
         }
 
         return false;
@@ -102,17 +102,224 @@ const Test = {
             lsig: lsig
         });
 
-        // Give the escrow owner 1000 less of the asset
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
         } catch (e) {
             // An exception is expected. Return true for success
-            return true;
+            return testHelper.checkFailureType(e);
         }
 
         return false;
-    }
+    },
+
+    runGroupSizeWrongTest2 : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        const lsig = outerTxns[0].lsig;
+
+        outerTxns.push( {
+            unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
+                1000, false),
+            senderAcct: maliciousAccount
+        });
+
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    appCallMissing : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[0] = {
+            unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
+                1000, false),
+            senderAcct: maliciousAccount
+        };
+
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runAlgoAmtTooLargeTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        // Give the taker 1000 more of the asset
+        outerTxns[1].unsignedTxn.amount += 1000;
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runAlgoAmtWrongAddrTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[1].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
+
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runAlgoWrongAddrCloseToTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        // Give the taker 1000 more of the asset
+        outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runAsaAmtWrongAddrTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[2].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
+
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runAlgoPayFromWrongAddrTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[1].unsignedTxn.from = algosdk.decodeAddress(maliciousAccount.addr);
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runAlgoCloseoutToWrongOwnerTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runASATransferHasCloseoutTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[2].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
 
 }
 module.exports = Test;
