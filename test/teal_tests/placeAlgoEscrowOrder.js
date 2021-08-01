@@ -10,7 +10,7 @@ const Test = {
         const appId = config.appId;
 
         let outerTxns = await transactionGenerator.getPlaceAlgoEscrowOrderTxns(client, creatorAccount, algoAmount, price, 
-                config.assetId, appId, skipASAOptIn);
+                config.assetId, appId, false, skipASAOptIn);
         let signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
         await testHelper.sendAndCheckConfirmed(client, signedTxns);

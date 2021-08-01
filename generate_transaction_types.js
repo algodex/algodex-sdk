@@ -503,6 +503,8 @@ const GenerateTransactions = {
             });
         }
 
+        console.log("skipASAOptIn: " + skipASAOptIn);
+        
         if (!skipASAOptIn) {
             // asset opt-in transfer
             let assetOptInTxn = await this.getAssetSendTxn(algodClient, makerAddr, makerAddr, 0, assetId, false);

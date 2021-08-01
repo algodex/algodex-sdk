@@ -144,7 +144,7 @@ describe('ALGO ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Place algo escrow order with skip ASA opt-in', async () => {
-    const result = await placeOrderTest.runTest(config, 830000, 1.35, false, true);
+    const result = await placeOrderTest.runTest(config, 830000, 1.35, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
