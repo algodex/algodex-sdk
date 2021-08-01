@@ -358,6 +358,10 @@ let delegateTemplate = `
     txn Sender // The escrow address
     ==
     &&
+    gtxn 3 Sender // The fee sender must be the ASA seller
+    gtxn 1 Receiver
+    ==
+    &&
     txn Fee
     int 1000
     <=

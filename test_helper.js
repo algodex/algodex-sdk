@@ -52,7 +52,7 @@ const TestHelper = {
             } else if (msg.includes("TEAL runtime encountered err opcode")) {
                 hasKnownError = true;
             } else {
-                console.log("Unknown error type: " + msg);
+                throw("Unknown error type: " + msg);
             }
         }
 

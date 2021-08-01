@@ -51,6 +51,9 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
     expect (asaBalance).toEqual(0);
   }, JEST_MINUTE_TIMEOUT);
 
+  ////////////////////////////////////////
+  // FULL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////
   test ('Asset amount too small', async () => {
     const result = await executeAlgoOrderTest.runAssetAmtTooSmallTest(config);
     expect (result).toBeTruthy();
@@ -105,6 +108,88 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
     const result = await executeAlgoOrderTest.runASATransferHasCloseoutTest(config);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);  
+
+  ////////////////////////////////////////////////
+  // END FULL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////
+  // PARTIAL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////////////
+  test ('Asset amount too small', async () => {
+    const result = await executeAlgoOrderTest.runAssetAmtTooSmallTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Wrong group size', async () => {
+    const result = await executeAlgoOrderTest.runGroupSizeWrongTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Wrong group size - #2', async () => {
+    const result = await executeAlgoOrderTest.runGroupSizeWrongTest2(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('App call missing', async () => {
+    const result = await executeAlgoOrderTest.appCallMissing(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Algo amount too large', async () => {
+    const result = await executeAlgoOrderTest.runAlgoAmtTooLargeTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+  
+  test ('Algo amount to wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAlgoAmtWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Algo closeout to wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAlgoWrongAddrCloseToTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('ASA transfer to wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAsaAmtWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Algo payment from wrong address', async () => {
+    const result = await executeAlgoOrderTest.runAlgoPayFromWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Algo payment has closeout to non-owner', async () => {
+    const result = await executeAlgoOrderTest.runAlgoCloseoutToWrongOwnerTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('ASA transfer has closeout', async () => {
+    const result = await executeAlgoOrderTest.runASATransferHasCloseoutTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Fee refund is going to the wrong address', async () => {
+    const result = await executeAlgoOrderTest.runFeeToWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Fee refund is too low', async () => {
+    const result = await executeAlgoOrderTest.runLowFeeTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+  test ('Fee refund originates from lsig maliciously', async () => {
+    const result = await executeAlgoOrderTest.runFeeFromWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);  
+
+
+  ////////////////////////////////////////////////
+  // END PARTIAL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////////////
 
   test ('Close algo escrow order', async () => {
     const result = await closeOrderTest.runTest(config, 1.2);
@@ -298,5 +383,4 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Ful
   }, JEST_MINUTE_TIMEOUT);
 
 });
-
 

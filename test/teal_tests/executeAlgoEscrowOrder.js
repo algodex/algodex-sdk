@@ -6,7 +6,7 @@ const { printTransactionDebug } = require('../../algodex_internal_api.js');
 const PRINT_TXNS = 1;
 
 const Test = {
-    runPartialExecTest : async function (config) {
+    runPartialExecTest : async function (config, returnOuterTransactions = false) {
         console.log("STARTING executeAlgoEscrowOrder runPartialExecTest test");
         const client = config.client;
         const executorAccount = config.executorAccount;
@@ -23,6 +23,10 @@ const Test = {
 
         const outerTxns = await transactionGenerator.getExecuteAlgoEscrowOrderTxns(client, executorAccount, creatorAccount, 
             algoAmountReceiving, asaAmountSending, price, config.assetId, appId, false);
+
+        if (returnOuterTransactions) {
+            return outerTxns;
+        }
 
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
@@ -63,9 +67,14 @@ const Test = {
 
         return true;
     },
-
-    runAssetAmtTooSmallTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    getOuterExecTransations: async function (config, useFullOrderExecution) {
+        if (useFullOrderExecution) {
+            return await this.runFullExecTest(config, true);
+        }
+        return await this.runPartialExecTest(config, true);
+    },
+    runAssetAmtTooSmallTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
 
         if (PRINT_TXNS) {
@@ -85,8 +94,8 @@ const Test = {
         return false;
     },
 
-    runGroupSizeWrongTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runGroupSizeWrongTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -113,8 +122,8 @@ const Test = {
         return false;
     },
 
-    runGroupSizeWrongTest2 : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runGroupSizeWrongTest2 : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -141,8 +150,8 @@ const Test = {
         return false;
     },
 
-    appCallMissing : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    appCallMissing : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -167,8 +176,8 @@ const Test = {
         return false;
     },
 
-    runAlgoAmtTooLargeTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runAlgoAmtTooLargeTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
 
         if (PRINT_TXNS) {
@@ -188,8 +197,8 @@ const Test = {
         return false;
     },
 
-    runAlgoAmtWrongAddrTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runAlgoAmtWrongAddrTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -210,8 +219,8 @@ const Test = {
         return false;
     },
 
-    runAlgoWrongAddrCloseToTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runAlgoWrongAddrCloseToTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -219,7 +228,6 @@ const Test = {
             testHelper.printOuterTransactions(outerTxns);
         }
 
-        // Give the taker 1000 more of the asset
         outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
         
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
@@ -233,8 +241,8 @@ const Test = {
         return false;
     },
 
-    runAsaAmtWrongAddrTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runAsaAmtWrongAddrTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -255,8 +263,8 @@ const Test = {
         return false;
     },
 
-    runAlgoPayFromWrongAddrTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runAlgoPayFromWrongAddrTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -277,8 +285,8 @@ const Test = {
         return false;
     },
 
-    runAlgoCloseoutToWrongOwnerTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runAlgoCloseoutToWrongOwnerTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -299,8 +307,8 @@ const Test = {
         return false;
     },
 
-    runASATransferHasCloseoutTest : async function (config) {
-        const outerTxns = await this.runFullExecTest(config, true);
+    runASATransferHasCloseoutTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
         const maliciousAccount = config.maliciousAccount;
 
@@ -321,5 +329,72 @@ const Test = {
         return false;
     },
 
+    runLowFeeTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[3].unsignedTxn.amount = 1000;
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runFeeToWrongAddrTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        outerTxns[3].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+    
+    runFeeFromWrongAddrTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+        console.log("inside runFeeFromWrongAddrTest");
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+        const lsig = outerTxns[0].lsig;
+        outerTxns[3].unsignedTxn = await transactionGenerator.getPayTxn(client, lsig.address(), lsig.address(), 2000, false);
+        outerTxns[3].lsig = lsig;
+        outerTxns[3].senderAcct = null;
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
 }
 module.exports = Test;
