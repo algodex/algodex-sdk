@@ -21,12 +21,12 @@ config = {
   creatorAccount: testHelper.getRandomAccount(),
   executorAccount: testHelper.getRandomAccount(),
   openAccount: testHelper.getOpenAccount(),
+  maliciousAccount: testHelper.getRandomAccount(),
   client: testHelper.getLocalClient(),
   assetId: 15322902,
 };
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
-
 
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
@@ -51,6 +51,16 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
     expect (asaBalance).toEqual(0);
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Asset amount too small', async () => {
+    const result = await executeAlgoOrderTest.runAssetAmtTooSmallTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Wrong group size', async () => {
+    const result = await executeAlgoOrderTest.runGroupSizeWrongTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
   test ('Close algo escrow order', async () => {
     const result = await closeOrderTest.runTest(config, 1.2);
     expect (result).toBeTruthy();
@@ -67,7 +77,6 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
 
 
 describe('ALGO ESCROW ORDER BOOK', () => {
-  // ALGO ORDERBOOK TESTS
   test('Create algo escrow order book', async () => {
     config.appId = await createAppTest.runTest(config, true);
     global.ALGO_ESCROW_APP_ID = config.appId;
@@ -76,11 +85,6 @@ describe('ALGO ESCROW ORDER BOOK', () => {
 
   test ('Place algo escrow order', async () => {
     const result = await placeOrderTest.runTest(config, 800000, 1.2);
-    expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);
-
-  test ('Incorrect price - algo escrow order', async () => {
-    const result = await executeAlgoOrderTest.runIncorrectPriceTest(config);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
@@ -117,6 +121,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
   test ('Create asa escrow order book', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
       config.executorAccount = testHelper.getRandomAccount();
+      config.maliciousAccount = testHelper.getRandomAccount();
       config.appId = await createAppTest.runTest(config, false);
       global.ASA_ESCROW_APP_ID = config.appId;
       expect (config.appId).toBeGreaterThan(0);
@@ -169,6 +174,7 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Par
   test ('Create asa escrow order book and account without optin', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
       config.executorAccount = testHelper.getRandomAccount();
+      config.maliciousAccount = testHelper.getRandomAccount();
       config.appId = await createAppTest.runTest(config, false, false);
       global.ASA_ESCROW_APP_ID = config.appId;
       expect (config.appId).toBeGreaterThan(0);
@@ -214,6 +220,7 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Ful
   test ('Create asa escrow order book and account without optin', async () => {
       config.creatorAccount = testHelper.getRandomAccount();
       config.executorAccount = testHelper.getRandomAccount();
+      config.maliciousAccount = testHelper.getRandomAccount();
       // The executorAccount will intentionally *not* be opted into the ASA here
       config.appId = await createAppTest.runTest(config, false, false);
       global.ASA_ESCROW_APP_ID = config.appId;
@@ -246,4 +253,5 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Ful
   }, JEST_MINUTE_TIMEOUT);
 
 });
+
 

@@ -3,6 +3,8 @@ const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
 const { printTransactionDebug } = require('../../algodex_internal_api.js');
 
+const PRINT_TXNS = 1;
+
 const Test = {
     runPartialExecTest : async function (config) {
         console.log("STARTING executeAlgoEscrowOrder runPartialExecTest test");
@@ -62,13 +64,13 @@ const Test = {
         return true;
     },
 
-    runIncorrectPriceTest : async function (config) {
+    runAssetAmtTooSmallTest : async function (config) {
         const outerTxns = await this.runFullExecTest(config, true);
         const client = config.client;
 
-        //for (let i = 0; i < outerTxns.length; i++ ) {
-        //    console.log(outerTxns[i]);
-        //}
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
 
         // Give the escrow owner 1000 less of the asset
         outerTxns[2].unsignedTxn.amount -= 1000;
@@ -81,6 +83,36 @@ const Test = {
         }
 
         return false;
+    },
+
+    runGroupSizeWrongTest : async function (config) {
+        const outerTxns = await this.runFullExecTest(config, true);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        const lsig = outerTxns[0].lsig;
+
+        outerTxns.push( {
+            unsignedTxn: await transactionGenerator.getPayTxn(client, lsig.address(), maliciousAccount.addr,
+                1000, false),
+            lsig: lsig
+        });
+
+        // Give the escrow owner 1000 less of the asset
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return true;
+        }
+
+        return false;
     }
+
 }
 module.exports = Test;

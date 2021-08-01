@@ -9,6 +9,7 @@ const Test = {
         const openAccount = config.openAccount;
         const creatorAccount = config.creatorAccount;
         const executorAccount = config.executorAccount;
+        const maliciousAccount = config.maliciousAccount;
 
         console.log("starting the test");
         console.log("deleting app: " + appId);
@@ -18,6 +19,7 @@ const Test = {
         console.log("closing account: " + creatorAccount.addr + " to " + openAccount.addr);
         await testHelper.closeAccount(client, creatorAccount, openAccount);
         await testHelper.closeAccount(client, executorAccount, openAccount);
+        await testHelper.closeAccount(client, maliciousAccount, openAccount);
 
         return true;
     }

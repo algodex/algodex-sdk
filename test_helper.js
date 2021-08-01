@@ -36,6 +36,12 @@ const TestHelper = {
         return algodex.getAccountInfo(addr);
     },
 
+    printOuterTransactions : function (outerTxns) {
+        for (let i = 0; i < outerTxns.length; i++ ) {
+           console.log(outerTxns[i]);
+        }
+    },
+    
     getOpenAccount : function getOpenAccount() {
         //WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI
         let mn = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
