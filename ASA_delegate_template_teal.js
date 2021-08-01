@@ -506,6 +506,11 @@ notCloseOut:
     int 2000
     ==
     &&
+    load 3 
+    gtxns Sender // The fee sender must be the ASA buyer
+    gtxn 1 Sender
+    ==
+    &&
     assert
 
     b finalExecuteChecks  //If the above result is 0, skip next section
