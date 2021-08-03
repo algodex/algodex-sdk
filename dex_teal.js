@@ -107,6 +107,15 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     >=
     assert
 
+    global GroupSize
+    int 2
+    ==
+    global GroupSize
+    int 3
+    ==
+    ||
+    assert
+    
     int OptIn
     txn OnCompletion
     ==
