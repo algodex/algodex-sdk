@@ -226,24 +226,15 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna ApplicationArgs 2 // 3rd argument is order creator
+    txna Accounts 1 // 3rd argument is order creator
     ==
     assert
 
     global ZeroAddress
     gtxn 1 CloseRemainderTo
     ==
-    bnz ret_success2
+    assert
 
-    int 0 //escrow account containing order
-    txna ApplicationArgs 1 // Delete the order details
-    app_local_del
-
-    int 0 // escrow account containing order
-    txna ApplicationArgs 2 // Delete the creator of order address
-    app_local_del
-
-  ret_success2:
     int 1
     return
 
@@ -323,7 +314,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna ApplicationArgs 2 // 3rd argument is order creator
+    txna Accounts 1 // 3rd argument is order creator
     ==
     assert
 

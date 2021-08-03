@@ -192,7 +192,7 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna ApplicationArgs 2 // 3rd argument is order creator
+    txna Accounts 1 // 3rd argument is order creator
     ==
     assert
 
@@ -258,7 +258,7 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna ApplicationArgs 2 // 3rd argument is order creator
+    txna Accounts 1 // 3rd argument is order creator
     ==
     pop
 

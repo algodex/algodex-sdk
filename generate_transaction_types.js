@@ -134,7 +134,7 @@ const GenerateTransactions = {
         let enc = new TextEncoder();
         appArgs.push(enc.encode("close"));
         appArgs.push(enc.encode(orderBookEntry));
-        appArgs.push(enc.encode(creatorAddr));
+        //appArgs.push(enc.encode(creatorAddr));
         console.log("args length: " + appArgs.length);
 
         // get node suggested parameters
@@ -186,7 +186,7 @@ const GenerateTransactions = {
         let enc = new TextEncoder();
         appArgs.push(enc.encode("close"));
         appArgs.push(enc.encode(orderBookEntry));
-        appArgs.push(enc.encode(creatorAddr));
+        //appArgs.push(enc.encode(creatorAddr));
         console.log("args length: " + appArgs.length);
 
         // get node suggested parameters
@@ -282,7 +282,6 @@ const GenerateTransactions = {
         let enc = new TextEncoder();
         appArgs.push(enc.encode(appCallType));
         appArgs.push(enc.encode(orderBookEntry));
-        appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
         console.log(appArgs.length);
 
         let transaction1 = null;
@@ -356,7 +355,6 @@ const GenerateTransactions = {
         appAccts.push(takerAddr);
         
       
-
         let transaction1 = null;
         let closeRemainderTo = undefined;
 
@@ -371,7 +369,6 @@ const GenerateTransactions = {
         let enc = new TextEncoder();
         appArgs.push(enc.encode(appCallType));
         appArgs.push(enc.encode(orderBookEntry));
-        appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
 
         if (closeRemainderTo == undefined) {
             transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
@@ -488,7 +485,7 @@ const GenerateTransactions = {
         var enc = new TextEncoder();
         appArgs.push(enc.encode("open"));
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
-        appArgs.push(algosdk.decodeAddress(makerAddr).publicKey);
+        //appArgs.push(algosdk.decodeAddress(makerAddr).publicKey);
 
         //console.log("owners bit addr: " + ownersBitAddr);
         console.log("herezzz_888");
