@@ -95,6 +95,14 @@ const asaDelegateTemplate = {
     int 1 // Needs to put at least one ASA into the account
     >=
     &&
+    int <assetid>  // asset id to trade for
+    gtxn 2 XferAsset
+    ==
+    &&
+    int <assetid>  // asset id to trade for
+    gtxn 3 XferAsset
+    ==
+    &&
     gtxn 0 CloseRemainderTo
     global ZeroAddress
     ==

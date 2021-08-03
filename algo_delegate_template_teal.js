@@ -104,6 +104,10 @@ let delegateTemplate = `
     global ZeroAddress
     ==
     &&
+    int <assetid>  // asset id to trade for
+    gtxn 2 XferAsset
+    ==
+    &&
     store 1
 
     notThreeTxns:
