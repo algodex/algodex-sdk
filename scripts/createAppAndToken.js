@@ -1,3 +1,8 @@
+//
+// USAGE:
+//   scripts/createAppAndToken.sh --environment=[local|test|production] --orderbook=[algo|asa]
+
+
 const algosdk = require('algosdk');
 const algodex = require('../index.js');
 
@@ -96,7 +101,7 @@ async function main() {
     try {
     
         const args = require('minimist')(process.argv.slice(2))
-        //const environment = args['environment'];
+        const environment = args['environment'];
         const orderbook = args['orderbook'];
         let approvalProgramSourceInitial = null;
 
@@ -108,7 +113,7 @@ async function main() {
         }
 
         // initialize an algodClient
-        let algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
+        let algodClient = algodex.initAlgodClient(environment);
 
         // get accounts from mnemonic
         let creatorAccount = algosdk.mnemonicToSecretKey(userMnemonic);
