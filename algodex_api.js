@@ -67,6 +67,13 @@ const AlgodexApi = {
         dexInternal.initSmartContracts(ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID);
 
     },
+
+    getOrderBookId : function(isAlgoEscrowApp) {
+        if (isAlgoEscrowApp) {
+            return ALGO_ESCROW_ORDER_BOOK_ID;
+        }
+        return ASA_ESCROW_ORDER_BOOK_ID
+    },
     
     //Options are: local, test, production
     initIndexer : function(environment) {

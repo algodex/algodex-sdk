@@ -26,6 +26,9 @@ exports.getAlgoOrderBookTeal = function() {
 	return algoOrderBook.getAlgoOrderBookApprovalProgram();
 };
 
+exports.getOrderBookId = function(isAlgoEscrowApp) {
+	return algodex.getOrderBookId(isAlgoEscrowApp);
+}
 /*
  * Print console message test
  */ 
