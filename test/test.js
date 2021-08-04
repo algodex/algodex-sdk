@@ -28,6 +28,7 @@ config = {
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
+
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
     config.appId = await createAppTest.runTest(config, true);
@@ -268,14 +269,22 @@ describe('ASA ESCROW ORDER BOOK', () => {
     const asaAmountReceiving = 80000;
     const price = 1.25;
 
-    const result = await executeAsaOrderTest.runPartialExecutionTest(config, asaAmountReceiving, price);
+    const result = await executeAsaOrderTest.runPartialExecTest(config, asaAmountReceiving, price);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
+
+  test ('Run asset amount too large test', async () => {
+    const result = await executeAsaOrderTest.runAssetAmtTooLargeTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+
+
 
   test ('Fully execute asa escrow order', async () => {
     const price = 1.25;
 
-    const result = await executeAsaOrderTest.runFullExecutionTest(config, price);
+    const result = await executeAsaOrderTest.runFullExecTest(config, price);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
@@ -298,6 +307,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
+
 
 describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Partial execution)', () => {
 
@@ -324,7 +334,7 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Par
     const asaAmountReceiving = 90000;
     const price = 1.55;
     // The execution will cause it to be opted in
-    const result = await executeAsaOrderTest.runPartialExecutionTest(config, asaAmountReceiving, price);
+    const result = await executeAsaOrderTest.runPartialExecTest(config, asaAmountReceiving, price);
     expect (result).toBeTruthy();
     
     asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
@@ -370,7 +380,7 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Ful
 
     const price = 1.55;
     // The execution will cause it to be opted in
-    const result = await executeAsaOrderTest.runFullExecutionTest(config, price);
+    const result = await executeAsaOrderTest.runFullExecTest(config, price);
     expect (result).toBeTruthy();
 
     asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
