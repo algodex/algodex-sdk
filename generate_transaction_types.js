@@ -334,6 +334,7 @@ const GenerateTransactions = {
     },
 
     getExecuteASAEscrowOrderTxns : async function (algodClient, executorAccount, makerAccount, algoAmountSending, asaAmountReceiving, price, assetId, appId, shouldClose = false) {
+        console.log("here664 ", executorAccount, makerAccount, algoAmountSending, asaAmountReceiving, price, assetId, appId, shouldClose);
         const orderCreatorAddr = makerAccount.addr;
         const min = 0;
         const numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
@@ -402,6 +403,7 @@ const GenerateTransactions = {
         // Make asset xfer
 
         // Asset transfer from escrow account to order executor
+
         let transaction3 = algosdk.makeAssetTransferTxnWithSuggestedParams(lsig.address(), takerAddr, closeRemainderTo, undefined,
             asaAmountReceiving, undefined, assetId, params);
 

@@ -334,13 +334,25 @@ const asaDelegateTemplate = {
     ==
     &&
 
-    bz notCloseOut // If the above are not true, this is a pay transaction. Otherwise it is CloseOut so ret success
+    bz anyExecute // If the above are not true, this is a pay transaction. Otherwise it is CloseOut so ret success
     
     int 1
     return
 
-notCloseOut:
+///////////////////////////////////////////////////////
+// ANY EXECUTE (with close or not)
+//   Preamble for any order execution transaction
+///////////////////////////////////////////////////////
+    // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
+    // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
+    // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
+    // TXN 2/3 - SELLER TO BUYER:     Asset transfer (from escrow owner to buyer/executor)
+    // TXN 3/4 - DEPENDS: don't check this here - different on whether closing or not
 
+anyExecute:
+
+///////////////////////
+// OPTIONAL ASSET-OPT IN CHECK
 // First check if we have the optional asset opt-in transaction for the buyer's wallet
 // This happens for both execute and execute_with_close
 // If this exists, it's the third transaction (gtxn 2).
@@ -369,6 +381,7 @@ notCloseOut:
     &&
     store 0 //this will store the next transaction offset depending if opt in exists
 
+
     load 0
     int 2
     +
@@ -379,6 +392,10 @@ notCloseOut:
     +
     store 3 // store offset of 2nd transaction, depending on if opt-in exists
 
+/// END OPTIONAL ASSET OPT IN CHECK
+
+// NOW CHECK TRANSACTIONS
+
     int 4
     load 0
     +
@@ -386,19 +403,21 @@ notCloseOut:
     ==
     assert
 
-///////////////////////////////////////////////////////
-// ANY EXECUTE (with close or not)
-//   Preamble for any order execution transaction
-///////////////////////////////////////////////////////
-    // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
-    // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
-    // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
-    // TXN 2/3 - SELLER TO BUYER:     Asset transfer (from escrow owner to buyer/executor)
-    // TXN 3/4 - DEPENDS: don't check this here - different on whether closing or not
-
+    gtxn 0 Sender
+    txn Sender // escrow address
+    ==
+    gtxn 1 Sender
+    txn Sender // make sure not from escrow address
+    !=
+    &&
+    gtxn 1 Receiver
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
     gtxn 0 TypeEnum // First Transaction must be a call to a stateful contract
     int appl
     ==
+    &&
     gtxn 1 TypeEnum // The second transaction must be a payment transaction
     int pay
     ==
@@ -519,6 +538,7 @@ notCloseOut:
     gtxn 1 Sender
     ==
     &&
+
     assert
 
     b finalExecuteChecks  //If the above result is 0, skip next section

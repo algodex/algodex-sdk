@@ -29,6 +29,7 @@ config = {
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
 
+
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
     config.appId = await createAppTest.runTest(config, true);
@@ -278,8 +279,31 @@ describe('ASA ESCROW ORDER BOOK', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Run algo amount too small test', async () => {
+    const result = await executeAsaOrderTest.runAlgoAmtTooSmallTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
 
+  test ('Group size wrong test', async () => {
+    const result = await executeAsaOrderTest.runGroupSizeWrongTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
 
+  test ('Group size wrong test2', async () => {
+    const result = await executeAsaOrderTest.runGroupSizeWrongTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Algo amount to wrong owner test', async () => {
+    const result = await executeAsaOrderTest.runAlgoAmtWrongAddrTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+ /* test ('Close asa escrow order', async () => {
+      const price = 1.25;
+      const result = await closeASAOrderTest.runTest(config, price);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);*/
 
   test ('Fully execute asa escrow order', async () => {
     const price = 1.25;
