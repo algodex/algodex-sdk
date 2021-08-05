@@ -1,7 +1,7 @@
 const testHelper = require('../../test_helper.js');
 const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
-const PRINT_TXNS = 0;
+const PRINT_TXNS = 1;
 
 const Test = {
     runPartialExecTest : async function (config, asaAmountReceiving, price, returnOuterTransactions = false) {
@@ -88,5 +88,27 @@ const Test = {
 
         return false;
     },
+
+    runAlgoAmtTooSmallTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
+        const client = config.client;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        // Give the buyer 1000 less of algos
+        outerTxns[1].unsignedTxn.amount -= 1000;
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
 }
 module.exports = Test;
