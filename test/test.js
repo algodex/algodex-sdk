@@ -299,11 +299,13 @@ describe('ASA ESCROW ORDER BOOK', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
- /* test ('Close asa escrow order', async () => {
+/* UNCOMMENT FOR DEV TESTING ONLY FOR NEG CASES 
+ test ('Close asa escrow order', async () => {
       const price = 1.25;
       const result = await closeASAOrderTest.runTest(config, price);
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);*/
+
 
   test ('Fully execute asa escrow order', async () => {
     const price = 1.25;

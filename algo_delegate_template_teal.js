@@ -12,10 +12,34 @@ const algoDelegateTemplate = {
     // Stateless delegate contract template to sell algos in an escrow account
 // Stateless delegate contract template to sell algos in an escrow account
 let delegateTemplate = `
-#pragma version 3
+#pragma version 4
 ////////////////////////
 // ALGO (NON-ASA) ESCROW 
 /////////////////////////
+
+/////////////////////////////////
+// CHECKS THAT APPLY TO ALL TXNS
+////////////////////////////////
+    int 0
+    store 9
+
+    checkAllTxns:
+
+    load 9
+    gtxns RekeyTo
+    global ZeroAddress
+    ==
+    assert
+
+    load 9
+    int 1
+    +
+    store 9
+    load 9
+    global GroupSize
+    <
+    bnz checkAllTxns
+
 
 ///////////////////////////
 /// OPEN - ORDER BOOK OPT IN & REGISTRATION
@@ -31,11 +55,11 @@ let delegateTemplate = `
     int 3
     ==
     ||
-    txn TypeEnum
+    gtxn 1 TypeEnum
     int appl
     ==
     &&
-    txn Amount // amount sent from escrow for this txn should always be 0
+    gtxn 1 Amount // amount sent from escrow for this txn should always be 0
     int 0
     ==
     &&
@@ -43,23 +67,19 @@ let delegateTemplate = `
     int 500000 // Must be funded with at least 0.5 algo.
     >=
     &&
-    txn CloseRemainderTo
+    gtxn 1 CloseRemainderTo
     global ZeroAddress
     ==
     &&
-    txn OnCompletion
+    gtxn 1 OnCompletion
     int OptIn //Check OnCompletion is OptIn or NoOp
     ==
     &&
-    txn AssetCloseTo
+    gtxn 1 AssetCloseTo
     global ZeroAddress
     ==
     &&
-    txn RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    txn ApplicationID
+    gtxn 1 ApplicationID
     int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
@@ -75,9 +95,9 @@ let delegateTemplate = `
     txn Sender // escrow account
     ==
     &&
-    gtxn 0 Sender
-    txn Sender // escrow account
-    !=
+    gtxn 0 Sender // must originate from buyer
+    addr <contractWriterAddr> // contractWriterAddr (order creator)
+    ==
     &&
     store 0
 
@@ -106,10 +126,6 @@ let delegateTemplate = `
     &&
     gtxn 2 OnCompletion
     int NoOp
-    ==
-    &&
-    gtxn 2 RekeyTo
-    global ZeroAddress
     ==
     &&
     int <assetid>  // asset id to trade for
@@ -185,18 +201,6 @@ let delegateTemplate = `
     &&
     gtxn 2 Amount
     int 0 // This is just a proof so amount should be 0
-    ==
-    &&
-    gtxn 0 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 2 RekeyTo
-    global ZeroAddress
     ==
     &&
     gtxn 0 OnCompletion
@@ -292,18 +296,6 @@ let delegateTemplate = `
     addr <contractWriterAddr> // contractWriterAddr must receive the asset
     ==
     &&
-    gtxn 0 RekeyTo // verify no transaction contains a rekey
-    global ZeroAddress 
-    ==
-    &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 2 RekeyTo
-    global ZeroAddress
-    ==
-    &&
     gtxn 0 CloseRemainderTo
     global ZeroAddress
     ==
@@ -342,7 +334,7 @@ let delegateTemplate = `
     // TXN 3 - SELLER TO ESCROW:    Pay fee refund transaction
 
     partialPayTxn:
-
+    
     gtxn 0 OnCompletion // The application call must be a NoOp
     int NoOp
     ==
@@ -407,7 +399,7 @@ let delegateTemplate = `
     ==
     &&
     gtxn 1 Sender // Sender of the pay transaction must be this escrow
-    txn Sender
+    txn Sender // Escrow address
     ==
     &&
     gtxn 1 Receiver // Receiver of the pay transaction from this escrow
@@ -416,22 +408,6 @@ let delegateTemplate = `
     &&
     gtxn 2 AssetReceiver // Receiver of asset transfer
     addr <contractWriterAddr> // contractWriterAddr must receive the asset
-    ==
-    &&
-    gtxn 0 RekeyTo // verify no transaction contains a rekey
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 2 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 3 RekeyTo
-    global ZeroAddress
     ==
     &&
     gtxn 0 CloseRemainderTo
