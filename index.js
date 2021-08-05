@@ -10,12 +10,20 @@
 const algodex = require('./algodex_api.js');
 const algoOrderBook = require('./dex_teal.js');
 const asaOrderBook = require('./asa_dex_teal.js');
+const constants = require('./constants.js');
 
 /*
  * Alert function test
  */
 exports.doAlert = function() {
 	algodex.doAlert();
+};
+
+exports.getSmartContractVersions = function() {
+	return {
+		'escrowContractVersion': constants.ESCROW_CONTRACT_VERSION,
+		'orderBookContractVersion': constants.ORDERBOOK_CONTRACT_VERSION
+	};
 };
 
 exports.getAsaOrderBookTeal = function() {
