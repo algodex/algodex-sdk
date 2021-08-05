@@ -63,6 +63,10 @@ let delegateTemplate = `
     int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
+    gtxn 1 Sender
+    txn Sender // escrow account
+    ==
+    &&
     gtxn 0 TypeEnum
     int pay
     ==
@@ -70,6 +74,10 @@ let delegateTemplate = `
     gtxn 0 Receiver // recipient of pay
     txn Sender // escrow account
     ==
+    &&
+    gtxn 0 Sender
+    txn Sender // escrow account
+    !=
     &&
     store 0
 
@@ -264,9 +272,17 @@ let delegateTemplate = `
     int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
-    gtxn 1 Sender // Sender of the pay transaction must be this escrow
-    txn Sender
+    gtxn 0 Sender
+    txn Sender // escrow account
     ==
+    &&
+    gtxn 1 Sender
+    txn Sender // escrow account
+    ==
+    &&
+    gtxn 2 Sender
+    txn Sender // escrow account
+    !=
     &&
     gtxn 1 Receiver // Receiver of the pay transaction from this escrow
     gtxn 2 Sender  // Sender of the asset transfer (person trading)
@@ -365,6 +381,22 @@ let delegateTemplate = `
     gtxn 3 Sender // The fee sender must be the ASA seller
     gtxn 1 Receiver
     ==
+    &&
+    gtxn 0 Sender
+    txn Sender // escrow account
+    ==
+    &&
+    gtxn 1 Sender
+    txn Sender // escrow account
+    ==
+    &&
+    gtxn 2 Sender
+    txn Sender // escrow account
+    !=
+    &&
+    gtxn 3 Sender
+    txn Sender // escrow account
+    !=
     &&
     txn Fee
     int 1000
