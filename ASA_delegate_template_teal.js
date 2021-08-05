@@ -346,7 +346,7 @@ const asaDelegateTemplate = {
     // TXN 0   - ESCROW TO ORDERBOOK: Application call to execute
     // TXN 1   - BUYER TO SELLER:     Pay transaction (from buyer/executor to escrow owner)
     // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
-    // TXN 2/3 - SELLER TO BUYER:     Asset transfer (from escrow owner to buyer/executor)
+    // TXN 2/3 - ESCROW TO BUYER:     Asset transfer (from escrow to buyer/executor)
     // TXN 3/4 - DEPENDS: don't check this here - different on whether closing or not
 
 anyExecute:
@@ -409,6 +409,11 @@ anyExecute:
     gtxn 1 Sender
     txn Sender // make sure not from escrow address
     !=
+    &&
+    load 2 
+    gtxns Sender // Asset transfer comes from escrow account
+    txn Sender // Escrow account
+    ==
     &&
     gtxn 1 Receiver
     addr <contractWriterAddr> // contractWriterAddr
@@ -488,11 +493,6 @@ anyExecute:
     int <assetid> // asset id to trade for
     ==
     &&
-    load 2
-    gtxns CloseRemainderTo // this is an asset transfer so only assets should be closed
-    global ZeroAddress
-    ==
-    &&
     assert
 
 //////////////////////////////////////////////////////////////////////////////
@@ -537,6 +537,11 @@ anyExecute:
     gtxns Sender // The fee sender must be the ASA buyer
     gtxn 1 Sender
     ==
+    &&
+    load 3 
+    gtxns Sender // The fee sender must be the ASA buyer
+    txn Sender // Escrow account
+    !=
     &&
 
     assert
