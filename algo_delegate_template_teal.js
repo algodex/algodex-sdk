@@ -55,27 +55,43 @@ let delegateTemplate = `
     int 3
     ==
     ||
-    gtxn 1 TypeEnum
-    int appl
+    gtxn 0 TypeEnum
+    int pay
     ==
     &&
-    gtxn 1 Amount // amount sent from escrow for this txn should always be 0
-    int 0
+    gtxn 1 TypeEnum
+    int appl
     ==
     &&
     gtxn 0 Amount
     int 500000 // Must be funded with at least 0.5 algo.
     >=
     &&
+    gtxn 1 Amount // amount sent from escrow for this txn should always be 0
+    int 0
+    ==
+    &&
+    gtxn 0 CloseRemainderTo
+    global ZeroAddress
+    ==
+    &&
     gtxn 1 CloseRemainderTo
     global ZeroAddress
+    ==
+    &&
+    gtxn 0 OnCompletion
+    int NoOp //Check OnCompletion is OptIn or NoOp
     ==
     &&
     gtxn 1 OnCompletion
     int OptIn //Check OnCompletion is OptIn or NoOp
     ==
     &&
-    gtxn 1 AssetCloseTo
+    gtxn 0 AssetCloseTo // Shouldn't matter since this is a pay transaction
+    global ZeroAddress
+    ==
+    &&
+    gtxn 1 AssetCloseTo // Shouldn't matter since this is an application transaction
     global ZeroAddress
     ==
     &&
@@ -83,20 +99,16 @@ let delegateTemplate = `
     int <orderBookId> // stateful contract app id. orderBookId
     ==
     &&
+    gtxn 0 Sender // must originate from buyer
+    addr <contractWriterAddr> // contractWriterAddr (order creator)
+    ==
+    &&
     gtxn 1 Sender
     txn Sender // escrow account
     ==
     &&
-    gtxn 0 TypeEnum
-    int pay
-    ==
-    &&
     gtxn 0 Receiver // recipient of pay
     txn Sender // escrow account
-    ==
-    &&
-    gtxn 0 Sender // must originate from buyer
-    addr <contractWriterAddr> // contractWriterAddr (order creator)
     ==
     &&
     store 0
@@ -286,7 +298,7 @@ let delegateTemplate = `
     &&
     gtxn 2 Sender
     txn Sender // escrow account
-    !=
+    != // should *not* be originating from escrow
     &&
     gtxn 1 Receiver // Receiver of the pay transaction from this escrow
     gtxn 2 Sender  // Sender of the asset transfer (person trading)
@@ -384,11 +396,11 @@ let delegateTemplate = `
     &&
     gtxn 2 Sender
     txn Sender // escrow account
-    !=
+    != // should *not* be originating from escrow
     &&
     gtxn 3 Sender
     txn Sender // escrow account
-    !=
+    != // should *not* be originating from escrow
     &&
     txn Fee
     int 1000

@@ -18,6 +18,29 @@ const asaDelegateTemplate = {
 // ASA ESCROW (escrow limit order to sell ASA)
 //////////////////////////////////////
 
+/////////////////////////////////
+// CHECKS THAT APPLY TO ALL TXNS
+////////////////////////////////
+    int 0
+    store 9
+
+    checkAllTxns:
+
+    load 9
+    gtxns RekeyTo
+    global ZeroAddress
+    ==
+    assert
+
+    load 9
+    int 1
+    +
+    store 9
+    load 9
+    global GroupSize
+    <
+    bnz checkAllTxns
+
 ///////////////////////////////////////////////////////////////////////
 // OPEN - ORDER BOOK OPT IN & REGISTRATION
 //   Placing an ASA Escrow Order. The escrow opts into the order book.
@@ -151,22 +174,7 @@ const asaDelegateTemplate = {
     global ZeroAddress
     ==
     &&
-    gtxn 0 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 2 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 3 RekeyTo
-    global ZeroAddress
-    ==
-    &&
+    
     bz notOptInOrOrderReg 
     // If the above are not true, this is a closeout (without order execution) or a trade execution
     // Otherwise it is Opt-in so return early
@@ -301,22 +309,6 @@ const asaDelegateTemplate = {
     int 0 //Should not matter since this is a pay transaction
     ==
     &&
-    gtxn 0 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 2 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 3 RekeyTo
-    global ZeroAddress
-    ==
-    &&
     gtxn 0 OnCompletion
     int ClearState // App Call OnCompletion needs to be ClearState (OptOut), which will clear from the order book
     ==
@@ -377,7 +369,7 @@ anyExecute:
     &&
     gtxn 2 Sender
     txn Sender // Sender must come from the user's wallet, not the escrow
-    !=
+    != // should *not* be originating from escrow
     &&
     store 0 //this will store the next transaction offset depending if opt in exists
 
@@ -404,11 +396,11 @@ anyExecute:
     assert
 
     gtxn 0 Sender
-    txn Sender // escrow address
+    txn Sender // escrow account
     ==
     gtxn 1 Sender
-    txn Sender // make sure not from escrow address
-    !=
+    txn Sender // escrow account
+    != // should *not* be originating from escrow
     &&
     load 2 
     gtxns Sender // Asset transfer comes from escrow account
@@ -447,24 +439,6 @@ anyExecute:
     &&
     gtxn 0 ApplicationID // The specific App ID must be called
     int <orderBookId> //stateful contract app id. orderBookId
-    ==
-    &&
-    gtxn 0 RekeyTo // verify no transaction contains a rekey
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    load 2
-    gtxns RekeyTo
-    global ZeroAddress
-    ==
-    &&
-    load 3
-    gtxns RekeyTo
-    global ZeroAddress
     ==
     &&
     gtxn 0 CloseRemainderTo
@@ -541,7 +515,7 @@ anyExecute:
     load 3 
     gtxns Sender // The fee sender must be the ASA buyer
     txn Sender // Escrow account
-    !=
+    != // should *not* be originating from escrow
     &&
 
     assert
@@ -570,6 +544,11 @@ anyExecute:
     global ZeroAddress
     ==
     &&
+    load 2
+    gtxns AssetCloseTo // remainder of ASA escrow is being closed out to escrow owner
+    addr <contractWriterAddr> // contractWriterAddr
+    ==
+    &&
     load 3
     gtxns CloseRemainderTo
     addr <contractWriterAddr> // contractWriterAddr
@@ -583,11 +562,6 @@ anyExecute:
     load 3
     gtxns Sender // escrow account
     txn Sender // escrow account
-    ==
-    &&
-    load 2
-    gtxns AssetCloseTo // remainder of ASA escrow is being closed out to escrow owner
-    addr <contractWriterAddr> // contractWriterAddr
     ==
     &&
     assert
