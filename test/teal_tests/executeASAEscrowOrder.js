@@ -188,5 +188,83 @@ const Test = {
         return false;
     },
 
+    runASAWrongAddrCloseToTest : async function (config, useFullOrderExecution = true) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        // check for optInTxn
+        const optInOffset = outerTxns.length == 5 ? 1 : 0;
+
+        outerTxns[2+optInOffset].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
+    runFeeToWrongAddrTest : async function (config, useFullOrderExecution = false) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        // check for optInTxn
+        const optInOffset = outerTxns.length == 5 ? 1 : 0;
+
+        outerTxns[3+optInOffset].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+    
+    runFeeFromWrongAddrTest : async function (config, useFullOrderExecution = false) {
+        const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
+        const client = config.client;
+        const maliciousAccount = config.maliciousAccount;
+        console.log("inside runFeeFromWrongAddrTest");
+        if (PRINT_TXNS) {
+            testHelper.printOuterTransactions(outerTxns);
+        }
+
+        // check for optInTxn
+        const optInOffset = outerTxns.length == 5 ? 1 : 0;
+
+        const lsig = outerTxns[0].lsig;
+        outerTxns[3+optInOffset].unsignedTxn = await transactionGenerator.getPayTxn(client, lsig.address(), lsig.address(), 2000, false);
+        outerTxns[3+optInOffset].lsig = lsig;
+        outerTxns[3+optInOffset].senderAcct = null;
+        
+        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+
+        return false;
+    },
+
 }
 module.exports = Test;

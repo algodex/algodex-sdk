@@ -274,6 +274,10 @@ describe('ASA ESCROW ORDER BOOK', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  ////////////////////////////////////////
+  // START FULL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////
+
   test ('Run asset amount too large test', async () => {
     const result = await executeAsaOrderTest.runAssetAmtTooLargeTest(config, true);
     expect (result).toBeTruthy();
@@ -299,12 +303,40 @@ describe('ASA ESCROW ORDER BOOK', () => {
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-/* UNCOMMENT FOR DEV TESTING ONLY FOR NEG CASES 
- test ('Close asa escrow order', async () => {
+  test ('Unexpected ASA close out test', async () => {
+    const result = await executeAsaOrderTest.runASAWrongAddrCloseToTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  ////////////////////////////////////////
+  // END FULL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////
+
+  ////////////////////////////////////////
+  // START PARTIAL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////
+
+  test ('Fee sent to wrong addr test', async () => {
+    const result = await executeAsaOrderTest.runFeeToWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Fee from wrong addr test', async () => {
+    const result = await executeAsaOrderTest.runFeeFromWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  ////////////////////////////////////////
+  // END PARTIAL EXECUTION NEGATIVE TEST CASES
+  ////////////////////////////////////////
+
+ //UNCOMMENT FOR DEV TESTING ONLY FOR NEG CASES 
+ /*test ('Close asa escrow order', async () => {
       const price = 1.25;
       const result = await closeASAOrderTest.runTest(config, price);
       expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);*/
+  }, JEST_MINUTE_TIMEOUT);
+});*/
 
 
   test ('Fully execute asa escrow order', async () => {

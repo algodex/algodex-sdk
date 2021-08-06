@@ -509,15 +509,20 @@ anyExecute:
     int 2000
     ==
     &&
+    load 3
+    gtxns Receiver // receiver of fee transaction
+    txn Sender  // escrow addr. check fee must be received by escrow account
+    ==
+    &&
     load 3 
     gtxns Sender // The fee sender must be the ASA buyer
     gtxn 1 Sender
     ==
     &&
     load 3 
-    gtxns Sender // The fee sender must be the ASA buyer
+    gtxns Sender // The fee sender
     txn Sender // Escrow account
-    != // should *not* be originating from escrow
+    != // Fee sender should *not* be originating from escrow
     &&
 
     assert
