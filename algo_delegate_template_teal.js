@@ -22,10 +22,15 @@ let delegateTemplate = `
     int 0
     store 9
 
-    checkAllTxns:
+    checkAllTxns: // This is basically a for loop that checks all transactions
 
     load 9
     gtxns RekeyTo
+    global ZeroAddress
+    ==
+    assert
+    load 9
+    gtxns AssetCloseTo
     global ZeroAddress
     ==
     assert
@@ -86,14 +91,6 @@ let delegateTemplate = `
     int OptIn //Check OnCompletion is OptIn or NoOp
     ==
     &&
-    gtxn 0 AssetCloseTo // Shouldn't matter since this is a pay transaction
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 AssetCloseTo // Shouldn't matter since this is an application transaction
-    global ZeroAddress
-    ==
-    &&
     gtxn 1 ApplicationID
     int <orderBookId> // stateful contract app id. orderBookId
     ==
@@ -129,10 +126,6 @@ let delegateTemplate = `
     &&
     gtxn 2 Sender
     addr <contractWriterAddr> // contractWriterAddr (order creator)
-    ==
-    &&
-    gtxn 2 AssetCloseTo
-    global ZeroAddress
     ==
     &&
     gtxn 2 OnCompletion
@@ -226,18 +219,6 @@ let delegateTemplate = `
     int NoOp //proof pay transaction
     ==
     &&
-    gtxn 0 AssetCloseTo
-    global ZeroAddress // should not matter, but add just in case
-    ==
-    &&
-    gtxn 1 AssetCloseTo
-    global ZeroAddress  // should not matter, but add just in case
-    ==
-    &&
-    gtxn 2 AssetCloseTo
-    global ZeroAddress  // should not matter, but add just in case
-    ==
-    &&
     bz checkPayWithCloseout // If the above are not true, this is a pay transaction. Otherwise it is CloseOut so ret success
     
     int 1
@@ -319,18 +300,6 @@ let delegateTemplate = `
     global ZeroAddress
     ==
     && 
-    gtxn 0 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 2 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
     assert
 
     b handle_rate_check
@@ -437,22 +406,6 @@ let delegateTemplate = `
     global ZeroAddress
     ==
     && 
-    gtxn 0 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 1 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 2 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
-    gtxn 3 AssetCloseTo
-    global ZeroAddress
-    ==
-    &&
     assert
 
     handle_rate_check:
@@ -504,8 +457,6 @@ let delegateTemplate = `
     done2:
     int 1
     return
-
-
 
     `;
     return delegateTemplate;
