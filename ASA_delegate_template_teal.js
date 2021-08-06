@@ -571,6 +571,12 @@ anyExecute:
     txn Sender // escrow account
     ==
     &&
+    load 3
+    gtxns Amount
+    int 0 // probably shouldn't matter, but the full amount should be in the CloseTo, not the Amount
+    ==
+    &&
+
     assert
 
     b finalExecuteChecks

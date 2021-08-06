@@ -29,7 +29,6 @@ config = {
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
 
-
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
     config.appId = await createAppTest.runTest(config, true);
@@ -247,7 +246,6 @@ describe('ALGO ESCROW ORDER BOOK', () => {
 
 });
 
-
 describe('ASA ESCROW ORDER BOOK', () => {
 
   test ('Create asa escrow order book', async () => {
@@ -278,33 +276,53 @@ describe('ASA ESCROW ORDER BOOK', () => {
   // START FULL EXECUTION NEGATIVE TEST CASES
   ////////////////////////////////////////
 
-  test ('Run asset amount too large test', async () => {
+  test ('Run asset amount too large test (full exec)', async () => {
     const result = await executeAsaOrderTest.runAssetAmtTooLargeTest(config, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Run algo amount too small test', async () => {
+  test ('Run algo amount too small test (full exec)', async () => {
     const result = await executeAsaOrderTest.runAlgoAmtTooSmallTest(config, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Group size wrong test', async () => {
+  test ('Group size wrong test (full exec)', async () => {
     const result = await executeAsaOrderTest.runGroupSizeWrongTest(config, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Group size wrong test2', async () => {
+  test ('Group size wrong test2 (full exec)', async () => {
     const result = await executeAsaOrderTest.runGroupSizeWrongTest(config, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Algo amount to wrong owner test', async () => {
+  test ('Algo amount to wrong owner test (full exec)', async () => {
     const result = await executeAsaOrderTest.runAlgoAmtWrongAddrTest(config, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Unexpected ASA close out test', async () => {
+  test ('Unexpected ASA close out test (full exec)', async () => {
     const result = await executeAsaOrderTest.runASAWrongAddrCloseToTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Wrong app call test (full exec)', async () => {
+    const result = await executeAsaOrderTest.runAppCallWrongAppTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('runAlgoBalanceCloseoutToWrongAddressTest test (full exec)', async () => {
+    const result = await executeAsaOrderTest.runAlgoBalanceCloseoutToWrongAddressTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('runAlgoPayAmountNotZeroTest test (full exec)', async () => {
+    const result = await executeAsaOrderTest.runAlgoPayAmountNotZeroTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('runWrongTransactionTypeTest test (full exec)', async () => {
+    const result = await executeAsaOrderTest.runWrongTransactionTypeTest(config, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
@@ -315,14 +333,64 @@ describe('ASA ESCROW ORDER BOOK', () => {
   ////////////////////////////////////////
   // START PARTIAL EXECUTION NEGATIVE TEST CASES
   ////////////////////////////////////////
+  
+  test ('Run asset amount too large test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runAssetAmtTooLargeTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
 
-  test ('Fee sent to wrong addr test', async () => {
+  test ('Run algo amount too small test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runAlgoAmtTooSmallTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Group size wrong test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runGroupSizeWrongTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Group size wrong test2 (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runGroupSizeWrongTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Algo amount to wrong owner test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runAlgoAmtWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Unexpected ASA close out test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runASAWrongAddrCloseToTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Fee sent to wrong addr test (partial exec)', async () => {
     const result = await executeAsaOrderTest.runFeeToWrongAddrTest(config, false);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Fee from wrong addr test', async () => {
+  test ('Fee from wrong addr test (partial exec)', async () => {
     const result = await executeAsaOrderTest.runFeeFromWrongAddrTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Fee too small test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runFeeTooSmallTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Wrong app call test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runAppCallWrongAppTest(config, false);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('runAlgoBalanceCloseoutToWrongAddressTest test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runAlgoBalanceCloseoutToWrongAddressTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('runWrongTransactionTypeTest test (partial exec)', async () => {
+    const result = await executeAsaOrderTest.runWrongTransactionTypeTest(config, true);
     expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
