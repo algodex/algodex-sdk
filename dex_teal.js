@@ -12,7 +12,10 @@ getClearProgram : function getClearProgram() {
     const clearProgram = 
             `
 #pragma version 2
-// This program clears program state
+// This program clears program state.
+// This will clear local state for any escrow accounts that call this from a ClearState transaction,
+// the logic of which is contained within the stateless contracts as part of a Close Out (Cancel Order) operation.
+// We use ClearState instead of CloseOut so that the order book cannot prevent an escrow from closing out.
 int 1
 `
 ;
@@ -23,10 +26,10 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `
-//////////////////////////////////
-// STATEFUL CONTRACT             /
-//   ORDER BOOK FOR ALGO ESCROWS /
-//////////////////////////////////
+//////////////////////////////////////////////////
+// STATEFUL CONTRACT                             /
+//   ORDER BOOK FOR ALGO ESCROWS (BUY ORDERS)    /
+//////////////////////////////////////////////////
 
 #pragma version 4
 
@@ -278,7 +281,6 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     assert // If the value doesnt exists fail
     pop
 
-    
     int 0 //escrow account containing order
     txna ApplicationArgs 1 // order details
     app_local_del // Delete the order details from the order book
@@ -291,7 +293,6 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
 
     int 1
     return
-
 
     `;
 

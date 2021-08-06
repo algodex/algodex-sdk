@@ -9,13 +9,13 @@ const asaDelegateTemplate = {
 
     getTealTemplate : function getTealTemplate() {
 
-    // Stateless delegate contract template to sell ASAs in an escrow account
     let asaDelegateTemplate = `
 
 #pragma version 4
 
 ////////////////////////////////////
-// ASA ESCROW (escrow limit order to sell ASA)
+// ASA ESCROW (SELL ORDER)
+//   Escrow limit order to SELL ASAs. These limit orders contain a minimum algo balance and then the ASA to sell.
 //////////////////////////////////////
 
 /////////////////////////////////

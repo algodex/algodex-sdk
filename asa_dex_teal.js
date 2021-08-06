@@ -11,7 +11,11 @@ getClearProgram : function getClearProgram() {
     const clearProgram = 
             `
 #pragma version 2
-// This program clears program state
+// This program clears program state.
+// This will clear local state for any escrow accounts that call this from a ClearState transaction,
+// the logic of which is contained within the stateless contracts as part of a Close Out (Cancel Order) operation.
+// We use ClearState instead of CloseOut so that the order book cannot prevent an escrow from closing out.
+
 int 1
 `
 ;
@@ -22,10 +26,10 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `
-//////////////////////////////////
-// STATEFUL CONTRACT             /
-//   ORDER BOOK FOR ASA ESCROWS  /
-//////////////////////////////////
+////////////////////////////////////////////////
+// STATEFUL CONTRACT                           /
+//   ORDER BOOK FOR ASA ESCROWS (SELL ORDERS) /
+////////////////////////////////////////////////
 
 #pragma version 4
     // check if the app is being created
@@ -67,6 +71,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     assert
     int 1
     return
+
   not_update:
 
     txna ApplicationArgs 0
@@ -83,6 +88,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     bnz execute_with_closeout
     err
 
+// function to check for ASA opt in transaction
   check_asa_optin:
     gtxn 2 TypeEnum // Check for asset opt-in
     int axfer
@@ -126,21 +132,21 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     &&
     assert
     
-    int 0 //address index
+    int 0 //address index. This is the Sender of this transaction.
     txn ApplicationID //current smart contract
     txna ApplicationArgs 1 // 2nd txn app arg is order number
     app_local_get_ex    
     bnz ret_success // if the value already exists return without setting anything
     pop
-    int 0 //address index
+    int 0 //address index. This is the Sender of this transaction.
     txna ApplicationArgs 1 //order number
     int 1 // value - just set to 1
     app_local_put // store the ordernumber as the key
-    int 0 //address index
+    int 0 //address index. This is the Sender of this transaction.
     byte "creator" //creator key
     gtxn 0 Sender // store creator as value
     app_local_put
-    int 0 //address index
+    int 0 //address index. This is the Sender of this transaction.
     byte "version" //store version
     int 1
     app_local_put
@@ -210,14 +216,14 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     ==
     assert
 
-    int 0 // Escrow account containing order
+    int 0 // Escrow account containing order. This is the Sender of this transaction.
     txn ApplicationID // Current stateful smart contract
     txna ApplicationArgs 1 // 2nd argument is order number
     app_local_get_ex
     assert // If the value doesnt exists fail
     pop
 
-    int 0 // Escrow account containing order
+    int 0 // Escrow account containing order. This is the Sender of this transaction.
     txn ApplicationID // Current stateful smart contract
     byte "creator"
     app_local_get_ex
@@ -298,14 +304,14 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     ==
     assert
 
-    int 0 // Escrow account containing order
+    int 0 // Escrow account containing order. This is the Sender of this transaction.
     txn ApplicationID // Current stateful smart contract
     txna ApplicationArgs 1 // 2nd argument is order number
     app_local_get_ex
     bz fail2 // If the value doesnt exist fail
     pop
 
-    int 0 // Escrow account containing order
+    int 0 // Escrow account containing order. This is the Sender of this transaction.
     txn ApplicationID // Current stateful smart contract
     byte "creator"
     app_local_get_ex
@@ -318,7 +324,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     ==
     assert
 
-    int 0 // Escrow account containing order
+    int 0 // Escrow account containing order. This is the Sender of this transaction.
     txn ApplicationID // Current stateful smart contract
     byte "version"
     app_local_get_ex
@@ -330,7 +336,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     ==
     bnz ret_success3
 
-    int 0 //escrow account containing order
+    int 0 //escrow account containing order. This is the Sender of this transaction.
     txna ApplicationArgs 1 // order details
     app_local_del // Delete the ordernumber
     int 0 // escrow account containing order

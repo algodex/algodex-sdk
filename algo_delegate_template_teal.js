@@ -9,13 +9,12 @@ const algoDelegateTemplate = {
 
     getTealTemplate : function getTealTemplate() {
 
-    // Stateless delegate contract template to sell algos in an escrow account
-// Stateless delegate contract template to sell algos in an escrow account
 let delegateTemplate = `
 #pragma version 4
-////////////////////////
-// ALGO (NON-ASA) ESCROW 
-/////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+// ALGO (NON-ASA) ESCROW (BUY ORDER) 
+//    Escrow limit order to BUY ASAs. These limit orders contain only algos.
+//////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////
 // CHECKS THAT APPLY TO ALL TXNS
