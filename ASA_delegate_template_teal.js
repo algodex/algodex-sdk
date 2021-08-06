@@ -589,6 +589,8 @@ finalExecuteChecks:
 
     // handle the rate
     // SELL ORDER
+    // D/N is the price of the asset. For example, if D/N = 0.25, then with 5 microAlgos you can buy 20 of the ASA in base units
+    //
     // gtxn[1].Amount * N <= gtxn[2].AssetAmount * D
     // N units of the asset per D microAlgos
     load 2

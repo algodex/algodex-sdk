@@ -472,6 +472,9 @@ let delegateTemplate = `
     // handle the rate
     // BUY ORDER
     // gtxn[2].AssetAmount * D >= gtxn[1].Amount * N
+    //
+    // D/N is the price of the asset. For example, if D/N = 0.25, then with 5 microAlgos you can buy 20 of the ASA in base units
+    //
     // N units of the asset per D microAlgos
     gtxn 2 AssetAmount
     int <D> // put D value here
