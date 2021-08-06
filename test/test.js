@@ -28,7 +28,6 @@ config = {
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
-
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
     config.appId = await createAppTest.runTest(config, true);
@@ -338,6 +337,41 @@ describe('ASA ESCROW ORDER BOOK', () => {
       expect (config.appId).toBeGreaterThan(0);
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Place ASA escrow - runGroupSizeWrongTest2', async () => {
+    const result = await placeASAOrderTest.runGroupSizeWrongTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place ASA escrow - runGroupSizeWrongTest', async () => {
+    const result = await placeASAOrderTest.runGroupSizeWrongTest2(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place ASA escrow - runPayAmountTooLowTest', async () => {
+    const result = await placeASAOrderTest.runPayAmountTooLowTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place ASA escrow - runAppOptInMissingTest', async () => {
+    const result = await placeASAOrderTest.runAppOptInMissingTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place ASA escrow - runAssetIdWrongTest', async () => {
+    const result = await placeASAOrderTest.runAssetIdWrongTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place ASA escrow - runAssetAmountZeroTest', async () => {
+    const result = await placeASAOrderTest.runAssetAmountZeroTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place ASA escrow - runAssetRecipientWrongTest', async () => {
+    const result = await placeASAOrderTest.runAssetRecipientWrongTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
   test ('Place asa escrow order', async () => {
       const asaAmount = 400000;
       const price = 1.25;
@@ -513,7 +547,6 @@ describe('ASA ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
-
 
 describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Partial execution)', () => {
 
