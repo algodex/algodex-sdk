@@ -41,6 +41,28 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
     testHelper.transferFunds(config.client, config.openAccount, config.creatorAccount, 2000000);
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Place order - wrong extra transaction ', async () => {
+    const result = await placeOrderTest.runGroupSizeWrongTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place order - wrong extra transaction (part 2)', async () => {
+    const result = await placeOrderTest.runGroupSizeWrongTest2(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place order - pay amount too low test', async () => {
+    const result = await placeOrderTest.runPayAmountTooLowTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place order - pay not to lsig test', async () => {
+    const result = await placeOrderTest.runPayNotToLsigTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+
+
   test ('Place algo escrow order', async () => {
     let asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
     expect (asaBalance).toBeNull();
@@ -200,6 +222,7 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Delete algo escrow order book', async () => {
+      config.creatorAccount = config.oldCreatorAccount;
       const result = await deleteAppTest.runTest(config);
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
@@ -212,6 +235,26 @@ describe('ALGO ESCROW ORDER BOOK', () => {
     config.appId = await createAppTest.runTest(config, true);
     global.ALGO_ESCROW_APP_ID = config.appId;
     expect (config.appId).toBeGreaterThan(0);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place order - wrong extra transaction (skip asa opt-in)', async () => {
+    const result = await placeOrderTest.runGroupSizeWrongTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place order - wrong extra transaction (part 2)  (skip asa opt-in)', async () => {
+    const result = await placeOrderTest.runGroupSizeWrongTest2(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place order - pay amount too low test  (skip asa opt-in)', async () => {
+    const result = await placeOrderTest.runPayAmountTooLowTest(config, true);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Place order - pay not to lsig test  (skip asa opt-in)', async () => {
+    const result = await placeOrderTest.runPayNotToLsigTest(config, true);
+    expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Place algo escrow order', async () => {
@@ -399,13 +442,12 @@ describe('ASA ESCROW ORDER BOOK', () => {
   ////////////////////////////////////////
 
  //UNCOMMENT FOR DEV TESTING ONLY FOR NEG CASES 
- /*test ('Close asa escrow order', async () => {
-      const price = 1.25;
-      const result = await closeASAOrderTest.runTest(config, price);
-      expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);
-});*/
-
+//  test ('Close asa escrow order', async () => {
+//       const price = 1.25;
+//       const result = await closeASAOrderTest.runTest(config, price);
+//       expect (result).toBeTruthy();
+//   }, JEST_MINUTE_TIMEOUT);
+// });
 
   test ('Fully execute asa escrow order', async () => {
     const price = 1.25;
@@ -519,4 +561,3 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Ful
   }, JEST_MINUTE_TIMEOUT);
 
 });
-

@@ -51,6 +51,8 @@ const TestHelper = {
                 hasKnownError = true;
             } else if (msg.includes("TEAL runtime encountered err opcode")) {
                 hasKnownError = true;
+            } else if (msg.includes("rejected by logic err=gtxn lookup TxnGroup") && msg.includes("but it only has") ) {
+                hasKnownError = true;
             } else {
                 throw("Unknown error type: " + msg);
             }
