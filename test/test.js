@@ -62,7 +62,6 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 
-
   test ('Place algo escrow order', async () => {
     let asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
     expect (asaBalance).toBeNull();
@@ -72,6 +71,46 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
 
     asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
     expect (asaBalance).toEqual(0);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - wrong extra transaction ', async () => {
+    const result = await closeOrderTest.runGroupSizeWrongTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - wrong extra transaction (part 2)', async () => {
+    const result = await closeOrderTest.runGroupSizeWrongTest2(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - runAlgoWrongAddrCloseToTest', async () => {
+    const result = await closeOrderTest.runAlgoWrongAddrCloseToTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - runCloseToTxnHasNonZeroAmount', async () => {
+    const result = await closeOrderTest.runCloseToTxnHasNonZeroAmount(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - runAlgoWrongOwnerProofTest', async () => {
+    const result = await closeOrderTest.runAlgoWrongOwnerProofTest(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - appCallMissing', async () => {
+    const result = await closeOrderTest.appCallMissing(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - payTxnWrongType', async () => {
+    const result = await closeOrderTest.payTxnWrongType(config);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Cancel order - refundTxnWrongType', async () => {
+    const result = await closeOrderTest.refundTxnWrongType(config);
+    expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
   ////////////////////////////////////////
@@ -228,7 +267,6 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
-
 
 describe('ALGO ESCROW ORDER BOOK', () => {
   test('Create algo escrow order book', async () => {

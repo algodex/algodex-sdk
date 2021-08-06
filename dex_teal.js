@@ -118,7 +118,7 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     ==
     ||
     assert
-    
+
     int OptIn
     txn OnCompletion
     ==
@@ -135,8 +135,8 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     app_local_put // Store the order number as the key
     int 0 //address index
     byte "creator" //creator key
-    gtxn 0 Sender
-    app_local_put // Store creator as value
+    gtxn 0 Sender // The sender of the pay transaction
+    app_local_put // Store creator as value.
     int 0 //address index
     byte "version" //store version
     int 1

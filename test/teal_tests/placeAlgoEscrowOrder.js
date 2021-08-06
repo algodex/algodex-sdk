@@ -25,7 +25,6 @@ const Test = {
         return true;
     },
 
-
     runGroupSizeWrongTest : async function (config, skipASAOptIn = false) {
         const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
         const client = config.client;

@@ -132,6 +132,11 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     &&
     assert
     
+    gtxn 0 Sender
+    gtxn 3 Sender
+    ==
+    assert
+
     int 0 //address index. This is the Sender of this transaction.
     txn ApplicationID //current smart contract
     txna ApplicationArgs 1 // 2nd txn app arg is order number
@@ -144,7 +149,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     app_local_put // store the ordernumber as the key
     int 0 //address index. This is the Sender of this transaction.
     byte "creator" //creator key
-    gtxn 0 Sender // store creator as value
+    gtxn 0 Sender // store creator as value. This is the sender of the pay transaction 
     app_local_put
     int 0 //address index. This is the Sender of this transaction.
     byte "version" //store version
