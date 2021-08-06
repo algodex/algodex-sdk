@@ -3,7 +3,7 @@ const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
 const { printTransactionDebug } = require('../../algodex_internal_api.js');
 
-const PRINT_TXNS = 1;
+const PRINT_TXNS = 0;
 
 const Test = {
     runPartialExecTest : async function (config, returnOuterTransactions = false) {

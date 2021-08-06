@@ -28,6 +28,7 @@ config = {
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
+
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
     config.appId = await createAppTest.runTest(config, true);
@@ -535,6 +536,58 @@ describe('ASA ESCROW ORDER BOOK', () => {
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
+  test ('Close asa escrow order - runGroupSizeWrongTest', async () => {
+      const result = await closeASAOrderTest.runGroupSizeWrongTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+
+  test ('Close asa escrow order - runGroupSizeWrongTest2', async () => {
+      const result = await closeASAOrderTest.runGroupSizeWrongTest2(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+
+  test ('Close asa escrow order - appCallMissing', async () => {
+      const result = await closeASAOrderTest.appCallMissing(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order - appCallMissing2', async () => {
+      const result = await closeASAOrderTest.appCallMissing2(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order - appCallWrongSender', async () => {
+      const result = await closeASAOrderTest.appCallWrongSender(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order - runASAWrongAddrCloseToTest', async () => {
+      const result = await closeASAOrderTest.runASAWrongAddrCloseToTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order - runAlgoWrongAddrCloseToTest', async () => {
+      const result = await closeASAOrderTest.runAlgoWrongAddrCloseToTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order - runASACloseToTxnHasNonZeroAmount', async () => {
+      const result = await closeASAOrderTest.runASACloseToTxnHasNonZeroAmount(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order - runAlgoCloseToTxnHasNonZeroAmount', async () => {
+      const result = await closeASAOrderTest.runAlgoCloseToTxnHasNonZeroAmount(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Close asa escrow order - runWrongOwnerProofTest', async () => {
+      const result = await closeASAOrderTest.runWrongOwnerProofTest(config);
+      expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
   test ('Close asa escrow order', async () => {
       const price = 1.45;
       const result = await closeASAOrderTest.runTest(config, price);
@@ -547,6 +600,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
+
 
 describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Partial execution)', () => {
 

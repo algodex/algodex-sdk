@@ -1,7 +1,7 @@
 const testHelper = require('../../test_helper.js');
 const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
-const PRINT_TXNS = 1;
+const PRINT_TXNS = 0;
 
 const Test = {
     runTest : async function (config, price, returnOuterTransactions = false) {
@@ -127,7 +127,6 @@ const Test = {
 
         return false;
     },
-
 
     runAlgoWrongOwnerProofTest : async function (config) {
         const outerTxns = await this.getOuterTransactions(config);

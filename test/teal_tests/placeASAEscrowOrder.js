@@ -2,7 +2,7 @@ const testHelper = require('../../test_helper.js');
 const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
 
-const PRINT_TXNS = 1;
+const PRINT_TXNS = 0;
 
 const Test = {
     runTest : async function (config, asaAmount, price, returnOuterTransactions) {
