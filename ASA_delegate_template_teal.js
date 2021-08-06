@@ -340,6 +340,8 @@ const asaDelegateTemplate = {
     // TXN 2   - BUYER TO BUYER:      (Optional) asset opt-in transaction (for buyer/executor)
     // TXN 2/3 - ESCROW TO BUYER:     Asset transfer (from escrow to buyer/executor)
     // TXN 3/4 - DEPENDS: don't check this here - different on whether closing or not
+                    Either: Pay transaction for fee refund (from buyer/executor to escrow)
+                    OR:     Pay transaction to close out to escrow owner (from escrow to escrow owner)
 
 anyExecute:
 
