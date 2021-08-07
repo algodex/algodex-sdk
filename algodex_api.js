@@ -105,29 +105,29 @@ const AlgodexApi = {
 
     //local, test, production
     initAlgodClient : function(environment) {
-        let server = null;
+        let algodServer = null;
         let port = null;
         let token = null;
 
         this.initSmartContracts(environment);
 
         if (environment == "local") {
-            server = constants.LOCAL_ALGOD_SERVER;
+            algodServer = constants.LOCAL_ALGOD_SERVER;
             port =   constants.LOCAL_ALGOD_PORT;
             token =  constants.LOCAL_ALGOD_TOKEN;
         } else if (environment == "test") {
-            server = constants.TEST_ALGOD_SERVER;
+            algodServer = constants.TEST_ALGOD_SERVER;
             port =   constants.TEST_ALGOD_PORT;
             token =  constants.TEST_ALGOD_TOKEN;
         } else if (environment == "production") {
-            server = constants.PROD_ALGOD_SERVER;
+            algodServer = constants.PROD_ALGOD_SERVER;
             port =   constants.PROD_ALGOD_PORT;
             token =  constants.PROD_ALGOD_TOKEN;
         } else {
             throw "environment must be local, test, or production";
         }
-
-        const algodClient = new algosdk.Algodv2(token, server, port);
+        console.log({server: algodServer, token, port});
+        const algodClient = new algosdk.Algodv2(token, algodServer, port);
         return algodClient;
     },
 
