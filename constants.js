@@ -29,9 +29,9 @@ module.exports = {
         //const indexer_server = "http://localhost";
         //const indexer_port = "8980";
 
-    TEST_ALGOD_SERVER:  ("ALGOD_SERVER" in process.env) ? process.env.ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
-    TEST_ALGOD_PORT: ("ALGOD_PORT" in process.env) ? process.env.ALGOD_PORT : "",
-    TEST_ALGOD_TOKEN: ("ALGOD_TOKEN" in process.env) ? process.env.ALGOD_TOKEN : "",
+    TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
+    TEST_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGOD_PORT : "",
+    TEST_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGOD_TOKEN : "",
 	TEST_BACKEND_API: "https://api-testnet.algodex.com/algodex-backend",
     TEST_INDEXER_SERVER: "https://testnet.algoexplorerapi.io/idx2",
     TEST_INDEXER_PORT: "",
