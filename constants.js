@@ -9,8 +9,8 @@
 module.exports = {
     DEBUG: 1,
     DEBUG_SMART_CONTRACT_SOURCE: ("DEBUG_SMART_CONTRACT_SOURCE" in process.env) ? parseInt(process.env.DEBUG_SMART_CONTRACT_SOURCE) : 0,
-    ESCROW_CONTRACT_VERSION: 1,
-    ORDERBOOK_CONTRACT_VERSION: 1,
+    ESCROW_CONTRACT_VERSION: 2,
+    ORDERBOOK_CONTRACT_VERSION: 2,
     MIN_ESCROW_BALANCE: 500000,
     MIN_ASA_ESCROW_BALANCE: 500000,
 
@@ -29,9 +29,9 @@ module.exports = {
         //const indexer_server = "http://localhost";
         //const indexer_port = "8980";
 
-    TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
-    TEST_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGOD_PORT : "",
-    TEST_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGOD_TOKEN : "",
+    TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
+    TEST_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
+    TEST_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
 	TEST_BACKEND_API: "https://api-testnet.algodex.com/algodex-backend",
     TEST_INDEXER_SERVER: "https://testnet.algoexplorerapi.io/idx2",
     TEST_INDEXER_PORT: "",
