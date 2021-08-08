@@ -15,15 +15,6 @@ const creatorMnemonic = "mass army warrior number blush distance enroll vivid ho
 //UUEUTRNQY7RUXESXRDO7HSYRSJJSSVKYVB4DI7X2HVVDWYOBWJOP5OSM3A
 const userMnemonic = "three satisfy build purse lens another idle fashion base equal echo recall proof hill shadow coach early palm act wealth dawn menu portion above mystery";
 
-// user declared algod connection parameters
-//const algodServer = "http://localhost";
-//const algodToken = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-//const algodPort = 4001;
-const algodServer = "https://testnet.algoexplorerapi.io";
-const algodToken = "";
-const algodPort = "";
-
-
 // declare application state storage (immutable)
 localInts = 2;
 localBytes = 1;
