@@ -9,7 +9,7 @@
 module.exports = {
     DEBUG: 1,
     DEBUG_SMART_CONTRACT_SOURCE: ("DEBUG_SMART_CONTRACT_SOURCE" in process.env) ? parseInt(process.env.DEBUG_SMART_CONTRACT_SOURCE) : 0,
-    INFO_SERVER: ("ALGODEX_INFO_HOST" in process.env) ? process.env.ALGODEX_INFO_HOST : "https://goapi.algodex.com",
+    INFO_SERVER: process.env.ALGODEX_INFO_HOST,
 
     ESCROW_CONTRACT_VERSION: 1,
     ORDERBOOK_CONTRACT_VERSION: 1,
