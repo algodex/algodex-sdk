@@ -962,6 +962,7 @@ const AlgodexInternalApi = {
         const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
 
         console.log(b64_encoded);
+        //console.log("DEBUG_SMART_CONTRACT_SOURCE: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
         if (constants.DEBUG_SMART_CONTRACT_SOURCE) {
             (async() => {
                 try {

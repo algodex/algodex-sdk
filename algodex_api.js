@@ -451,7 +451,7 @@ const AlgodexApi = {
             let enc = new TextEncoder();
             appArgs.push(enc.encode("close"));
             appArgs.push(enc.encode(orderBookEntry));
-            appArgs.push(enc.encode(creatorAddr));
+            // appArgs.push(enc.encode(creatorAddr));
             console.log("args length: " + appArgs.length);
             let accountInfo = await this.getAccountInfo(escrowAccountAddr);
             let assetId = null;
@@ -611,8 +611,6 @@ const AlgodexApi = {
 
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
 
-        appArgs.push(algosdk.decodeAddress(makerWalletAddr).publicKey);
-
         //console.log("owners bit addr: " + ownersBitAddr);
         console.log("herezzz_888");
         console.log(appArgs.length);
@@ -744,7 +742,6 @@ const AlgodexApi = {
         // add owners address as arg
         //ownersAddr = "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI";
         //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
-        appArgs.push(enc.encode(makerWalletAddr));
         console.log(appArgs.length);
 
         let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ASA_ESCROW_ORDER_BOOK_ID, 
