@@ -451,7 +451,7 @@ const AlgodexApi = {
             let enc = new TextEncoder();
             appArgs.push(enc.encode("close"));
             appArgs.push(enc.encode(orderBookEntry));
-            appArgs.push(enc.encode(creatorAddr));
+            // appArgs.push(enc.encode(creatorAddr));
             console.log("args length: " + appArgs.length);
             let accountInfo = await this.getAccountInfo(escrowAccountAddr);
             let assetId = null;
@@ -605,16 +605,17 @@ const AlgodexApi = {
         let appArgs = [];
         var enc = new TextEncoder();
         appArgs.push(enc.encode("open"));
-        console.log("before slice: " + generatedOrderEntry);
+        //console.log("before slice: " + generatedOrderEntry);
         console.log(generatedOrderEntry.slice(59));
-        console.log("after slice: " + generatedOrderEntry.slice(59));
+        //console.log("after slice: " + generatedOrderEntry.slice(59));
 
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
-
-        appArgs.push(algosdk.decodeAddress(makerWalletAddr).publicKey);
-
+        //let arr = Uint8Array.from([0x2]);
+        let arr = Uint8Array.from([constants.ESCROW_CONTRACT_VERSION]);
+        appArgs.push(arr);
+        console.log("app args 2: " + arr);
         //console.log("owners bit addr: " + ownersBitAddr);
-        console.log("herezzz_888");
+        //console.log("herezzz_888");
         console.log(appArgs.length);
         let logSigTrans = null;
 
@@ -740,11 +741,11 @@ const AlgodexApi = {
         console.log("after slice: " + generatedOrderEntry.slice(59));
 
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
+        appArgs.push(new Uint8Array([constants.ESCROW_CONTRACT_VERSION]));
 
         // add owners address as arg
         //ownersAddr = "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI";
         //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
-        appArgs.push(enc.encode(makerWalletAddr));
         console.log(appArgs.length);
 
         let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ASA_ESCROW_ORDER_BOOK_ID, 
