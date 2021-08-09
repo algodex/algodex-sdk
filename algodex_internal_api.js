@@ -793,8 +793,9 @@ const AlgodexInternalApi = {
         return;
     },
     getAccountInfo : async function getAccountInfo(accountAddr) {
+        // "https://testnet.algoexplorerapi.io/v2/accounts/"+accountAddr
         try {
-            const response = await axios.get(constants.TEST_ALGOD_SERVER + "/v2/accounts/"+accountAddr, {headers: {'X-Algo-API-Token': constants.TEST_ALGOD_TOKEN}});
+            const response = await axios.get(constants.TEST_ALGOD_SERVER + "/v2/accounts/"+accountAddr);
             //console.log(response);
             return response.data;
         } catch (error) {
@@ -962,11 +963,11 @@ const AlgodexInternalApi = {
 
         console.log(b64_encoded);
         //console.log("DEBUG_SMART_CONTRACT_SOURCE: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
-        if (constants.DEBUG_SMART_CONTRACT_SOURCE == 1 && constants.INFO_SERVER != "") {
+        if (constants.DEBUG_SMART_CONTRACT_SOURCE) {
             (async() => {
                 try {
                     console.log("trying to inspect");
-                    const response = await axios.post(constants.INFO_SERVER +  '/inspect/unpack', {
+                    const response = await axios.post('http://localhost:8000/inspect', {
                     
                             msgpack: b64_encoded,
                             responseType: 'text/plain',
