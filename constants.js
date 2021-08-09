@@ -42,7 +42,7 @@ module.exports = {
     PUBLIC_TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
     PUBLIC_TEST_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
     PUBLIC_TEST_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
-	PUBLIC_TEST_BACKEND_API: "https://api-testnet.algodex.com/algodex-backend",
+	PUBLIC_TEST_BACKEND_API: "https://api-testnet-public.algodex.com/algodex-backend",
     PUBLIC_TEST_INDEXER_SERVER: "https://testnet.algoexplorerapi.io/idx2",
     PUBLIC_TEST_INDEXER_PORT: "",
     PUBLIC_TEST_INDEXER_TOKEN: "",

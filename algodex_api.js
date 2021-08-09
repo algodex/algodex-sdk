@@ -76,7 +76,7 @@ const AlgodexApi = {
         console.log("ASA APP ID:", ASA_ESCROW_ORDER_BOOK_ID)
 
         dexInternal.initSmartContracts(ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID);
-
+        console.log({ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID});
     },
 
     getOrderBookId : function(isAlgoEscrowApp) {
@@ -115,6 +115,9 @@ const AlgodexApi = {
         }
 
         const indexerClient = new algosdk.Indexer(token, server, port);
+        
+        console.log({server, port, token});
+
         return indexerClient;
     },
 
