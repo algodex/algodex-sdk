@@ -57,6 +57,9 @@ const AlgodexApi = {
         } else if (environment == "test") {
             ALGO_ESCROW_ORDER_BOOK_ID = constants.TEST_ALGO_ORDERBOOK_APPID;
             ASA_ESCROW_ORDER_BOOK_ID = constants.TEST_ASA_ORDERBOOK_APPID;
+        } else if (environment == "public_test") {
+            ALGO_ESCROW_ORDER_BOOK_ID = constants.PUBLIC_TEST_ALGO_ORDERBOOK_APPID;
+            ASA_ESCROW_ORDER_BOOK_ID = constants.PUBLIC_TEST_ALGO_ORDERBOOK_APPID;
         } else if (environment == "production") {
             ALGO_ESCROW_ORDER_BOOK_ID = constants.PROD_ALGO_ORDERBOOK_APPID;
             ASA_ESCROW_ORDER_BOOK_ID = constants.PROD_ASA_ORDERBOOK_APPID;
@@ -91,6 +94,10 @@ const AlgodexApi = {
             server = constants.TEST_INDEXER_SERVER;
             port =   constants.TEST_INDEXER_PORT;
             token =  constants.TEST_INDEXER_TOKEN;
+        } else if (environment == "public_test") {
+            server = constants.PUBLIC_TEST_INDEXER_SERVER;
+            port =   constants.PUBLIC_TEST_INDEXER_PORT;
+            token =  constants.PUBLIC_TEST_INDEXER_TOKEN;
         } else if (environment == "production") {
             server = constants.PROD_INDEXER_SERVER;
             port =   constants.PROD_INDEXER_PORT;
@@ -119,6 +126,10 @@ const AlgodexApi = {
             algodServer = constants.TEST_ALGOD_SERVER;
             port =   constants.TEST_ALGOD_PORT;
             token =  constants.TEST_ALGOD_TOKEN;
+        } else if (environment == "public_test") {
+            algodServer = constants.PUBLIC_TEST_ALGOD_SERVER;
+            port =   constants.PUBLIC_TEST_ALGOD_SERVER;
+            token =  constants.PUBLIC_TEST_ALGOD_SERVER;
         } else if (environment == "production") {
             algodServer = constants.PROD_ALGOD_SERVER;
             port =   constants.PROD_ALGOD_PORT;

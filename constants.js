@@ -39,6 +39,15 @@ module.exports = {
     TEST_ALGO_ORDERBOOK_APPID: 16021155,
     TEST_ASA_ORDERBOOK_APPID: 16021157,
 
+    PUBLIC_TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
+    PUBLIC_TEST_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
+    PUBLIC_TEST_ALGOD_PORT: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
+	PUBLIC_TEST_ALGOD_PORT: "https://api-testnet.algodex.com/algodex-backend",
+    PUBLIC_TEST_ALGOD_PORT: "https://testnet.algoexplorerapi.io/idx2",
+    PUBLIC_TEST_ALGOD_PORT: "",
+    PUBLIC_TEST_ALGOD_PORT: "",
+    PUBLIC_TEST_ALGOD_PORT: 22045503,
+    PUBLIC_TEST_ALGOD_PORT: 22045522,
 
     PROD_ALGOD_SERVER: "https://algoexplorerapi.io",
     PROD_ALGOD_PORT: "",
