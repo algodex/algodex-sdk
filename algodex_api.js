@@ -128,8 +128,8 @@ const AlgodexApi = {
             token =  constants.TEST_ALGOD_TOKEN;
         } else if (environment == "public_test") {
             algodServer = constants.PUBLIC_TEST_ALGOD_SERVER;
-            port =   constants.PUBLIC_TEST_ALGOD_SERVER;
-            token =  constants.PUBLIC_TEST_ALGOD_SERVER;
+            port =   constants.PUBLIC_TEST_ALGOD_PORT;
+            token =  constants.PUBLIC_TEST_ALGOD_TOKEN;
         } else if (environment == "production") {
             algodServer = constants.PROD_ALGOD_SERVER;
             port =   constants.PROD_ALGOD_PORT;
