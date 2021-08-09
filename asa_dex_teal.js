@@ -153,8 +153,10 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     app_local_put
     int 0 //address index. This is the Sender of this transaction.
     byte "version" //store version
-    int 1
-    app_local_put
+    txna ApplicationArgs 2 //version
+    int 0
+    getbyte
+    app_local_put // store the version
   ret_success:
     int 1
     return

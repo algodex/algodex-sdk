@@ -487,6 +487,8 @@ const GenerateTransactions = {
         var enc = new TextEncoder();
         appArgs.push(enc.encode("open"));
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
+        appArgs.push(new Uint8Array([constants.ESCROW_CONTRACT_VERSION]));
+
         //appArgs.push(algosdk.decodeAddress(makerAddr).publicKey);
 
         //console.log("owners bit addr: " + ownersBitAddr);
@@ -569,11 +571,11 @@ const GenerateTransactions = {
         appArgs.push(enc.encode("open"));
 
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
+        appArgs.push(new Uint8Array([constants.ESCROW_CONTRACT_VERSION]));
 
         // add owners address as arg
         //ownersAddr = "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI";
         //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
-        appArgs.push(enc.encode(makerAddr));
         console.log(appArgs.length);
 
         let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, appId, 
