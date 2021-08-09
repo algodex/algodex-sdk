@@ -9,23 +9,23 @@
 module.exports = {
     DEBUG: 1,
     DEBUG_SMART_CONTRACT_SOURCE: ("DEBUG_SMART_CONTRACT_SOURCE" in process.env) ? parseInt(process.env.DEBUG_SMART_CONTRACT_SOURCE) : 0,
+    INFO_SERVER: process.env.ALGODEX_INFO_HOST,
+
     ESCROW_CONTRACT_VERSION: 3,
     ORDERBOOK_CONTRACT_VERSION: 3,
     MIN_ESCROW_BALANCE: 500000,
     MIN_ASA_ESCROW_BALANCE: 500000,
 
-    LOCAL_ALGOD_SERVER: "http://192.168.1.211",
-    //LOCAL_ALGOD_SERVER: "http://127.0.0.1",
-    LOCAL_ALGOD_PORT: 4001,
-
-    LOCAL_ALGOD_TOKEN: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    LOCAL_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
+    LOCAL_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
+    LOCAL_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
 	LOCAL_BACKEND_API: "http://localhost/algodex-backend",
     LOCAL_INDEXER_SERVER: "https://testnet.algoexplorerapi.io/idx2",
     LOCAL_INDEXER_PORT: "",
     LOCAL_INDEXER_TOKEN: "",
     //intentionally same as test, assuming testnet being used on local setup
     LOCAL_ALGO_ORDERBOOK_APPID: 18988007,
-    LOCAL_ASA_ORDERBOOK_APPID: 18988134, 
+    LOCAL_ASA_ORDERBOOK_APPID: 18988134,
         //const indexer_server = "http://localhost";
         //const indexer_port = "8980";
 

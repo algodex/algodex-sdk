@@ -66,6 +66,14 @@ const AlgodexApi = {
         } else {
             throw "environment must be local, test, or production";
         }
+        if ("ALGODEX_ALGO_ESCROW_APP" in process.env) {
+            ALGO_ESCROW_ORDER_BOOK_ID = parseInt(process.env.ALGODEX_ALGO_ESCROW_APP)
+        }
+        if ("ALGODEX_ASA_ESCROW_APP" in process.env) {
+            ASA_ESCROW_ORDER_BOOK_ID = parseInt(process.env.ALGODEX_ASA_ESCROW_APP)
+        }
+        console.log("ALGO APP ID:", ALGO_ESCROW_ORDER_BOOK_ID)
+        console.log("ASA APP ID:", ASA_ESCROW_ORDER_BOOK_ID)
 
         dexInternal.initSmartContracts(ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID);
 
