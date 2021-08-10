@@ -72,11 +72,11 @@ const AlgodexApi = {
         if ("ALGODEX_ASA_ESCROW_APP" in process.env) {
             ASA_ESCROW_ORDER_BOOK_ID = parseInt(process.env.ALGODEX_ASA_ESCROW_APP)
         }
-        console.log("ALGO APP ID:", ALGO_ESCROW_ORDER_BOOK_ID)
-        console.log("ASA APP ID:", ASA_ESCROW_ORDER_BOOK_ID)
+        //console.log("ALGO APP ID:", ALGO_ESCROW_ORDER_BOOK_ID)
+        //console.log("ASA APP ID:", ASA_ESCROW_ORDER_BOOK_ID)
 
         dexInternal.initSmartContracts(ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID);
-        console.log({ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID});
+        //console.log({ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID});
     },
 
     getOrderBookId : function(isAlgoEscrowApp) {
@@ -148,7 +148,7 @@ const AlgodexApi = {
         } else {
             throw "environment must be local, test, or production";
         }
-        console.log({server: algodServer, token, port});
+        //console.log({server: algodServer, token, port});
         const algodClient = new algosdk.Algodv2(token, algodServer, port);
         return algodClient;
     },
