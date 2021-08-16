@@ -239,7 +239,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna Accounts 1 // 3rd argument is order creator
+    txna Accounts 1 // account arg is order creator
     ==
     assert
 
@@ -327,7 +327,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna Accounts 1 // 3rd argument is order creator
+    txna Accounts 1 // account arg is order creator
     ==
     assert
 

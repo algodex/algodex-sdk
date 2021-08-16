@@ -206,7 +206,7 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna Accounts 1 // 3rd argument is order creator
+    txna Accounts 1 // account arg is order creator
     ==
     assert
 
@@ -272,9 +272,9 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     int 0
     byte "creator"
     app_local_get // check creator matches expectation
-    txna Accounts 1 // 3rd argument is order creator
+    txna Accounts 1 // account arg is order creator
     ==
-    pop
+    assert
 
     int 0 // Escrow account containing order
     txn ApplicationID // Current stateful smart contract
