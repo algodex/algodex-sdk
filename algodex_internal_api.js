@@ -17,11 +17,12 @@ const EQUAL = 0;
 const GREATER_THAN = 1;
 
 let MyAlgo = null;
+let myAlgoWalletUtil = null;
 if (typeof window != 'undefined') {
     MyAlgo = require('@randlabs/myalgo-connect');
+    myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 }
 
-const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 //require('./dex_teal.js');

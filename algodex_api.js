@@ -9,12 +9,12 @@ const http = require('http');
 const algosdk = require('algosdk');
 
 let MyAlgo = null;
-
+let myAlgoWalletUtil = null;
 if (typeof window != 'undefined') {
     MyAlgo = require('@randlabs/myalgo-connect');
+    myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 }
 
-const myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 require('./algo_delegate_template_teal.js');
 require('./ASA_delegate_template_teal.js');
 //require('./dex_teal.js');
