@@ -679,7 +679,8 @@ const AlgodexInternalApi = {
                 // only look for buy orders in this case
                 continue;
             }
-        
+            orderBookEntry.price = parseFloat(orderBookEntry.price);
+
             queuedOrders.push(orderBookEntry);
         }
 
