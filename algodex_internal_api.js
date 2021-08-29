@@ -469,12 +469,12 @@ const AlgodexInternalApi = {
             const price = new bigDecimal(d).divide(new bigDecimal(n));
             
 
-            if (takerCombOrderBalance['algoBalance'] < algoAmountReceiving + txnFee) {
+           /* if (takerCombOrderBalance['algoBalance'] < algoAmountReceiving + txnFee) {
                 algoAmountReceiving = Math.floor(takerCombOrderBalance['algoBalance']);
 
                 console.log("here3z");
                 console.log("reducing algoAmount to " + algoAmountReceiving);
-            }
+            }*/
             if (algoAmountReceiving - txnFee < 0) {
                 //dont allow overspend from user's wallet
                 console.log("here4");
