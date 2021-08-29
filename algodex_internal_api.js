@@ -467,7 +467,7 @@ const AlgodexInternalApi = {
             console.log("algoAmount: " + algoAmountReceiving);
             
             const price = new bigDecimal(d).divide(new bigDecimal(n));
-            
+            const bDecOne = new bigDecimal(1);
 
            /* if (takerCombOrderBalance['algoBalance'] < algoAmountReceiving + txnFee) {
                 algoAmountReceiving = Math.floor(takerCombOrderBalance['algoBalance']);
@@ -492,7 +492,23 @@ const AlgodexInternalApi = {
             console.log("here6");
             console.log("asa amount: " + asaAmount.getValue());
 
-            if (asaAmount.getValue().includes('.')) {
+            if (asaAmount.getValue().includes('.') && 
+                asaAmount.compareTo(bDecOne) == LESS_THAN) {
+                console.log("here6aa asa less than one, changing ASA amount to 1");
+                asaAmount = bDecOne;
+                algoAmountReceiving = price.multiply(bDecOne);
+                if (algoAmountReceiving.getValue().includes('.')) {
+                    // give slightly worse deal for taker if decimal
+                    algoAmountReceiving = algoAmountReceiving.floor();
+                    console.log("here6aa decreasing algoAmount due to decimal: " + algoAmountReceiving.getValue());
+                }
+                if (new bigDecimal(currentEscrowAlgoBalance).compareTo(algoAmountReceiving) == LESS_THAN) {
+                    algoAmountReceiving = new bigDecimal(currentEscrowAlgoBalance);
+                }
+
+                algoAmountReceiving = algoAmountReceiving.subtract(new bigDecimal(0.002 * 1000000)); // reduce for fees
+
+            } else if (asaAmount.getValue().includes('.')) {
                 // round down decimals. possibly change this later?
                 asaAmount = asaAmount.floor();
 
