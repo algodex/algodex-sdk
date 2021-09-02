@@ -294,6 +294,15 @@ const AlgodexApi = {
                 continue;
             }
 
+            if (isSellingASA && parseFloat(takerOrderBalance['asaBalance']) <= 0) {
+                console.log('breaking due to 0 asaBalance balance!');
+                break;
+            }
+            if (!isSellingASA && parseFloat(takerOrderBalance['algoBalance']) <= 0) {
+                console.log('breaking due to 0 algoBalance balance!');
+                break;
+            }
+
             if (isSellingASA && parseFloat(takerOrderBalance['limitPrice']) > queuedOrders[i]['price']) {
                 //buyer & seller prices don't match
                 continue;
