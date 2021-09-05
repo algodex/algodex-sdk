@@ -101,6 +101,17 @@ exports.waitForConfirmation = function(algodClient, txId) {
 };
 
 /*
+ * Wait for a transaction to be confirmed into the blockchain
+ * @param   {Object}  accountInfo: account information object
+ * @returns {int} Min balance is returned.
+ */
+exports.getMinWalletBalance = function(accountInfo) {
+	return algodex.getMinWalletBalance(accountInfo);
+};
+
+
+
+/*
  * @param   {String} accountAddr: Account Address to get account info from.
  * @returns {Object} account information
  */

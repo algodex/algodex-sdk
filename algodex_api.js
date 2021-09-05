@@ -86,6 +86,24 @@ const AlgodexApi = {
         return ASA_ESCROW_ORDER_BOOK_ID
     },
     
+    getMinWalletBalance : async function(accountInfo) {
+        accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
+        console.log("in getMinWalletBalance. Checking: " + accountInfo.address);
+        console.log({accountInfo});
+
+        let minBalance = 0;
+
+        minBalance += 100000 * (accountInfo['created-apps'].length); // Apps
+        minBalance += (25000+3500) * accountInfo['apps-total-schema']['num-uint']; // Total Ints
+        minBalance += (25000+25000) * accountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
+        minBalance += accountInfo['assets'].length * 100000;
+        minBalance += 1000000;
+
+        console.log({ minBalance});
+
+        return minBalance;
+    },
+
     //Options are: local, test, production
     initIndexer : function(environment) {
         let server = null;
@@ -213,7 +231,6 @@ const AlgodexApi = {
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
         let transNeededUserSigList = [];
-        
         let execAccountInfo = await this.getAccountInfo(userWalletAddr);
         let alreadyOptedIn = false;
         console.log("herezz56");
