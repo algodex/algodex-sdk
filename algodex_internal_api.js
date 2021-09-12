@@ -8,7 +8,7 @@
 const http = require('http');
 const algosdk = require('algosdk');
 
-const bigDecimal = require('js-big-decimal');
+const BigN = require('js-big-decimal');
 const TextEncoder = require("text-encoding").TextEncoder;
 const axios = require('axios').default;
 
@@ -151,21 +151,21 @@ const AlgodexInternalApi = {
 
             let executionFees = 0.004 * 1000000;
             const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
-            const price = new bigDecimal(d).divide(new bigDecimal(n), 30);
-            const bDecOne = new bigDecimal(1);
+            const price = new BigN(d).divide(new BigN(n), 30);
+            const bDecOne = new BigN(1);
 
-            escrowAsaTradeAmount = new bigDecimal(escrowAsaTradeAmount);
+            escrowAsaTradeAmount = new BigN(escrowAsaTradeAmount);
             let algoTradeAmount = price.multiply(escrowAsaTradeAmount);
             if (algoTradeAmount.getValue().includes('.')) {
                 algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
             }
             //FIXME - check if lower than order balance
-            if (algoTradeAmount.compareTo(new bigDecimal(takerCombOrderBalance['algoBalance'])) == GREATER_THAN
+            if (algoTradeAmount.compareTo(new BigN(takerCombOrderBalance['algoBalance'])) == GREATER_THAN
                  && algoTradeAmount.compareTo(bDecOne) == GREATER_THAN
-                 && algoTradeAmount.subtract(new bigDecimal(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == GREATER_THAN) {
+                 && algoTradeAmount.subtract(new BigN(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == GREATER_THAN) {
 
                 console.log("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount.getValue()); 
-                algoTradeAmount = new bigDecimal(Math.floor(takerCombOrderBalance['algoBalance']));
+                algoTradeAmount = new BigN(Math.floor(takerCombOrderBalance['algoBalance']));
                 escrowAsaTradeAmount = algoTradeAmount.divide(price);
                 console.log("checking max: " + escrowAsaTradeAmount.getValue() + " " + 1 );
                 if (escrowAsaTradeAmount.compareTo(bDecOne) == LESS_THAN) { //don't allow 0 value
@@ -187,8 +187,8 @@ const AlgodexInternalApi = {
                         console.log("here999d wallet balance not enough! ", takerCombOrderBalance['walletAlgoBalance'], 
                             executionFees, parseInt(algoTradeAmount.getValue()));
 
-                        algoTradeAmount = new bigDecimal(takerCombOrderBalance['walletAlgoBalance'])
-                            .subtract(new bigDecimal(executionFees));
+                        algoTradeAmount = new BigN(takerCombOrderBalance['walletAlgoBalance'])
+                            .subtract(new BigN(executionFees));
                       
                         escrowAsaTradeAmount = algoTradeAmount.divide(price);
 
@@ -218,8 +218,8 @@ const AlgodexInternalApi = {
                 }
             }*/
 
-            if (new bigDecimal(currentEscrowASABalance).subtract(escrowAsaTradeAmount)
-                    .compareTo(new bigDecimal(min_asa_balance)) == GREATER_THAN) {
+            if (new BigN(currentEscrowASABalance).subtract(escrowAsaTradeAmount)
+                    .compareTo(new BigN(min_asa_balance)) == GREATER_THAN) {
 
                 console.log("asa escrow here9992 (currentASABalance - escrowAsaAmount) > min_asa_balance",
                         currentEscrowASABalance, escrowAsaTradeAmount.getValue(), min_asa_balance);
@@ -466,8 +466,8 @@ const AlgodexInternalApi = {
             console.log("takerOrderBalance: " + this.dumpVar(takerCombOrderBalance));
             console.log("algoAmount: " + algoAmountReceiving);
             
-            const price = new bigDecimal(d).divide(new bigDecimal(n));
-            const bDecOne = new bigDecimal(1);
+            const price = new BigN(d).divide(new BigN(n));
+            const bDecOne = new BigN(1);
 
            /* if (takerCombOrderBalance['algoBalance'] < algoAmountReceiving + txnFee) {
                 algoAmountReceiving = Math.floor(takerCombOrderBalance['algoBalance']);
@@ -487,13 +487,28 @@ const AlgodexInternalApi = {
                 console.log("can't afford, returning early");
                 return null; // can't afford any transaction!
             }
-            algoAmountReceiving = new bigDecimal(algoAmountReceiving);
+            algoAmountReceiving = new BigN(algoAmountReceiving);
             let asaAmount = algoAmountReceiving.divide(price, 30);
             console.log("here6");
             console.log("asa amount: " + asaAmount.getValue());
 
+            let hasSpecialCaseOkPrice = false;
             if (asaAmount.getValue().includes('.') && 
                 asaAmount.compareTo(bDecOne) == LESS_THAN) {
+                // Since we can only sell at least one unit, figure out the 'real' price we are selling at,
+                // since we will need to adjust upwards the ASA amount to 1, giving a worse deal for the seller (taker)
+                let adjPrice = asaAmount.multiply(price);
+                const takerLimitPrice = new BigN(takerCombOrderBalance['limitPrice']);
+                console.log("here6a2 figuring out adjusted price for hasSpecialCaseGoodPrice",
+                        {adjPrice, asaAmount, price, takerLimitPrice});
+
+                if (adjPrice.compareTo(takerLimitPrice) == GREATER_THAN) {
+                    hasSpecialCaseOkPrice = true;
+                }
+            }
+
+            if (asaAmount.getValue().includes('.') && 
+                asaAmount.compareTo(bDecOne) == LESS_THAN && hasSpecialCaseOkPrice) {
                 console.log("here6aa asa less than one, changing ASA amount to 1");
                 asaAmount = bDecOne;
                 algoAmountReceiving = price.multiply(bDecOne);
@@ -502,11 +517,11 @@ const AlgodexInternalApi = {
                     algoAmountReceiving = algoAmountReceiving.floor();
                     console.log("here6aa decreasing algoAmount due to decimal: " + algoAmountReceiving.getValue());
                 }
-                if (new bigDecimal(currentEscrowAlgoBalance).compareTo(algoAmountReceiving) == LESS_THAN) {
-                    algoAmountReceiving = new bigDecimal(currentEscrowAlgoBalance);
+                if (new BigN(currentEscrowAlgoBalance).compareTo(algoAmountReceiving) == LESS_THAN) {
+                    algoAmountReceiving = new BigN(currentEscrowAlgoBalance);
                 }
 
-                algoAmountReceiving = algoAmountReceiving.subtract(new bigDecimal(0.002 * 1000000)); // reduce for fees
+                algoAmountReceiving = algoAmountReceiving.subtract(new BigN(0.002 * 1000000)); // reduce for fees
 
             } else if (asaAmount.getValue().includes('.')) {
                 // round down decimals. possibly change this later?
@@ -521,10 +536,10 @@ const AlgodexInternalApi = {
                 console.log("recalculating receiving amount to: " + algoAmountReceiving.getValue());
             }
 
-            if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(asaAmount) == LESS_THAN) {
+            if (new BigN(takerCombOrderBalance['asaBalance']).compareTo(asaAmount) == LESS_THAN) {
                 console.log("here8");
                 console.log("here8 reducing asa amount due to taker balance: ", asaAmount.getValue());
-                asaAmount = new bigDecimal(takerCombOrderBalance['asaBalance']);
+                asaAmount = new BigN(takerCombOrderBalance['asaBalance']);
                 console.log("here8 asa amount is now: ", asaAmount.getValue());
 
                 algoAmountReceiving = price.multiply(asaAmount);
