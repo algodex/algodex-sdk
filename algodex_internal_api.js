@@ -89,7 +89,8 @@ const AlgodexInternalApi = {
         return JSON.stringify(x, null, 2);
     },
     getExecuteOrderTransactionsAsTakerFromOrderEntry : 
-        async function getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, orderBookEscrowEntry, takerCombOrderBalance) {
+        async function getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, orderBookEscrowEntry, 
+          takerCombOrderBalance, params) {
             console.log("looking at another orderbook entry to execute orderBookEscrowEntry: " + this.dumpVar(orderBookEscrowEntry));
 
             // rec contains the original order creators address
@@ -107,22 +108,21 @@ const AlgodexInternalApi = {
             if (!isASAEscrow) {
                 console.log("NOT asa escrow");
                 return await this.getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient
-                    ,lsig, takerCombOrderBalance);
+                    ,lsig, takerCombOrderBalance, params);
             } else {
                 console.log("asa escrow");
                 return await this.getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient, 
-                    lsig, takerCombOrderBalance);
+                    lsig, takerCombOrderBalance, params);
             }   
     },
 // Helper function to get ASA Order Txns (3-4 transactions)
 
     getExecuteASAOrderTxns : async function getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient, 
-                lsig, takerCombOrderBalance) {
+                lsig, takerCombOrderBalance, params) {
         console.log("inside executeASAOrder!", this.dumpVar(takerCombOrderBalance));
         console.log("orderBookEscrowEntry ", this.dumpVar(orderBookEscrowEntry));
         try {
             let retTxns = [];
-            let params = await algodClient.getTransactionParams().do();
             let appAccts = [];
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
@@ -426,7 +426,7 @@ const AlgodexInternalApi = {
     // escrowAsaAmount is not used currently
     getExecuteAlgoOrderTxnsAsTaker : 
         async function getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient, lsig,
-                    takerCombOrderBalance) {
+                    takerCombOrderBalance, params) {
         try {
             console.log("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
                 this.dumpVar(orderBookEscrowEntry), algodClient,
@@ -451,7 +451,6 @@ const AlgodexInternalApi = {
             let n = orderBookEntrySplit[0];
             let d = orderBookEntrySplit[1];
 
-            let params = await algodClient.getTransactionParams().do();
             let appAccts = [];
             appAccts.push(orderCreatorAddr);
             appAccts.push(takerAddr);

@@ -306,6 +306,7 @@ const AlgodexApi = {
         let txnFee = 0.004 * 1000000 //FIXME minimum fee;
 
         //console.log("queued orders: ", this.dumpVar(queuedOrders));
+        let params = await algodClient.getTransactionParams().do();
 
         for (let i = 0; i < queuedOrders.length; i++) {
             if (takerOrderBalance['orderAlgoAmount'] <= txnFee) {
@@ -330,9 +331,10 @@ const AlgodexApi = {
                 //buyer & seller prices don't match
                 continue;
             }
+
             let singleOrderTransList = 
                 await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, 
-                    queuedOrders[i], takerOrderBalance);
+                    queuedOrders[i], takerOrderBalance, params);
 
             if (singleOrderTransList == null) {
                 // Overspending issue
