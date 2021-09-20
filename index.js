@@ -157,11 +157,12 @@ exports.getNumeratorAndDenominatorFromPrice = function(limitPrice) {
  * @param {Boolean} isASAEscrow      : true or false. True if the escrow account is set up to hold (and sell) ASAs
  * @param {String} orderCreatorAddr  : address of the owner of the escrow, i.e. the wallet that created the order. Not the escrow address
  * @param {Number} assetId           : id of the asset
+ * @param {Number} version           : version of the escrow contract
  */
 exports.createOrderBookEntryObj = function(blockChainOrderVal, price, n, d, min, escrowAddr, algoAmount, asaAmount,
-                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId) {
+                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId, version) {
 	return algodex.createOrderBookEntryObj(blockChainOrderVal, price, n, d, min, escrowAddr, algoAmount, asaAmount,
-                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId);
+                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId, version);
 };
 
 
@@ -214,10 +215,11 @@ exports.executeOrderAsMakerAndTaker = function(algodClient, isSellingASA, assetI
  * @param {String} escrowAccountAddr: public address of the escrow account
  * @param {String}       creatorAddr: public address of the owner of the escrow account
  * @param {Object}    orderBookEntry: blockchain order book string. For example "2500-625-0-15322902" (N-D-min-assetId)
+ * @param {int}       version:        escrow version as an int.
  * @returns {Object} Promise for when the transaction is fully confirmed
  */
-exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry) {
-	return algodex.closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry);
+exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version) {
+	return algodex.closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version);
 };
 
 /*
@@ -256,8 +258,8 @@ exports.placeASAToSellASAOrderIntoOrderbook = function(algodClient, makerWalletA
 ////////////////////////////////////
 // DEVELOPMENT PASS-THRU FUNCTIONS /
 ////////////////////////////////////
-exports.buildDelegateTemplateFromArgs = function(min, assetid, N, D, writerAddr, isASAEscrow) {
-	return algodex.buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow);
+exports.buildDelegateTemplateFromArgs = function(min, assetid, N, D, writerAddr, isASAEscrow, version) {
+	return algodex.buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version);
 };
 
 exports.getLsigFromProgramSource = function(algosdk, algodClient, program, logProgramSource) {

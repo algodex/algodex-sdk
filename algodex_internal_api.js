@@ -24,7 +24,9 @@ if (typeof window != 'undefined') {
 }
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
+const algoDelegateTemplateV2 = require('./algo_delegate_template_teal_v2.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
+const asaDelegateTemplateV2 = require('./ASA_delegate_template_teal_v2.js');
 //require('./dex_teal.js');
 
 //FIXME - import below from algodex_api.js
@@ -99,7 +101,7 @@ const AlgodexInternalApi = {
 
             let isASAEscrow = orderBookEscrowEntry['isASAEscrow'];
 
-            let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,orderCreatorAddr, isASAEscrow);
+            let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,orderCreatorAddr, isASAEscrow, orderBookEscrowEntry['version']);
             const enableLsigLogging = constants.DEBUG_SMART_CONTRACT_SOURCE; // escrow logging 
             let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, escrowSource,enableLsigLogging);
             if (!isASAEscrow) {
@@ -698,9 +700,9 @@ const AlgodexInternalApi = {
 
         // FIXME: don't allow executions against own orders! check wallet address doesn't match
         // takerWalletAddr
+        
         for (let i = 0; i < allOrderBookOrders.length; i++) {
             let orderBookEntry = allOrderBookOrders[i];
-            //console.log("orderBookEntry: ", this.dumpVar(orderBookEntry) );
 
             if (orderBookEntry['escrowOrderType'] == 'buy' && !isSellingASA_AsTakerOrder) {
                 // only look for sell orders in this case
@@ -1015,7 +1017,7 @@ const AlgodexInternalApi = {
     },
 
     buildDelegateTemplateFromArgs : 
-      function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow) {
+      function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version=3) {
         let orderBookId = null;
         if (isASAEscrow) {
             orderBookId = ASA_ESCROW_ORDER_BOOK_ID;
@@ -1034,14 +1036,25 @@ const AlgodexInternalApi = {
             throw "one or more null arguments in buildDelegateTemplateFromArgs!";
             return null;
         }
-        console.log("here913 in buildDelegateTemplateFromArgs. min, assetid, N, D, writerAddr, isASAEscrow, orderbookId",
-            min, assetid, N, D, writerAddr, isASAEscrow, orderBookId);
-
+        console.log("here913 in buildDelegateTemplateFromArgs. min, assetid, N, D, writerAddr, isASAEscrow, orderbookId, version",
+            min, assetid, N, D, writerAddr, isASAEscrow, orderBookId, version);
         let delegateTemplate = null;
         if (!isASAEscrow) {
-            delegateTemplate = algoDelegateTemplate.getTealTemplate();
+            if (version == 4) {
+                console.log('not isASAEscrow, using version 4');
+                delegateTemplate = algoDelegateTemplateV2.getTealTemplate();
+            } else {
+                console.log('not isASAEscrow, using version 3');
+                delegateTemplate = algoDelegateTemplate.getTealTemplate();
+            }
         } else {
-            delegateTemplate = asaDelegateTemplate.getTealTemplate();
+            if (version == 4) {
+                console.log('isASAEscrow, using version 4');
+                delegateTemplate = asaDelegateTemplateV2.getTealTemplate();
+            } else {
+                console.log('isASAEscrow, using version 3');
+                delegateTemplate = asaDelegateTemplate.getTealTemplate();
+            }
         }
         console.log("min is: " + min);
         let res = delegateTemplate.split("<min>").join(min);
@@ -1051,7 +1064,7 @@ const AlgodexInternalApi = {
         res = res.split("<contractWriterAddr>").join(writerAddr);
         res = res.split("<orderBookId>").join(orderBookId);
 
-
+        //console.log(res);
         return res;
 
     },

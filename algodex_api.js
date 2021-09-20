@@ -205,7 +205,7 @@ const AlgodexApi = {
         }
     },
     createOrderBookEntryObj : function createOrderBookEntryObj (blockChainOrderVal, price, n, d, min, escrowAddr, 
-                                            algoBalance, asaBalance, escrowOrderType, isASAEscrow, orderCreatorAddr, assetId) {
+                                            algoBalance, asaBalance, escrowOrderType, isASAEscrow, orderCreatorAddr, assetId, version=3) {
         const orderEntry = 
             {
                 orderEntry: blockChainOrderVal, // this should match what's in the blockchain
@@ -219,7 +219,8 @@ const AlgodexApi = {
                 escrowOrderType: escrowOrderType,
                 isASAEscrow: isASAEscrow,
                 orderCreatorAddr: orderCreatorAddr,
-                assetId: assetId
+                assetId: assetId,
+                version: version
             };
         return orderEntry;
     },
@@ -227,7 +228,8 @@ const AlgodexApi = {
     executeOrder : async function executeOrder (algodClient, isSellingASA, assetId, 
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
 
-        console.log("in executeOrderClickz");
+        console.log("in executeOrder");
+        
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
         let transNeededUserSigList = [];
@@ -485,11 +487,11 @@ const AlgodexApi = {
         return;
     },
 
-    closeOrderFromOrderBookEntry : async function closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry) {
+    closeOrderFromOrderBookEntry : async function closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version) {
             let valSplit = orderBookEntry.split("-");
             console.log("closing order from order book entry!");
-            console.log("escrowAccountAddr, creatorAddr, orderBookEntry", 
-                escrowAccountAddr, creatorAddr, orderBookEntry);
+            console.log("escrowAccountAddr, creatorAddr, orderBookEntry, version", 
+                escrowAccountAddr, creatorAddr, orderBookEntry, version);
 
             let n = valSplit[0];
             let d = valSplit[1];
@@ -510,7 +512,7 @@ const AlgodexApi = {
             }
             const isAsaOrder = (assetId != null);
 
-            let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder);
+            let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder, version);
             let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
             console.log("lsig is: " + lsig.address());            
             if (assetId == null) {
@@ -589,7 +591,7 @@ const AlgodexApi = {
 
         console.log("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
             makerWalletAddr, n, d, min, assetId);
-        let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, false);
+        let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, false, constants.ESCROW_CONTRACT_VERSION);
 
         let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let generatedOrderEntry = dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId);
@@ -713,7 +715,7 @@ const AlgodexApi = {
 
         let outerTxns = [];
 
-        let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, true);
+        let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, true, constants.ESCROW_CONTRACT_VERSION);
 
         let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let generatedOrderEntry = dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId);
@@ -856,8 +858,8 @@ const AlgodexApi = {
         return dexInternal.printTransactionDebug(signedTxns);
     },
 
-    buildDelegateTemplateFromArgs : function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow) {
-        return dexInternal.buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow);
+    buildDelegateTemplateFromArgs : function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version=3) {
+        return dexInternal.buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version);
     },
 
     getLsigFromProgramSource : async function getLsigFromProgramSource(algosdk, algodClient, program, logProgramSource) {
