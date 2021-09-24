@@ -422,30 +422,19 @@ const AlgodexInternalApi = {
         }
     },
 
-    // Helper function to execute the order (3 transactions)
-    // escrowAsaAmount is not used currently
-    getExecuteAlgoOrderTxnsAsTaker : 
-        async function getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient, lsig,
-                    takerCombOrderBalance, params) {
-        try {
-            console.log("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
-                this.dumpVar(orderBookEscrowEntry), algodClient,
+    getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance) {
+            console.log("orderBookEscrowEntry, takerCombOrderBalance",
+                this.dumpVar(orderBookEscrowEntry),
                         takerCombOrderBalance);
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
-            const appId = ALGO_ESCROW_ORDER_BOOK_ID;
-            let escrowAsaAmount = orderBookEscrowEntry['asaBalance'];
             const currentEscrowAlgoBalance = orderBookEscrowEntry['algoBalance'];
             let algoAmountReceiving = orderBookEscrowEntry['algoBalance'];
             const assetId = orderBookEscrowEntry['assetId'];
             const takerAddr = takerCombOrderBalance['takerAddr'];
 
             console.log("assetid: " + assetId);
-
-            let retTxns = [];
-            let appArgs = [];
-            var enc = new TextEncoder();
 
             let orderBookEntrySplit = orderBookEntry.split("-");
             let n = orderBookEntrySplit[0];
@@ -553,27 +542,68 @@ const AlgodexInternalApi = {
                 }
             }
 
-            //asaAmount = 3; //Set this to 3 (a low amount) to test breaking inequality in smart contract
             console.log("almost final ASA amount: " + asaAmount.getValue());
-            //asaAmount = asaAmount / 2;
-            //console.log("dividing asaAmount / 2: " + asaAmount);
             
             // These are expected to be integers now
             algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
             asaAmount = parseInt(asaAmount.getValue());
 
-            if (algoAmountReceiving == 0) {
-                console.log("algoAmountReceiving == 0. Nothing to do, so return early.");
-                return;
+            return {
+                'algoAmountReceiving': algoAmountReceiving,
+                'asaAmountSending': asaAmount,
+                'txnFee': txnFee
             }
+    },
+
+    // Helper function to execute the order (3 transactions)
+    // escrowAsaAmount is not used currently
+    getExecuteAlgoOrderTxnsAsTaker : 
+        async function getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient, lsig,
+                    takerCombOrderBalance, params) {
+        try {
+            console.log("in getExecuteAlgoOrderTxnsAsTaker");
+            console.log("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
+                this.dumpVar(orderBookEscrowEntry), algodClient,
+                        takerCombOrderBalance);
+
+            const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
+            const orderBookEntry = orderBookEscrowEntry['orderEntry'];
+            const appId = ALGO_ESCROW_ORDER_BOOK_ID;
+            let escrowAsaAmount = orderBookEscrowEntry['asaBalance'];
+            const currentEscrowAlgoBalance = orderBookEscrowEntry['algoBalance'];
+            const assetId = orderBookEscrowEntry['assetId'];
+            const takerAddr = takerCombOrderBalance['takerAddr'];
+
+            console.log("assetid: " + assetId);
+
+            let retTxns = [];
+            let appArgs = [];
+            var enc = new TextEncoder();
+
+            let orderBookEntrySplit = orderBookEntry.split("-");
+            let n = orderBookEntrySplit[0];
+            let d = orderBookEntrySplit[1];
+
+            let appAccts = [];
+            appAccts.push(orderCreatorAddr);
+            appAccts.push(takerAddr);
+            // Call stateful contract
+
+            let closeRemainderTo = undefined;
+            //const txnFee = 0.004 * 1000000; //FIXME - make more accurate
+            const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
+
+            const {algoAmountReceiving, asaAmountSending, txnFee} = 
+                    this.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
             takerCombOrderBalance['algoBalance'] -= txnFee;
             takerCombOrderBalance['algoBalance'] += algoAmountReceiving;
-            takerCombOrderBalance['asaBalance'] -= asaAmount;
+            takerCombOrderBalance['asaBalance'] -= asaAmountSending;
             console.log("here11 algoAmount asaAmount txnFee takerOrderBalance: ", algoAmountReceiving,
-                        asaAmount, txnFee, this.dumpVar(takerCombOrderBalance));
+                        asaAmountSending, txnFee, this.dumpVar(takerCombOrderBalance));
 
             console.log("receiving " + algoAmountReceiving + " from  " + lsig.address());
-            console.log("sending ASA amount " + asaAmount + " to " + orderCreatorAddr);
+            console.log("sending ASA amount " + asaAmountSending + " to " + orderCreatorAddr);
             if (currentEscrowAlgoBalance - algoAmountReceiving < constants.MIN_ESCROW_BALANCE) {
                 closeRemainderTo = orderCreatorAddr;
             }
@@ -601,19 +631,15 @@ const AlgodexInternalApi = {
                 transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts);
             }
 
-
             // Make payment tx signed with lsig
             let transaction2 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), takerAddr, algoAmountReceiving, closeRemainderTo, undefined, params);
             // Make asset xfer
-           // let transaction3 = algosdk.makeAssetTransferTxnWithSuggestedParams(orderExecutor.addr, orderCreatorAddr, undefined, undefined,
-            //    assetamount, undefined, assetId, params);
-            //const fixedTxn3 = { ...JSON.parse(transaction3.toString()) };   
 
             const transaction3 = {
                 type: "axfer",
                 from: takerAddr,
                 to: orderCreatorAddr,
-                amount: asaAmount,
+                amount: asaAmountSending,
                 assetIndex: assetId,
                 ...params
             };
@@ -653,10 +679,6 @@ const AlgodexInternalApi = {
 
             let signedTx1 = algosdk.signLogicSigTransactionObject(txns[0], lsig);
             let signedTx2 = algosdk.signLogicSigTransactionObject(txns[1], lsig);
-
-      
-
-            // let signedTx3 = await myAlgoWallet.signTransaction(fixedTxn3);
 
             retTxns.push({
                 'signedTxn': signedTx1.blob,
