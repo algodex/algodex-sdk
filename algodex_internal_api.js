@@ -116,6 +116,114 @@ const AlgodexInternalApi = {
             }   
     },
 // Helper function to get ASA Order Txns (3-4 transactions)
+    getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry) {
+        const orderBookEntry = orderBookEscrowEntry['orderEntry'];
+        const min_asa_balance = 0;
+
+        // 1000000-250000-0-15322902
+        // n-d-minOrderSize-assetId
+        const orderBookEntrySplit = orderBookEntry.split("-");
+        const n = orderBookEntrySplit[0];
+        const d = orderBookEntrySplit[1];
+
+        let escrowAsaTradeAmount = orderBookEscrowEntry['asaBalance'];
+        const currentEscrowASABalance = orderBookEscrowEntry['asaBalance'];
+        const price = new BigN(d).divide(new BigN(n), 30);
+        const bDecOne = new BigN(1);
+        const executionFees = 0.004 * 1000000;
+        let closeoutFromASABalance = true;
+        escrowAsaTradeAmount = new BigN(escrowAsaTradeAmount);
+        let algoTradeAmount = price.multiply(escrowAsaTradeAmount);
+        if (algoTradeAmount.getValue().includes('.')) {
+            algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
+        }
+        //FIXME - check if lower than order balance
+        if (algoTradeAmount.compareTo(new BigN(takerCombOrderBalance['algoBalance'])) == GREATER_THAN
+                && algoTradeAmount.compareTo(bDecOne) == GREATER_THAN
+                && algoTradeAmount.subtract(new BigN(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == GREATER_THAN) {
+
+            console.log("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount.getValue()); 
+            algoTradeAmount = new BigN(Math.floor(takerCombOrderBalance['algoBalance']));
+            escrowAsaTradeAmount = algoTradeAmount.divide(price);
+            console.log("checking max: " + escrowAsaTradeAmount.getValue() + " " + 1 );
+            if (escrowAsaTradeAmount.compareTo(bDecOne) == LESS_THAN) { //don't allow 0 value
+                escrowAsaTradeAmount = bDecOne;
+            }
+            console.log("here999b reduced to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
+
+            if (escrowAsaTradeAmount.getValue().includes('.')) {
+                //round ASA amount
+                escrowAsaTradeAmount = escrowAsaTradeAmount.round();
+                algoTradeAmount = price.multiply(escrowAsaTradeAmount);
+                if (algoTradeAmount.getValue().includes('.')) {
+                    algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
+                    console.log("here999bc increased algo to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
+                }
+                console.log("here999c changed to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
+            
+                if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
+                    console.log("here999d wallet balance not enough! ", takerCombOrderBalance['walletAlgoBalance'], 
+                        executionFees, parseInt(algoTradeAmount.getValue()));
+
+                    algoTradeAmount = new BigN(takerCombOrderBalance['walletAlgoBalance'])
+                        .subtract(new BigN(executionFees));
+                    
+                    escrowAsaTradeAmount = algoTradeAmount.divide(price);
+
+                    console.log("here999da wallet balance not enough! takerCombOrderBalance['walletAlgoBalance'] executionFees, parseInt(algoTradeAmount.getValue()), escrowAsaAmount", takerCombOrderBalance['walletAlgoBalance'], 
+                        executionFees, parseInt(algoTradeAmount.getValue()), escrowAsaTradeAmount);
+
+                    if (escrowAsaTradeAmount.getValue().includes('.')) {
+                        // give slightly better deal to the maker
+                        console.log("here999e rounding down escrowAsaAmount from ", escrowAsaTradeAmount.getValue());
+                        escrowAsaTradeAmount = escrowAsaTradeAmount.floor();
+                    }
+                    console.log("here999f balances are now", takerCombOrderBalance['walletAlgoBalance'], 
+                        executionFees, algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
+                }
+            }
+        } //FIXME: factor in fees?
+
+        if (new BigN(currentEscrowASABalance).subtract(escrowAsaTradeAmount)
+                .compareTo(new BigN(min_asa_balance)) == GREATER_THAN) {
+
+            console.log("asa escrow here9992 (currentASABalance - escrowAsaAmount) > min_asa_balance",
+                    currentEscrowASABalance, escrowAsaTradeAmount.getValue(), min_asa_balance);
+            closeoutFromASABalance = false;
+        }
+
+        if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
+            console.log("asa escrow here9992b balance too low, returning early! ", executionFees, algoTradeAmount.getValue(), takerCombOrderBalance);
+            return; //no balance left to use for buying ASAs
+        }
+
+        escrowAsaTradeAmount = parseInt(escrowAsaTradeAmount.getValue());
+        algoTradeAmount = parseInt(algoTradeAmount.getValue());
+
+        if (escrowAsaTradeAmount <= 0) {
+            console.log("here77zz escrowAsaTradeAmount is at 0 or below. returning early! nothing to do");
+            return;
+        }
+        if (algoTradeAmount <= 0) {
+            console.log("here77zb algoTradeAmount is at 0 or below. returning early! nothing to do");
+            return;
+        }
+
+        //FIXME - need more logic to transact correct price in case balances dont match order balances
+        console.log("closeoutFromASABalance: " + closeoutFromASABalance);
+
+        console.log("almost final amounts algoTradeAmount escrowAsaAmount ", algoTradeAmount, escrowAsaTradeAmount);
+        //algoTradeAmount = algoTradeAmount / 2;
+
+        console.log("n: ", n, " d: ", d, " asset amount: " , escrowAsaTradeAmount);
+
+        return {
+            'algoTradeAmount': algoTradeAmount,
+            'escrowAsaTradeAmount': escrowAsaTradeAmount,
+            'executionFees': executionFees,
+            'closeoutFromASABalance': closeoutFromASABalance
+        }
+    },
 
     getExecuteASAOrderTxns : async function getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient, 
                 lsig, takerCombOrderBalance, params) {
@@ -129,127 +237,18 @@ const AlgodexInternalApi = {
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
             const appId = ASA_ESCROW_ORDER_BOOK_ID;
             const takerAddr = takerCombOrderBalance['takerAddr'];
-            let escrowAsaTradeAmount = orderBookEscrowEntry['asaBalance'];
-            let escrowAlgoAmount = orderBookEscrowEntry['algoBalance'];
-            const currentEscrowBalance = escrowAlgoAmount;
-            const currentEscrowASABalance = orderBookEscrowEntry['asaBalance'];
+
             const assetId = orderBookEscrowEntry['assetId'];
 
             appAccts.push(orderCreatorAddr);
             appAccts.push(takerAddr);
-
-            
-            // 1000000-250000-0-15322902
-            // n-d-minOrderSize-assetId
-            const orderBookEntrySplit = orderBookEntry.split("-");
-            const n = orderBookEntrySplit[0];
-            const d = orderBookEntrySplit[1];
-            console.log("n: ", n, " d: ", d, " asset amount: " , escrowAsaTradeAmount);
             
             let closeRemainderTo = undefined;
 
-            let closeoutFromASABalance = true;
-            const min_asa_balance = 0;
-
-            let executionFees = 0.004 * 1000000;
             const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
-            const price = new BigN(d).divide(new BigN(n), 30);
-            const bDecOne = new BigN(1);
-
-            escrowAsaTradeAmount = new BigN(escrowAsaTradeAmount);
-            let algoTradeAmount = price.multiply(escrowAsaTradeAmount);
-            if (algoTradeAmount.getValue().includes('.')) {
-                algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
-            }
-            //FIXME - check if lower than order balance
-            if (algoTradeAmount.compareTo(new BigN(takerCombOrderBalance['algoBalance'])) == GREATER_THAN
-                 && algoTradeAmount.compareTo(bDecOne) == GREATER_THAN
-                 && algoTradeAmount.subtract(new BigN(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == GREATER_THAN) {
-
-                console.log("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount.getValue()); 
-                algoTradeAmount = new BigN(Math.floor(takerCombOrderBalance['algoBalance']));
-                escrowAsaTradeAmount = algoTradeAmount.divide(price);
-                console.log("checking max: " + escrowAsaTradeAmount.getValue() + " " + 1 );
-                if (escrowAsaTradeAmount.compareTo(bDecOne) == LESS_THAN) { //don't allow 0 value
-                    escrowAsaTradeAmount = bDecOne;
-                }
-                console.log("here999b reduced to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
-
-                if (escrowAsaTradeAmount.getValue().includes('.')) {
-                    //round ASA amount
-                    escrowAsaTradeAmount = escrowAsaTradeAmount.round();
-                    algoTradeAmount = price.multiply(escrowAsaTradeAmount);
-                    if (algoTradeAmount.getValue().includes('.')) {
-                        algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
-                        console.log("here999bc increased algo to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
-                    }
-                    console.log("here999c changed to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
-                
-                    if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
-                        console.log("here999d wallet balance not enough! ", takerCombOrderBalance['walletAlgoBalance'], 
-                            executionFees, parseInt(algoTradeAmount.getValue()));
-
-                        algoTradeAmount = new BigN(takerCombOrderBalance['walletAlgoBalance'])
-                            .subtract(new BigN(executionFees));
-                      
-                        escrowAsaTradeAmount = algoTradeAmount.divide(price);
-
-                        console.log("here999da wallet balance not enough! takerCombOrderBalance['walletAlgoBalance'] executionFees, parseInt(algoTradeAmount.getValue()), escrowAsaAmount", takerCombOrderBalance['walletAlgoBalance'], 
-                            executionFees, parseInt(algoTradeAmount.getValue()), escrowAsaTradeAmount);
-
-                        if (escrowAsaTradeAmount.getValue().includes('.')) {
-                            // give slightly better deal to the maker
-                            console.log("here999e rounding down escrowAsaAmount from ", escrowAsaTradeAmount.getValue());
-                            escrowAsaTradeAmount = escrowAsaTradeAmount.floor();
-                        }
-                        console.log("here999f balances are now", takerCombOrderBalance['walletAlgoBalance'], 
-                            executionFees, algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
-                    }
-                }
-            } //FIXME: factor in fees
-
-
-            // TODO: section below not needed?
-            /*if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(escrowAsaTradeAmount) == LESS_THAN) {
-                console.log("asa escrow here9991 takerCombOrderBalance['asaBalance'] < escrowAsaAmount",
-                        takerCombOrderBalance['asaBalance'], escrowAsaTradeAmount.getValue());
-                escrowAsaTradeAmount = new bigDecimal(takerCombOrderBalance['asaBalance']);
-                algoTradeAmount = price.multiply(escrowAsaTradeAmount);
-                if (algoTradeAmount.getValue().includes('.')) {
-                    algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
-                }
-            }*/
-
-            if (new BigN(currentEscrowASABalance).subtract(escrowAsaTradeAmount)
-                    .compareTo(new BigN(min_asa_balance)) == GREATER_THAN) {
-
-                console.log("asa escrow here9992 (currentASABalance - escrowAsaAmount) > min_asa_balance",
-                        currentEscrowASABalance, escrowAsaTradeAmount.getValue(), min_asa_balance);
-                closeoutFromASABalance = false;
-            }
-
-            if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
-               console.log("asa escrow here9992b balance too low, returning early! ", executionFees, algoTradeAmount.getValue(), takerCombOrderBalance);
-               return; //no balance left to use for buying ASAs
-            }
-
-            escrowAsaTradeAmount = parseInt(escrowAsaTradeAmount.getValue());
-            algoTradeAmount = parseInt(algoTradeAmount.getValue());
-
-            if (escrowAsaTradeAmount <= 0) {
-                console.log("here77zz escrowAsaTradeAmount is at 0 or below. returning early! nothing to do");
-                return;
-            }
-            if (algoTradeAmount <= 0) {
-                console.log("here77zb algoTradeAmount is at 0 or below. returning early! nothing to do");
-                return;
-            }
-
-            //FIXME - need more logic to transact correct price in case balances dont match order balances
-            console.log("closeoutFromASABalance: " + closeoutFromASABalance);
-
-            console.log("almost final amounts algoTradeAmount escrowAsaAmount ", algoTradeAmount, escrowAsaTradeAmount);
-            //algoTradeAmount = algoTradeAmount / 2;
+            
+            const {algoTradeAmount, escrowAsaTradeAmount, executionFees, closeoutFromASABalance} = 
+                    this.getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry);
 
             takerCombOrderBalance['algoBalance'] -= executionFees;
             takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
@@ -422,30 +421,19 @@ const AlgodexInternalApi = {
         }
     },
 
-    // Helper function to execute the order (3 transactions)
-    // escrowAsaAmount is not used currently
-    getExecuteAlgoOrderTxnsAsTaker : 
-        async function getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient, lsig,
-                    takerCombOrderBalance, params) {
-        try {
-            console.log("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
-                this.dumpVar(orderBookEscrowEntry), algodClient,
+    getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance) {
+            console.log("orderBookEscrowEntry, takerCombOrderBalance",
+                this.dumpVar(orderBookEscrowEntry),
                         takerCombOrderBalance);
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
-            const appId = ALGO_ESCROW_ORDER_BOOK_ID;
-            let escrowAsaAmount = orderBookEscrowEntry['asaBalance'];
             const currentEscrowAlgoBalance = orderBookEscrowEntry['algoBalance'];
             let algoAmountReceiving = orderBookEscrowEntry['algoBalance'];
             const assetId = orderBookEscrowEntry['assetId'];
             const takerAddr = takerCombOrderBalance['takerAddr'];
 
             console.log("assetid: " + assetId);
-
-            let retTxns = [];
-            let appArgs = [];
-            var enc = new TextEncoder();
 
             let orderBookEntrySplit = orderBookEntry.split("-");
             let n = orderBookEntrySplit[0];
@@ -456,11 +444,7 @@ const AlgodexInternalApi = {
             appAccts.push(takerAddr);
             // Call stateful contract
             
-            //let escrowAccountInfo = await this.getAccountInfo(lsig.address()); //FIXME - load from order book cache not from here
-            //let currentEscrowBalance = escrowAlgoAmount;
-            let closeRemainderTo = undefined;
             const txnFee = 0.004 * 1000000; //FIXME - make more accurate
-            const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
 
             algoAmountReceiving -= txnFee; // this will be the transfer amount
             console.log("here1");
@@ -470,12 +454,6 @@ const AlgodexInternalApi = {
             const price = new BigN(d).divide(new BigN(n));
             const bDecOne = new BigN(1);
 
-           /* if (takerCombOrderBalance['algoBalance'] < algoAmountReceiving + txnFee) {
-                algoAmountReceiving = Math.floor(takerCombOrderBalance['algoBalance']);
-
-                console.log("here3z");
-                console.log("reducing algoAmount to " + algoAmountReceiving);
-            }*/
             if (algoAmountReceiving - txnFee < 0) {
                 //dont allow overspend from user's wallet
                 console.log("here4");
@@ -553,27 +531,62 @@ const AlgodexInternalApi = {
                 }
             }
 
-            //asaAmount = 3; //Set this to 3 (a low amount) to test breaking inequality in smart contract
             console.log("almost final ASA amount: " + asaAmount.getValue());
-            //asaAmount = asaAmount / 2;
-            //console.log("dividing asaAmount / 2: " + asaAmount);
             
             // These are expected to be integers now
             algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
             asaAmount = parseInt(asaAmount.getValue());
 
-            if (algoAmountReceiving == 0) {
-                console.log("algoAmountReceiving == 0. Nothing to do, so return early.");
-                return;
+            return {
+                'algoAmountReceiving': algoAmountReceiving,
+                'asaAmountSending': asaAmount,
+                'txnFee': txnFee
             }
+    },
+
+    // Helper function to execute the order (3 transactions)
+    // escrowAsaAmount is not used currently
+    getExecuteAlgoOrderTxnsAsTaker : 
+        async function getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient, lsig,
+                    takerCombOrderBalance, params) {
+        try {
+            console.log("in getExecuteAlgoOrderTxnsAsTaker");
+            console.log("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
+            this.dumpVar(orderBookEscrowEntry), algodClient,
+                        takerCombOrderBalance);
+
+            const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
+            const orderBookEntry = orderBookEscrowEntry['orderEntry'];
+            const appId = ALGO_ESCROW_ORDER_BOOK_ID;
+            const currentEscrowAlgoBalance = orderBookEscrowEntry['algoBalance'];
+            const assetId = orderBookEscrowEntry['assetId'];
+            const takerAddr = takerCombOrderBalance['takerAddr'];
+
+            console.log("assetid: " + assetId);
+
+            let retTxns = [];
+            let appArgs = [];
+            var enc = new TextEncoder();
+
+            let appAccts = [];
+            appAccts.push(orderCreatorAddr);
+            appAccts.push(takerAddr);
+            // Call stateful contract
+
+            let closeRemainderTo = undefined;
+            const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
+
+            const {algoAmountReceiving, asaAmountSending, txnFee} = 
+                    this.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
             takerCombOrderBalance['algoBalance'] -= txnFee;
             takerCombOrderBalance['algoBalance'] += algoAmountReceiving;
-            takerCombOrderBalance['asaBalance'] -= asaAmount;
+            takerCombOrderBalance['asaBalance'] -= asaAmountSending;
             console.log("here11 algoAmount asaAmount txnFee takerOrderBalance: ", algoAmountReceiving,
-                        asaAmount, txnFee, this.dumpVar(takerCombOrderBalance));
+                        asaAmountSending, txnFee, this.dumpVar(takerCombOrderBalance));
 
             console.log("receiving " + algoAmountReceiving + " from  " + lsig.address());
-            console.log("sending ASA amount " + asaAmount + " to " + orderCreatorAddr);
+            console.log("sending ASA amount " + asaAmountSending + " to " + orderCreatorAddr);
             if (currentEscrowAlgoBalance - algoAmountReceiving < constants.MIN_ESCROW_BALANCE) {
                 closeRemainderTo = orderCreatorAddr;
             }
@@ -601,19 +614,15 @@ const AlgodexInternalApi = {
                 transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts);
             }
 
-
             // Make payment tx signed with lsig
             let transaction2 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), takerAddr, algoAmountReceiving, closeRemainderTo, undefined, params);
             // Make asset xfer
-           // let transaction3 = algosdk.makeAssetTransferTxnWithSuggestedParams(orderExecutor.addr, orderCreatorAddr, undefined, undefined,
-            //    assetamount, undefined, assetId, params);
-            //const fixedTxn3 = { ...JSON.parse(transaction3.toString()) };   
 
             const transaction3 = {
                 type: "axfer",
                 from: takerAddr,
                 to: orderCreatorAddr,
-                amount: asaAmount,
+                amount: asaAmountSending,
                 assetIndex: assetId,
                 ...params
             };
@@ -623,11 +632,11 @@ const AlgodexInternalApi = {
             if (closeRemainderTo == undefined) {
                 // create refund transaction for fees
                 transaction4 = {
-                            type: 'pay',
-                            from: takerAddr,
-                            to:  lsig.address(),
-                            amount: refundFees,
-                            ...params
+                        type: 'pay',
+                        from: takerAddr,
+                        to:  lsig.address(),
+                        amount: refundFees,
+                        ...params
                 };
             }
 
@@ -653,10 +662,6 @@ const AlgodexInternalApi = {
 
             let signedTx1 = algosdk.signLogicSigTransactionObject(txns[0], lsig);
             let signedTx2 = algosdk.signLogicSigTransactionObject(txns[1], lsig);
-
-      
-
-            // let signedTx3 = await myAlgoWallet.signTransaction(fixedTxn3);
 
             retTxns.push({
                 'signedTxn': signedTx1.blob,
