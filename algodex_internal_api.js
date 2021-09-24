@@ -117,9 +117,7 @@ const AlgodexInternalApi = {
     },
 // Helper function to get ASA Order Txns (3-4 transactions)
     getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry) {
-        const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
         const orderBookEntry = orderBookEscrowEntry['orderEntry'];
-        const takerAddr = takerCombOrderBalance['takerAddr'];
         const min_asa_balance = 0;
 
         // 1000000-250000-0-15322902
@@ -129,8 +127,6 @@ const AlgodexInternalApi = {
         const d = orderBookEntrySplit[1];
 
         let escrowAsaTradeAmount = orderBookEscrowEntry['asaBalance'];
-        let escrowAlgoAmount = orderBookEscrowEntry['algoBalance'];
-        const currentEscrowBalance = escrowAlgoAmount;
         const currentEscrowASABalance = orderBookEscrowEntry['asaBalance'];
         const price = new BigN(d).divide(new BigN(n), 30);
         const bDecOne = new BigN(1);
@@ -186,19 +182,7 @@ const AlgodexInternalApi = {
                         executionFees, algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
                 }
             }
-        } //FIXME: factor in fees
-
-
-        // TODO: section below not needed?
-        /*if (new bigDecimal(takerCombOrderBalance['asaBalance']).compareTo(escrowAsaTradeAmount) == LESS_THAN) {
-            console.log("asa escrow here9991 takerCombOrderBalance['asaBalance'] < escrowAsaAmount",
-                    takerCombOrderBalance['asaBalance'], escrowAsaTradeAmount.getValue());
-            escrowAsaTradeAmount = new bigDecimal(takerCombOrderBalance['asaBalance']);
-            algoTradeAmount = price.multiply(escrowAsaTradeAmount);
-            if (algoTradeAmount.getValue().includes('.')) {
-                algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
-            }
-        }*/
+        } //FIXME: factor in fees?
 
         if (new BigN(currentEscrowASABalance).subtract(escrowAsaTradeAmount)
                 .compareTo(new BigN(min_asa_balance)) == GREATER_THAN) {
@@ -231,7 +215,8 @@ const AlgodexInternalApi = {
         console.log("almost final amounts algoTradeAmount escrowAsaAmount ", algoTradeAmount, escrowAsaTradeAmount);
         //algoTradeAmount = algoTradeAmount / 2;
 
-        
+        console.log("n: ", n, " d: ", d, " asset amount: " , escrowAsaTradeAmount);
+
         return {
             'algoTradeAmount': algoTradeAmount,
             'escrowAsaTradeAmount': escrowAsaTradeAmount,
@@ -257,13 +242,6 @@ const AlgodexInternalApi = {
 
             appAccts.push(orderCreatorAddr);
             appAccts.push(takerAddr);
-
-            
-            // 1000000-250000-0-15322902
-            // n-d-minOrderSize-assetId
-            const orderBookEntrySplit = orderBookEntry.split("-");
-            const n = orderBookEntrySplit[0];
-            const d = orderBookEntrySplit[1];
             
             let closeRemainderTo = undefined;
 
@@ -271,7 +249,6 @@ const AlgodexInternalApi = {
             
             const {algoTradeAmount, escrowAsaTradeAmount, executionFees, closeoutFromASABalance} = 
                     this.getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry);
-            console.log("n: ", n, " d: ", d, " asset amount: " , escrowAsaTradeAmount);
 
             takerCombOrderBalance['algoBalance'] -= executionFees;
             takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
@@ -467,11 +444,7 @@ const AlgodexInternalApi = {
             appAccts.push(takerAddr);
             // Call stateful contract
             
-            //let escrowAccountInfo = await this.getAccountInfo(lsig.address()); //FIXME - load from order book cache not from here
-            //let currentEscrowBalance = escrowAlgoAmount;
-            let closeRemainderTo = undefined;
             const txnFee = 0.004 * 1000000; //FIXME - make more accurate
-            const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
 
             algoAmountReceiving -= txnFee; // this will be the transfer amount
             console.log("here1");
@@ -481,12 +454,6 @@ const AlgodexInternalApi = {
             const price = new BigN(d).divide(new BigN(n));
             const bDecOne = new BigN(1);
 
-           /* if (takerCombOrderBalance['algoBalance'] < algoAmountReceiving + txnFee) {
-                algoAmountReceiving = Math.floor(takerCombOrderBalance['algoBalance']);
-
-                console.log("here3z");
-                console.log("reducing algoAmount to " + algoAmountReceiving);
-            }*/
             if (algoAmountReceiving - txnFee < 0) {
                 //dont allow overspend from user's wallet
                 console.log("here4");
@@ -585,13 +552,12 @@ const AlgodexInternalApi = {
         try {
             console.log("in getExecuteAlgoOrderTxnsAsTaker");
             console.log("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
-                this.dumpVar(orderBookEscrowEntry), algodClient,
+            this.dumpVar(orderBookEscrowEntry), algodClient,
                         takerCombOrderBalance);
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];
             const appId = ALGO_ESCROW_ORDER_BOOK_ID;
-            let escrowAsaAmount = orderBookEscrowEntry['asaBalance'];
             const currentEscrowAlgoBalance = orderBookEscrowEntry['algoBalance'];
             const assetId = orderBookEscrowEntry['assetId'];
             const takerAddr = takerCombOrderBalance['takerAddr'];
@@ -602,17 +568,12 @@ const AlgodexInternalApi = {
             let appArgs = [];
             var enc = new TextEncoder();
 
-            let orderBookEntrySplit = orderBookEntry.split("-");
-            let n = orderBookEntrySplit[0];
-            let d = orderBookEntrySplit[1];
-
             let appAccts = [];
             appAccts.push(orderCreatorAddr);
             appAccts.push(takerAddr);
             // Call stateful contract
 
             let closeRemainderTo = undefined;
-            //const txnFee = 0.004 * 1000000; //FIXME - make more accurate
             const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
 
             const {algoAmountReceiving, asaAmountSending, txnFee} = 
@@ -671,11 +632,11 @@ const AlgodexInternalApi = {
             if (closeRemainderTo == undefined) {
                 // create refund transaction for fees
                 transaction4 = {
-                            type: 'pay',
-                            from: takerAddr,
-                            to:  lsig.address(),
-                            amount: refundFees,
-                            ...params
+                        type: 'pay',
+                        from: takerAddr,
+                        to:  lsig.address(),
+                        amount: refundFees,
+                        ...params
                 };
             }
 
