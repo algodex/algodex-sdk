@@ -1,6 +1,6 @@
 //
 // USAGE:
-//   node scripts/createAppAndToken.js --environment=[local|test|production] --orderbook=[algo|asa]
+//   node scripts/createApp.js --environment=[local|test|production] --orderbook=[algo|asa]
 
 
 const algosdk = require('algosdk');
