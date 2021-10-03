@@ -147,12 +147,14 @@ const AlgodexInternalApi = {
             algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
         }
         //FIXME - check if lower than order balance
-        if (algoTradeAmount.compareTo(new BigN(takerCombOrderBalance['algoBalance'])) == GREATER_THAN
+        const maxTradeAmount = Math.min(takerCombOrderBalance['algoBalance'], takerCombOrderBalance['walletAlgoBalance'] - executionFees);
+
+        if (algoTradeAmount.compareTo(new BigN(maxTradeAmount)) == GREATER_THAN
                 && algoTradeAmount.compareTo(bDecOne) == GREATER_THAN
-                && algoTradeAmount.subtract(new BigN(takerCombOrderBalance['algoBalance'])).compareTo(bDecOne) == GREATER_THAN) {
+                && algoTradeAmount.subtract(new BigN(maxTradeAmount)).compareTo(bDecOne) == GREATER_THAN) {
 
             console.log("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount.getValue()); 
-            algoTradeAmount = new BigN(Math.floor(takerCombOrderBalance['algoBalance']));
+            algoTradeAmount = new BigN(maxTradeAmount);
             escrowAsaTradeAmount = algoTradeAmount.divide(price);
             console.log("checking max: " + escrowAsaTradeAmount.getValue() + " " + 1 );
             if (escrowAsaTradeAmount.compareTo(bDecOne) == LESS_THAN) { //don't allow 0 value
@@ -162,34 +164,13 @@ const AlgodexInternalApi = {
 
             if (escrowAsaTradeAmount.getValue().includes('.')) {
                 //round ASA amount
-                escrowAsaTradeAmount = escrowAsaTradeAmount.round();
+                escrowAsaTradeAmount = escrowAsaTradeAmount.floor();
                 algoTradeAmount = price.multiply(escrowAsaTradeAmount);
                 if (algoTradeAmount.getValue().includes('.')) {
                     algoTradeAmount = algoTradeAmount.floor().add(bDecOne); //round up to give seller more money
                     console.log("here999bc increased algo to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
                 }
                 console.log("here999c changed to algoTradeAmount escrowAsaAmount", algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
-            
-                if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
-                    console.log("here999d wallet balance not enough! ", takerCombOrderBalance['walletAlgoBalance'], 
-                        executionFees, parseInt(algoTradeAmount.getValue()));
-
-                    algoTradeAmount = new BigN(takerCombOrderBalance['walletAlgoBalance'])
-                        .subtract(new BigN(executionFees));
-                    
-                    escrowAsaTradeAmount = algoTradeAmount.divide(price);
-
-                    console.log("here999da wallet balance not enough! takerCombOrderBalance['walletAlgoBalance'] executionFees, parseInt(algoTradeAmount.getValue()), escrowAsaAmount", takerCombOrderBalance['walletAlgoBalance'], 
-                        executionFees, parseInt(algoTradeAmount.getValue()), escrowAsaTradeAmount);
-
-                    if (escrowAsaTradeAmount.getValue().includes('.')) {
-                        // give slightly better deal to the maker
-                        console.log("here999e rounding down escrowAsaAmount from ", escrowAsaTradeAmount.getValue());
-                        escrowAsaTradeAmount = escrowAsaTradeAmount.floor();
-                    }
-                    console.log("here999f balances are now", takerCombOrderBalance['walletAlgoBalance'], 
-                        executionFees, algoTradeAmount.getValue(), escrowAsaTradeAmount.getValue());
-                }
             }
         } //FIXME: factor in fees?
 
@@ -202,7 +183,7 @@ const AlgodexInternalApi = {
         }
 
         if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
-            console.log("asa escrow here9992b balance too low, returning early! ", executionFees, algoTradeAmount.getValue(), takerCombOrderBalance);
+            console.log("here9992b algo balance too low, returning early! ", executionFees, algoTradeAmount.getValue(), takerCombOrderBalance);
             return; //no balance left to use for buying ASAs
         }
 
