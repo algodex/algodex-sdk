@@ -168,6 +168,12 @@ const AlgodexApi = {
         }
         //console.log({server: algodServer, token, port});
         const algodClient = new algosdk.Algodv2(token, algodServer, port);
+        if (!!myAlgoWalletUtil) {
+            myAlgoWalletUtil.setAlgodServer(algodServer);
+        }
+        dexInternal.setAlgodServer(algodServer);
+        dexInternal.setAlgodToken(token);
+        
         return algodClient;
     },
 
@@ -634,14 +640,11 @@ const AlgodexApi = {
         let params = await algodClient.getTransactionParams().do();
         console.log("sending trans to: " + lsig.address());
         let txn = {
+            ...params,
             type: 'pay',
             from: makerWalletAddr,
             to:  lsig.address(),
             amount: parseInt(algoOrderSize), // the order size that gets stored into the contract account
-            firstRound: params.firstRound,
-            lastRound: params.lastRound,
-            genesisHash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-            genesisID: "testnet-v1.0"
         };
 
         let outerTxns = [];
@@ -737,10 +740,8 @@ const AlgodexApi = {
         let params = await algodClient.getTransactionParams().do();
         console.log("sending trans to: " + lsig.address());
 
-        let assetSendTrans = await algodClient.getTransactionParams().do();
-
-        assetSendTrans = {
-            ...assetSendTrans,
+        let assetSendTrans = {
+            ...params,
             fee: 1000,
             flatFee: true,
             type: 'axfer',
@@ -766,14 +767,11 @@ const AlgodexApi = {
         }
 
         let payTxn = {
+            ...params,
             type: 'pay',
             from: makerWalletAddr,
             to:  lsig.address(),
             amount: constants.MIN_ASA_ESCROW_BALANCE, //fund with enough to subtract from later
-            firstRound: params.firstRound,
-            lastRound: params.lastRound,
-            genesisHash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-            genesisID: "testnet-v1.0"
         };
         myAlgoWalletUtil.setTransactionFee(payTxn);
 

@@ -2,6 +2,8 @@
 const constants = require('./constants.js');
 const axios = require('axios').default;
 
+let ALGOD_SERVER = 'https://testnet.algoexplorerapi.io';
+
 exports.connectToWallet = async function(txn) {
     try {  
         console.log("connecting...");
@@ -16,9 +18,13 @@ exports.connectToWallet = async function(txn) {
 
 };
 
+exports.setAlgodServer = (algod_server) => {
+    ALGOD_SERVER = algod_server;
+}
+
 const getParams = async() => {
     try {
-        const response = await axios.get('https://testnet.algoexplorerapi.io/v2/transactions/params');
+        const response = await axios.get(ALGOD_SERVER + '/v2/transactions/params');
         //console.log(response);
         return response.data;
     } catch (error) {
