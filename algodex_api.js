@@ -313,6 +313,7 @@ const AlgodexApi = {
 
         //console.log("queued orders: ", this.dumpVar(queuedOrders));
         let params = await algodClient.getTransactionParams().do();
+        let lastExecutedPrice = -1;
 
         for (let i = 0; i < queuedOrders.length; i++) {
             if (takerOrderBalance['orderAlgoAmount'] <= txnFee) {
@@ -346,6 +347,7 @@ const AlgodexApi = {
                 // Overspending issue
                 continue;
             }
+            lastExecutedPrice = queuedOrders[i]['price'];
 
             for (let k = 0; k < singleOrderTransList.length; k++) {
                 let trans = singleOrderTransList[k];
@@ -362,9 +364,10 @@ const AlgodexApi = {
         }
 
         let makerTxns = null;
-        console.log('here55999a');
+        console.log('here55999a ', {lastExecutedPrice, limitPrice} );
         if (includeMaker) {
-            const numAndDenom = this.getNumeratorAndDenominatorFromPrice(limitPrice);
+            const numAndDenom = lastExecutedPrice != -1 ? this.getNumeratorAndDenominatorFromPrice(lastExecutedPrice) : 
+                                                          this.getNumeratorAndDenominatorFromPrice(limitPrice);
             let leftoverASABalance = Math.floor(takerOrderBalance['asaBalance']);
             let leftoverAlgoBalance = Math.floor(takerOrderBalance['algoBalance']);
             console.log("includeMaker is true");
