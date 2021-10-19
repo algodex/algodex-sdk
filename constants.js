@@ -16,9 +16,9 @@ module.exports = {
     MIN_ESCROW_BALANCE: 500000,
     MIN_ASA_ESCROW_BALANCE: 500000,
 
-    LOCAL_ALGOD_SERVER:  process.env.ALGODEX_ALGOD_SERVER ?? process.env.NEXT_PUBLIC_ALGODEX_ALGOD_SERVER  ?? "https://testnet.algoexplorerapi.io",
-    LOCAL_ALGOD_PORT: process.env.ALGODEX_ALGOD_PORT ?? process.env.NEXT_PUBLIC_ALGODEX_ALGOD_PORT ?? "",
-    LOCAL_ALGOD_TOKEN: process.env.ALGODEX_ALGOD_TOKEN ?? process.env.NEXT_PUBLIC_ALGODEX_ALGOD_TOKEN ?? "",
+    LOCAL_ALGOD_SERVER:  process.env.ALGODEX_ALGOD_SERVER || process.env.NEXT_PUBLIC_ALGODEX_ALGOD_SERVER || "https://testnet.algoexplorerapi.io",
+    LOCAL_ALGOD_PORT: process.env.ALGODEX_ALGOD_PORT || process.env.NEXT_PUBLIC_ALGODEX_ALGOD_PORT || "",
+    LOCAL_ALGOD_TOKEN: process.env.ALGODEX_ALGOD_TOKEN || process.env.NEXT_PUBLIC_ALGODEX_ALGOD_TOKEN || "",
 	LOCAL_BACKEND_API: "http://localhost/algodex-backend",
     LOCAL_INDEXER_SERVER: "https://testnet.algoexplorerapi.io/idx2",
     LOCAL_INDEXER_PORT: "",
