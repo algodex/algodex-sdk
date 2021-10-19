@@ -66,14 +66,17 @@ const AlgodexInternalApi = {
     },
 
     // call application 
-    createTransactionFromLogicSig : async function createTransactionFromLogicSig(client, lsig, AppID, appArgs, transType) {
+    createTransactionFromLogicSig : async function createTransactionFromLogicSig(client, lsig, AppID, 
+        appArgs, transType, params) {
         // define sender
 
         try {
             const sender = lsig.address();
 
             // get node suggested parameters
-            const params = await client.getTransactionParams().do();
+            if (params == null) {
+                params = await client.getTransactionParams().do();
+            }
 
             // create unsigned transaction
             let txn = null;

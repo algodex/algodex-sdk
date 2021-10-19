@@ -678,7 +678,8 @@ const AlgodexApi = {
         let logSigTrans = null;
 
         if (!alreadyOptedIntoOrderbook) {
-            logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn");
+            logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, 
+                    ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn", params);
             outerTxns.push({
                 unsignedTxn: logSigTrans,
                 needsUserSig: false,
@@ -801,8 +802,8 @@ const AlgodexApi = {
         //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
         console.log(appArgs.length);
 
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, ASA_ESCROW_ORDER_BOOK_ID, 
-                    appArgs, "appOptIn");
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, 
+                    ASA_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn", params);
 
         // create optin transaction
         // sender and receiver are both the same
