@@ -41,6 +41,7 @@ const constants = require('./constants.js');
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
 let ALGOD_SERVER = constants.TEST_ALGOD_SERVER;
+let ALGOD_PORT = constants.TEST_ALGOD_PORT;
 let ALGOD_TOKEN = constants.TEST_ALGOD_TOKEN;
 
 const AlgodexInternalApi = {
@@ -50,6 +51,9 @@ const AlgodexInternalApi = {
     },
     setAlgodToken : function setAlgodServer(algod_token) {
         ALGOD_TOKEN = algod_token;
+    },
+    setAlgodPort : function setAlgodPort(algod_port) {
+        ALGOD_PORT = algod_port;
     },
 
     doAlertInternal : function doAlertInternal() {
@@ -823,7 +827,9 @@ const AlgodexInternalApi = {
     },
     getAccountInfo : async function getAccountInfo(accountAddr) {
         try {
-            const response = await axios.get(ALGOD_SERVER + "/v2/accounts/"+accountAddr, {headers: {'X-Algo-API-Token': ALGOD_TOKEN}});
+            let port = (!!ALGOD_PORT) ? ':' + ALGOD_PORT : '';
+
+            const response = await axios.get(ALGOD_SERVER + port +  "/v2/accounts/"+accountAddr, {headers: {'X-Algo-API-Token': ALGOD_TOKEN}});
             //console.log(response);
             return response.data;
         } catch (error) {

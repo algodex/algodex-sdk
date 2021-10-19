@@ -137,7 +137,7 @@ const TestHelper = {
         const n = numAndDenom.n;
         const d = numAndDenom.d;
 
-        const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, isASAEscrow);
+        const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, isASAEscrow, constants.ESCROW_CONTRACT_VERSION);
         const lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
         return lsig;
     },
