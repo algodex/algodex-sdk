@@ -24,9 +24,9 @@ if (typeof window != 'undefined') {
 }
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
-const algoDelegateTemplateV2 = require('./algo_delegate_template_teal_v2.js');
+const algoDelegateTemplateV4 = require('./algo_delegate_template_teal_v4.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
-const asaDelegateTemplateV2 = require('./ASA_delegate_template_teal_v2.js');
+const asaDelegateTemplateV4 = require('./ASA_delegate_template_teal_v4.js');
 //require('./dex_teal.js');
 
 //FIXME - import below from algodex_api.js
@@ -1042,7 +1042,7 @@ const AlgodexInternalApi = {
         if (!isASAEscrow) {
             if (version == 4) {
                 console.log('not isASAEscrow, using version 4');
-                delegateTemplate = algoDelegateTemplateV2.getTealTemplate();
+                delegateTemplate = algoDelegateTemplateV4.getTealTemplate();
             } else {
                 console.log('not isASAEscrow, using version 3');
                 delegateTemplate = algoDelegateTemplate.getTealTemplate();
@@ -1050,7 +1050,7 @@ const AlgodexInternalApi = {
         } else {
             if (version == 4) {
                 console.log('isASAEscrow, using version 4');
-                delegateTemplate = asaDelegateTemplateV2.getTealTemplate();
+                delegateTemplate = asaDelegateTemplateV4.getTealTemplate();
             } else {
                 console.log('isASAEscrow, using version 3');
                 delegateTemplate = asaDelegateTemplate.getTealTemplate();
