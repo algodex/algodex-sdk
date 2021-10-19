@@ -172,6 +172,7 @@ const AlgodexApi = {
             myAlgoWalletUtil.setAlgodServer(algodServer);
         }
         dexInternal.setAlgodServer(algodServer);
+        dexInternal.setAlgodPort(port);
         dexInternal.setAlgodToken(token);
         
         return algodClient;
@@ -599,7 +600,6 @@ const AlgodexApi = {
     },
     getPlaceAlgosToBuyASAOrderIntoOrderbook : async function 
         getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend) {
-
         console.log("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
             makerWalletAddr, n, d, min, assetId);
         let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, false, constants.ESCROW_CONTRACT_VERSION);

@@ -233,12 +233,8 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int 0 // Escrow account containing order. This is the Sender of this transaction.
     txn ApplicationID // Current stateful smart contract
     byte "creator"
-    app_local_get_ex
-    assert // If the value doesnt exists fail
-    pop
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
+    app_local_get_ex // returns if it exists and the creator
+    assert // If the value doesnt exist fail
     txna Accounts 1 // account arg is order creator
     ==
     assert
@@ -321,12 +317,8 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     int 0 // Escrow account containing order. This is the Sender of this transaction.
     txn ApplicationID // Current stateful smart contract
     byte "creator"
-    app_local_get_ex
+    app_local_get_ex // returns if it exists and the creator
     assert // If the value doesnt exist fail
-    pop
-    int 0
-    byte "creator"
-    app_local_get // check creator matches expectation
     txna Accounts 1 // account arg is order creator
     ==
     assert

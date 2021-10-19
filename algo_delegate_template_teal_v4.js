@@ -11,16 +11,23 @@ const algoDelegateTemplate = {
 
 let delegateTemplate = `
 #pragma version 4
+
 //////////////////////////////////////////////////////////////////////////////
-// ALGO (NON-ASA) ESCROW (BUY ORDER) 
+// ALGO (NON-ASA) ESCROW (BUY ORDER) VERSION 4
 //    Escrow limit order to BUY ASAs. These limit orders contain only algos.
 //////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////
 // CHECKS THAT APPLY TO ALL TXNS
 ////////////////////////////////
-int 1
-pop
+    global GroupSize
+    int 4
+    <=
+    assert
+    txn Fee
+    int 1000
+    <=
+    assert
 
     int 0
     store 9
@@ -46,7 +53,6 @@ pop
     global GroupSize
     <
     bnz checkAllTxns
-
 
 ///////////////////////////
 /// OPEN - ORDER BOOK OPT IN & REGISTRATION
@@ -162,6 +168,10 @@ pop
     global GroupSize
     int 3
     ==
+    gtxn 0 ApplicationID
+    int <orderBookId> // stateful contract app id. orderBookId
+    ==
+    &&
     gtxn 0 CloseRemainderTo
     global ZeroAddress // This is an app call so should be set to 0 address
     ==
@@ -262,10 +272,6 @@ pop
     gtxn 2 TypeEnum // The third transaction must be an asset xfer tx 
     int axfer
     ==
-    &&
-    txn Fee
-    int 1000
-    <=
     &&
     gtxn 0 ApplicationID // The specific Order Book App ID must be called
     int <orderBookId> // stateful contract app id. orderBookId
@@ -372,10 +378,6 @@ pop
     gtxn 3 Sender
     txn Sender // escrow account
     != // should *not* be originating from escrow
-    &&
-    txn Fee
-    int 1000
-    <=
     &&
     gtxn 0 ApplicationID // The specific App ID for the Algo escrow order book must be called
     int <orderBookId> //stateful contract app id orderBookId

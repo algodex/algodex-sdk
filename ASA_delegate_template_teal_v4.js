@@ -14,13 +14,22 @@ const asaDelegateTemplate = {
 #pragma version 4
 
 ////////////////////////////////////
-// ASA ESCROW (SELL ORDER)
+// ASA ESCROW (SELL ORDER) VERSION 4
 //   Escrow limit order to SELL ASAs. These limit orders contain a minimum algo balance and then the ASA to sell.
 //////////////////////////////////////
 
 /////////////////////////////////
 // CHECKS THAT APPLY TO ALL TXNS
 ////////////////////////////////
+
+    global GroupSize
+    int 5
+    <=
+    assert
+    txn Fee
+    int 1000
+    <=
+    assert
 
     int 0
     store 9
@@ -435,10 +444,6 @@ anyExecute:
     gtxns TypeEnum     // The last transaction must be a payment transfer
     int pay
     ==
-    &&
-    txn Fee // fee for all transactions from the escrow must be low
-    int 1000
-    <=
     &&
     gtxn 0 ApplicationID // The specific App ID must be called
     int <orderBookId> //stateful contract app id. orderBookId

@@ -8,7 +8,7 @@
 
 module.exports = {
     DEBUG: 1,
-    DEBUG_SMART_CONTRACT_SOURCE: ("DEBUG_SMART_CONTRACT_SOURCE" in process.env) ? parseInt(process.env.DEBUG_SMART_CONTRACT_SOURCE) : 0,
+    DEBUG_SMART_CONTRACT_SOURCE: !!process.env.NEXT_PUBLIC_DEBUG_SMART_CONTRACT_SOURCE ? parseInt(process.env.NEXT_PUBLIC_DEBUG_SMART_CONTRACT_SOURCE) : 0,
     INFO_SERVER: process.env.ALGODEX_INFO_HOST,
 
     ESCROW_CONTRACT_VERSION: 4,
@@ -16,9 +16,9 @@ module.exports = {
     MIN_ESCROW_BALANCE: 500000,
     MIN_ASA_ESCROW_BALANCE: 500000,
 
-    LOCAL_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
-    LOCAL_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
-    LOCAL_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
+    LOCAL_ALGOD_SERVER:  process.env.ALGODEX_ALGOD_SERVER ?? process.env.NEXT_PUBLIC_ALGODEX_ALGOD_SERVER  ?? "https://testnet.algoexplorerapi.io",
+    LOCAL_ALGOD_PORT: process.env.ALGODEX_ALGOD_PORT ?? process.env.NEXT_PUBLIC_ALGODEX_ALGOD_PORT ?? "",
+    LOCAL_ALGOD_TOKEN: process.env.ALGODEX_ALGOD_TOKEN ?? process.env.NEXT_PUBLIC_ALGODEX_ALGOD_TOKEN ?? "",
 	LOCAL_BACKEND_API: "http://localhost/algodex-backend",
     LOCAL_INDEXER_SERVER: "https://testnet.algoexplorerapi.io/idx2",
     LOCAL_INDEXER_PORT: "",

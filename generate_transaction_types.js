@@ -118,7 +118,7 @@ const GenerateTransactions = {
         let d = numAndDenom.d;
         let creatorAddr = creator.addr;
 
-        let escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, creatorAddr, false);
+        let escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, creatorAddr, false, constants.ESCROW_CONTRACT_VERSION);
         let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let escrowAccountAddr = lsig.address();
 
@@ -171,7 +171,7 @@ const GenerateTransactions = {
         let d = numAndDenom.d;
         let creatorAddr = creator.addr;
 
-        let escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, creatorAddr, true);
+        let escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, creatorAddr, true, constants.ESCROW_CONTRACT_VERSION);
         let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let escrowAccountAddr = lsig.address();
 
@@ -255,7 +255,7 @@ const GenerateTransactions = {
         const orderBookEntry = algodex.generateOrder(orderCreatorAddr, n, d, min, assetId, false);
         const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
 
-        const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, false);
+        const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, false, constants.ESCROW_CONTRACT_VERSION);
         const lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
         const params = await algodClient.getTransactionParams().do();
 
@@ -347,7 +347,7 @@ const GenerateTransactions = {
         let appCallType = null;
         const orderBookEntry = algodex.generateOrder(orderCreatorAddr, n, d, min, assetId, false);
 
-        const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, true);
+        const escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, true, constants.ESCROW_CONTRACT_VERSION);
         const lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
         const params = await algodClient.getTransactionParams().do();
 
@@ -469,7 +469,7 @@ const GenerateTransactions = {
         const d = numAndDenom.d;
         console.log("getPlaceAlgoEscrowOrderTxns makerWalletAddr, n, d, min, assetId",
             makerAddr, n, d, min, assetId);
-        let program = algodex.buildDelegateTemplateFromArgs(min, assetId, n, d, makerAddr, false);
+        let program = algodex.buildDelegateTemplateFromArgs(min, assetId, n, d, makerAddr, false, constants.ESCROW_CONTRACT_VERSION);
         let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let generatedOrderEntry = algodex.generateOrder(makerAddr, n, d, min, assetId);
         console.log("sending trans to: " + lsig.address());
@@ -530,9 +530,9 @@ const GenerateTransactions = {
 
         let outerTxns = [];
 
-        let program = algodex.buildDelegateTemplateFromArgs(min, assetId, n, d, makerAddr, true);
+        let program = algodex.buildDelegateTemplateFromArgs(min, assetId, n, d, makerAddr, true, constants.ESCROW_CONTRACT_VERSION);
 
-        let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
+        let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, program);
         let generatedOrderEntry = algodex.generateOrder(makerAddr, n, d, min, assetId);
         console.log("address is: " + lsig.address());
         
