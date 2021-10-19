@@ -37,3 +37,5 @@ Note: if https://github.com/algodex/algodex-go-api is set up and running, the co
 # Architecture Documentation
 
 https://github.com/algodex/algodex-architecture
+
+
