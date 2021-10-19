@@ -19,6 +19,8 @@ let delegateTemplate = `
 /////////////////////////////////
 // CHECKS THAT APPLY TO ALL TXNS
 ////////////////////////////////
+int 1
+pop
 
     int 0
     store 9
