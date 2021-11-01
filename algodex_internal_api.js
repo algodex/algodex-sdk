@@ -133,6 +133,9 @@ const AlgodexInternalApi = {
     },
 // Helper function to get ASA Order Txns (3-4 transactions)
     getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry) {
+        console.log("printing!!!");
+        console.log({takerCombOrderBalance, orderBookEscrowEntry});
+
         const orderBookEntry = orderBookEscrowEntry['orderEntry'];
         const min_asa_balance = 0;
 
@@ -421,7 +424,7 @@ const AlgodexInternalApi = {
     getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance) {
             console.log("orderBookEscrowEntry, takerCombOrderBalance",
                 this.dumpVar(orderBookEscrowEntry),
-                        takerCombOrderBalance);
+                       this.dumpVar( takerCombOrderBalance) );
 
             const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
             const orderBookEntry = orderBookEscrowEntry['orderEntry'];

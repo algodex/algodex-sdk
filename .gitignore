@@ -1,3 +1,5 @@
+.env
+*.js.orig
 *.diff
 node_modules*
 *.txt

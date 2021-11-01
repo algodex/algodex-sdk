@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand "
+    "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
+    "testOrders": "npm test -- Order"
   },
   "repository": {
     "type": "git",
