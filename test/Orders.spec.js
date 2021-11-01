@@ -4,31 +4,6 @@ const JEST_MINUTE_TIMEOUT = 60 * 1000;
 
 describe('Test Order Matching', () => {
   test('ASA order with closeout', async () => {
-    /*
-    const orderBookEscrowEntry =  {
-      "orderEntry": "1000-285-0-15322902",
-      "price": 0.285,
-      "n": 1000,
-      "d": 285,
-      "min": 0,
-      "escrowAddr": "QLSUTY3GS4HQ4EZCPQBCZVRH2HO2DJT5IJX3JQJD2IABNQ5MYMAJ6B4BGE",
-      "algoBalance": 854000,
-      "escrowOrderType": "buy",
-      "isASAEscrow": false,
-      "orderCreatorAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
-      "assetId": 15322902,
-      "version": 4
-    };
-
-    const takerCombOrderBalance = {
-      algoBalance: 132736127189,
-      asaBalance: 0,
-      limitPrice: 0.22,
-      takerAddr: "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
-      walletASABalance: 479992396,
-      walletAlgoBalance: 132734430069,
-     walletMinBalance: 10768000
-    }; */
 
     const orderBookEscrowEntry = {
         algoBalance: 498000,
