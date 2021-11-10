@@ -247,8 +247,16 @@ const AlgodexInternalApi = {
 
             const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
             
-            const {algoTradeAmount, escrowAsaTradeAmount, executionFees, closeoutFromASABalance} = 
+            const {algoTradeAmount, escrowAsaTradeAmount, executionFees, 
+                closeoutFromASABalance: initialCloseoutFromASABalance} = 
                     this.getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry);
+
+            let closeoutFromASABalance = initialCloseoutFromASABalance;
+            console.log('closeoutFromASABalance here111: ' + closeoutFromASABalance);
+            if (orderBookEscrowEntry.useForceShouldCloseOrNot) {
+                closeoutFromASABalance = orderBookEscrowEntry.forceShouldClose;
+                console.log('closeoutFromASABalance here222: ' + closeoutFromASABalance);
+            }
 
             takerCombOrderBalance['algoBalance'] -= executionFees;
             takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
@@ -265,6 +273,7 @@ const AlgodexInternalApi = {
 
             if (closeoutFromASABalance == true) {
                 // only closeout if there are no more ASA in the account
+                console.log('closeoutFromASABalance here333: ' + closeoutFromASABalance);
                 closeRemainderTo = orderCreatorAddr;
             }
             let transaction1 = null;
@@ -280,6 +289,12 @@ const AlgodexInternalApi = {
             var enc = new TextEncoder();
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
+
+            if (orderBookEscrowEntry.txnNum != null) {
+                //uniquify this transaction even if this arg isn't used
+                appArgs.push(enc.encode(orderBookEscrowEntry.txnNum));
+            }
+
             // appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
             //appArgs.push(enc.encode(assetId));
 
@@ -590,7 +605,13 @@ const AlgodexInternalApi = {
             if (currentEscrowAlgoBalance - algoAmountReceiving < constants.MIN_ESCROW_BALANCE) {
                 closeRemainderTo = orderCreatorAddr;
             }
-
+            if (orderBookEscrowEntry.useForceShouldCloseOrNot) {
+                if (orderBookEscrowEntry.forceShouldClose === true) {
+                    closeRemainderTo = orderCreatorAddr;
+                } else {
+                    closeRemainderTo = undefined;
+                }
+            }
             let appCallType = null;
             if (closeRemainderTo == undefined) {
                 appCallType = "execute";
@@ -599,10 +620,13 @@ const AlgodexInternalApi = {
             }
             console.log("arg1: " + appCallType);
             console.log("arg2: " + orderBookEntry);
-            console.log("arg3: " + orderCreatorAddr);
             
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
+            if (orderBookEscrowEntry.txnNum != null) {
+                //uniquify this transaction even if this arg isn't used
+                appArgs.push(enc.encode(orderBookEscrowEntry.txnNum));
+            }
             // appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
             console.log(appArgs.length);
 
