@@ -233,7 +233,7 @@ const AlgodexApi = {
     },
 
     getCutOrderTimes : (queuedOrder) => {
-            console.log('in getCutOrderTimes: ', this.dumpVar(queuedOrder) );
+            console.log('in getCutOrderTimes: ', JSON.stringify(queuedOrder) );
             let cutOrderAmount = null, splitTimes = null;
             if (queuedOrder.isASAEscrow) {
                 cutOrderAmount = Math.max(1, queuedOrder.asaBalance / 4);
@@ -340,19 +340,6 @@ const AlgodexApi = {
         const getCutOrderTimes = this.getCutOrderTimes;
 
         console.log('herevvvfd');
-
-        console.log(getCutOrderTimes( {asaBalance: 40, isASAEscrow: true} ));
-        console.log(getCutOrderTimes( {asaBalance: 160, isASAEscrow: true} ));
-        console.log(getCutOrderTimes( {asaBalance: 100000, isASAEscrow: true} ));
-        console.log(getCutOrderTimes( {asaBalance: 3, isASAEscrow: true} ));
-        console.log(getCutOrderTimes( {asaBalance: 1, isASAEscrow: true} ));
-        console.log(getCutOrderTimes( {price: 0.25, algoBalance: 500000, isASAEscrow: false} ));
-        console.log(getCutOrderTimes( {price: 0.25, algoBalance: 700000, isASAEscrow: false} ));
-        console.log(getCutOrderTimes( {price: 0.25, algoBalance: 900000, isASAEscrow: false} ));
-        console.log(getCutOrderTimes( {price: 0.25, algoBalance: 1300000, isASAEscrow: false} ));
-        console.log(getCutOrderTimes( {price: 0.25, algoBalance: 999900000, isASAEscrow: false} ));
-        console.log(getCutOrderTimes( {price: 1000000, algoBalance: 999900000, isASAEscrow: false} ));
-        console.log(getCutOrderTimes( {price: 1000000, algoBalance: 1200000, isASAEscrow: false} ));
         
 
         for (let i = 0; i < queuedOrders.length; i++) {
