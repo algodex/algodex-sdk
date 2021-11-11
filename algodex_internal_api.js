@@ -43,6 +43,7 @@ let ASA_ESCROW_ORDER_BOOK_ID = -1;
 let ALGOD_SERVER = constants.TEST_ALGOD_SERVER;
 let ALGOD_PORT = constants.TEST_ALGOD_PORT;
 let ALGOD_TOKEN = constants.TEST_ALGOD_TOKEN;
+let compilationResults = {};
 
 const AlgodexInternalApi = {
 
@@ -158,6 +159,12 @@ const AlgodexInternalApi = {
         }
         //FIXME - check if lower than order balance
         const maxTradeAmount = Math.min(takerCombOrderBalance['algoBalance'], takerCombOrderBalance['walletAlgoBalance'] - executionFees);
+        const emptyReturnVal = {
+            'algoTradeAmount': 0,
+            'escrowAsaTradeAmount': 0,
+            'executionFees': 0,
+            'closeoutFromASABalance': false
+        }
 
         if (algoTradeAmount.compareTo(new BigN(maxTradeAmount)) == GREATER_THAN
                 && algoTradeAmount.compareTo(bDecOne) == GREATER_THAN
@@ -194,7 +201,7 @@ const AlgodexInternalApi = {
 
         if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
             console.log("here9992b algo balance too low, returning early! ", executionFees, algoTradeAmount.getValue(), takerCombOrderBalance);
-            return; //no balance left to use for buying ASAs
+            return emptyReturnVal; //no balance left to use for buying ASAs
         }
 
         escrowAsaTradeAmount = parseInt(escrowAsaTradeAmount.getValue());
@@ -202,11 +209,11 @@ const AlgodexInternalApi = {
 
         if (escrowAsaTradeAmount <= 0) {
             console.log("here77zz escrowAsaTradeAmount is at 0 or below. returning early! nothing to do");
-            return;
+            return emptyReturnVal;
         }
         if (algoTradeAmount <= 0) {
             console.log("here77zb algoTradeAmount is at 0 or below. returning early! nothing to do");
-            return;
+            return emptyReturnVal;
         }
 
         //FIXME - need more logic to transact correct price in case balances dont match order balances
@@ -247,8 +254,21 @@ const AlgodexInternalApi = {
 
             const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
             
-            const {algoTradeAmount, escrowAsaTradeAmount, executionFees, closeoutFromASABalance} = 
+            const {algoTradeAmount, escrowAsaTradeAmount, executionFees, 
+                closeoutFromASABalance: initialCloseoutFromASABalance} = 
                     this.getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry);
+
+            if (algoTradeAmount == 0) {
+                console.log("nothing to do, returning early");
+                return null;
+            }
+
+            let closeoutFromASABalance = initialCloseoutFromASABalance;
+            console.log('closeoutFromASABalance here111: ' + closeoutFromASABalance);
+            if (orderBookEscrowEntry.useForceShouldCloseOrNot) {
+                closeoutFromASABalance = orderBookEscrowEntry.forceShouldClose;
+                console.log('closeoutFromASABalance here222: ' + closeoutFromASABalance);
+            }
 
             takerCombOrderBalance['algoBalance'] -= executionFees;
             takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
@@ -265,6 +285,7 @@ const AlgodexInternalApi = {
 
             if (closeoutFromASABalance == true) {
                 // only closeout if there are no more ASA in the account
+                console.log('closeoutFromASABalance here333: ' + closeoutFromASABalance);
                 closeRemainderTo = orderCreatorAddr;
             }
             let transaction1 = null;
@@ -280,6 +301,12 @@ const AlgodexInternalApi = {
             var enc = new TextEncoder();
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
+
+            if (orderBookEscrowEntry.txnNum != null) {
+                //uniquify this transaction even if this arg isn't used
+                appArgs.push(enc.encode(orderBookEscrowEntry.txnNum));
+            }
+
             // appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
             //appArgs.push(enc.encode(assetId));
 
@@ -444,9 +471,9 @@ const AlgodexInternalApi = {
             appAccts.push(takerAddr);
             // Call stateful contract
             
-            const txnFee = 0.004 * 1000000; //FIXME - make more accurate
+            const txnFee = 0.002 * 1000000; //FIXME - make more accurate
 
-            algoAmountReceiving -= txnFee; // this will be the transfer amount
+            //algoAmountReceiving -= txnFee; // this will be the transfer amount
             console.log("here1");
             console.log("takerOrderBalance: " + this.dumpVar(takerCombOrderBalance));
             console.log("algoAmount: " + algoAmountReceiving);
@@ -454,17 +481,23 @@ const AlgodexInternalApi = {
             const price = new BigN(d).divide(new BigN(n));
             const bDecOne = new BigN(1);
 
+            const emptyReturnVal = {
+                'algoAmountReceiving': 0,
+                'asaAmountSending': 0,
+                'txnFee': 0
+            };
+
             if (algoAmountReceiving - txnFee < 0) {
                 //dont allow overspend from user's wallet
                 console.log("here4");
                 console.log("returning early from overspend");
-                return null;
+                return emptyReturnVal;
             }
 
             if (algoAmountReceiving <= 0) {
                 console.log("here5");
                 console.log("can't afford, returning early");
-                return null; // can't afford any transaction!
+                return emptyReturnVal; // can't afford any transaction!
             }
             algoAmountReceiving = new BigN(algoAmountReceiving);
             let asaAmount = algoAmountReceiving.divide(price, 30);
@@ -537,6 +570,7 @@ const AlgodexInternalApi = {
             algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
             asaAmount = parseInt(asaAmount.getValue());
 
+            algoAmountReceiving -= txnFee;
             return {
                 'algoAmountReceiving': algoAmountReceiving,
                 'asaAmountSending': asaAmount,
@@ -579,6 +613,11 @@ const AlgodexInternalApi = {
             const {algoAmountReceiving, asaAmountSending, txnFee} = 
                     this.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
 
+            if (algoAmountReceiving == 0) {
+                console.log("algoAmountReceiving is 0, nothing to do, returning early");
+                return null;
+            }
+
             takerCombOrderBalance['algoBalance'] -= txnFee;
             takerCombOrderBalance['algoBalance'] += algoAmountReceiving;
             takerCombOrderBalance['asaBalance'] -= asaAmountSending;
@@ -590,7 +629,13 @@ const AlgodexInternalApi = {
             if (currentEscrowAlgoBalance - algoAmountReceiving < constants.MIN_ESCROW_BALANCE) {
                 closeRemainderTo = orderCreatorAddr;
             }
-
+            if (orderBookEscrowEntry.useForceShouldCloseOrNot) {
+                if (orderBookEscrowEntry.forceShouldClose === true) {
+                    closeRemainderTo = orderCreatorAddr;
+                } else {
+                    closeRemainderTo = undefined;
+                }
+            }
             let appCallType = null;
             if (closeRemainderTo == undefined) {
                 appCallType = "execute";
@@ -599,10 +644,13 @@ const AlgodexInternalApi = {
             }
             console.log("arg1: " + appCallType);
             console.log("arg2: " + orderBookEntry);
-            console.log("arg3: " + orderCreatorAddr);
             
             appArgs.push(enc.encode(appCallType));
             appArgs.push(enc.encode(orderBookEntry));
+            if (orderBookEscrowEntry.txnNum != null) {
+                //uniquify this transaction even if this arg isn't used
+                appArgs.push(enc.encode(orderBookEscrowEntry.txnNum));
+            }
             // appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
             console.log(appArgs.length);
 
@@ -1080,8 +1128,38 @@ const AlgodexInternalApi = {
             console.log("logging source!!");
             console.log(program);
         }
-        let compilation = await this.compileProgram(algodClient, program);
-        let uintAr = this._base64ToArrayBuffer(compilation.result);
+
+        // Simple but effective hash function
+        // https://stackoverflow.com/a/52171480
+        const cyrb53 = function(str, seed = 0) {
+            let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+            for (let i = 0, ch; i < str.length; i++) {
+                ch = str.charCodeAt(i);
+                h1 = Math.imul(h1 ^ ch, 2654435761);
+                h2 = Math.imul(h2 ^ ch, 1597334677);
+            }
+            h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+            h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+            return 4294967296 * (2097151 & h2) + (h1>>>0);
+        };
+
+        const hashedProgram = cyrb53(program);
+        console.log("hashed program: " + hashedProgram);
+        let compilationResult = null;
+        if (hashedProgram in compilationResults) {
+            compilationResult = compilationResults[hashedProgram];
+            console.log("got compilation results from hash! " + hashedProgram);
+        } else {
+            console.log("size is too large! resetting keys");
+            compilation = await this.compileProgram(algodClient, program);
+            compilationResult = compilation.result;
+            if (Object.keys(compilationResults).length > 200) {
+                compilationResults = {};
+            }
+            compilationResults[hashedProgram] = compilationResult;
+        }
+
+        let uintAr = this._base64ToArrayBuffer(compilationResult);
         let args = undefined;
         let lsig = algosdk.makeLogicSig(uintAr, args);
         console.log("lsig addr: " + lsig.address());

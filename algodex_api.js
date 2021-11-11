@@ -232,6 +232,29 @@ const AlgodexApi = {
         return orderEntry;
     },
 
+    getCutOrderTimes : (queuedOrder) => {
+            console.log('in getCutOrderTimes: ', JSON.stringify(queuedOrder) );
+            let cutOrderAmount = null, splitTimes = null;
+            if (queuedOrder.isASAEscrow) {
+                cutOrderAmount = Math.max(1, queuedOrder.asaBalance / 4);
+                splitTimes = Math.floor(queuedOrder.asaBalance / cutOrderAmount);
+            } else {
+                const minOrderAmount = Math.max(queuedOrder.price + 1, 500000);
+                cutOrderAmount = Math.max(minOrderAmount, queuedOrder.algoBalance / 4);
+                splitTimes = Math.floor(queuedOrder.algoBalance / cutOrderAmount);
+            }
+            cutOrderAmount = Math.floor(cutOrderAmount);
+
+            if (splitTimes == 0) {
+                splitTimes = 1;
+            }
+
+            return {
+                'cutOrderAmount': cutOrderAmount,
+                'splitTimes': splitTimes
+            };
+    },
+
     executeOrder : async function executeOrder (algodClient, isSellingASA, assetId, 
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
 
@@ -316,6 +339,8 @@ const AlgodexApi = {
         let params = await algodClient.getTransactionParams().do();
         let lastExecutedPrice = -1;
 
+        const getCutOrderTimes = this.getCutOrderTimes;
+
         for (let i = 0; i < queuedOrders.length; i++) {
             if (takerOrderBalance['orderAlgoAmount'] <= txnFee) {
                 // Overspending issues
@@ -340,28 +365,84 @@ const AlgodexApi = {
                 continue;
             }
 
-            let singleOrderTransList = 
-                await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, 
-                    queuedOrders[i], takerOrderBalance, params);
 
-            if (singleOrderTransList == null) {
-                // Overspending issue
-                continue;
-            }
-            lastExecutedPrice = queuedOrders[i]['price'];
-
-            for (let k = 0; k < singleOrderTransList.length; k++) {
-                let trans = singleOrderTransList[k];
-                trans['txOrderNum'] = txOrderNum;
-                trans['groupNum'] = groupNum;
-                txOrderNum++;
-                allTransList.push(trans);
-                if (trans['needsUserSig'] === true) {
-                    transNeededUserSigList.push(trans);
+            // let cutOrder = null;
+            // let splitTimes = 1;
+            const getSplitTimesByIter = (i) => {
+                let cutOrder = null;
+                let splitTimes = 1;
+                if (i == 0) {
+                    cutOrder = getCutOrderTimes(queuedOrders[i]);
+                    splitTimes = cutOrder.splitTimes;
+                } else {
+                    cutOrder = null;
                 }
+                return {cutOrder, splitTimes};
             }
-            groupNum++;
-           
+            const {cutOrder, splitTimes} = getSplitTimesByIter(i);
+
+            console.log('cutOrder, splitTimes: ', {cutOrder, splitTimes});
+            let runningBalance = queuedOrders[i].isASAEscrow ? queuedOrders[i].asaBalance : 
+                            queuedOrders[i].algoBalance;
+
+            let outerBreak = false;
+            for (let jj = 0; jj < splitTimes; jj++) {
+                if (runningBalance <= 0) {
+                    throw "Unexpected 0 or below balance";
+                }
+                console.log("running balance: " + runningBalance + " isASAEscrow: " + queuedOrders[i].isASAEscrow);
+                const queuedOrder = Object.assign({}, queuedOrders[i]);
+                
+                if (cutOrder != null) {
+                    const shouldClose =  (jj < cutOrder.splitTimes - 1) ? false : null;
+                    const useForceShouldCloseOrNot = (jj < cutOrder.splitTimes - 1);
+                    queuedOrder.forceShouldClose = shouldClose;
+                    queuedOrder.useForceShouldCloseOrNot = useForceShouldCloseOrNot;
+                    queuedOrder.txnNum = jj;
+
+                    if (jj >= splitTimes - 1) {
+                        // This is the last iteration, so simply use the running balance
+                        if (queuedOrder.isASAEscrow) {
+                            queuedOrder.asaBalance = runningBalance;
+                        } else {
+                            queuedOrder.algoBalance = runningBalance;
+                        }
+                    } else {
+                        if (queuedOrder.isASAEscrow) {
+                            queuedOrder.asaBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+                        } else {
+                            queuedOrder.algoBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+                        }
+                    }
+                }
+                let singleOrderTransList = 
+                    await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, 
+                        queuedOrder, takerOrderBalance, params);
+
+                if (singleOrderTransList == null) {
+                    // Overspending issue
+                    outerBreak = true;
+                    break;
+                }
+                lastExecutedPrice = queuedOrder['price'];
+
+                for (let k = 0; k < singleOrderTransList.length; k++) {
+                    let trans = singleOrderTransList[k];
+                    trans['txOrderNum'] = txOrderNum;
+                    trans['groupNum'] = groupNum;
+                    txOrderNum++;
+                    allTransList.push(trans);
+                    if (trans['needsUserSig'] === true) {
+                        transNeededUserSigList.push(trans);
+                    }
+                }
+                groupNum++;
+
+                runningBalance -= cutOrder != null ? cutOrder.cutOrderAmount : 0;
+            }
+            if (outerBreak) {
+                break;
+            }
         }
 
         let makerTxns = null;
@@ -377,7 +458,6 @@ const AlgodexApi = {
 
                 makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
                     userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);
-
             } else if (!isSellingASA && leftoverAlgoBalance > 0) {
                 console.log("leftover Algo balance is: " + leftoverASABalance);
 
