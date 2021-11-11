@@ -571,6 +571,8 @@ const AlgodexInternalApi = {
             asaAmount = parseInt(asaAmount.getValue());
 
             algoAmountReceiving -= txnFee;
+            algoAmountReceiving = Math.max(0, algoAmountReceiving);
+
             return {
                 'algoAmountReceiving': algoAmountReceiving,
                 'asaAmountSending': asaAmount,
@@ -1150,10 +1152,11 @@ const AlgodexInternalApi = {
             compilationResult = compilationResults[hashedProgram];
             console.log("got compilation results from hash! " + hashedProgram);
         } else {
-            console.log("size is too large! resetting keys");
+            console.log("program not found in cache, fetching");
             compilation = await this.compileProgram(algodClient, program);
             compilationResult = compilation.result;
             if (Object.keys(compilationResults).length > 200) {
+                console.log("size is too large! resetting keys");
                 compilationResults = {};
             }
             compilationResults[hashedProgram] = compilationResult;
