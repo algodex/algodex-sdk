@@ -367,21 +367,6 @@ const AlgodexApi = {
             }
 
 
-            /*
-            algoBalance: 498000
-            asaBalance: 4000000
-            assetId: 15322902
-            d: 277
-            escrowAddr: "DKPQP3NO4CSJPGOE7VW7KLHFAHCWUHAQXL7VEGFVLJLPTPZ5I2OO3YLGME"
-            escrowOrderType: "sell"
-            isASAEscrow: true
-            min: 0
-            n: 1000
-            orderCreatorAddr: "UUEUTRNQY7RUXESXRDO7HSYRSJJSSVKYVB4DI7X2HVVDWYOBWJOP5OSM3A"
-            orderEntry: "1000-277-0-15322902"
-            price: 0.277
-            version: 3*/
-
             // let cutOrder = null;
             // let splitTimes = 1;
             const getSplitTimesByIter = (i) => {

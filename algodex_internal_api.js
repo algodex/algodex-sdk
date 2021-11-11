@@ -43,6 +43,7 @@ let ASA_ESCROW_ORDER_BOOK_ID = -1;
 let ALGOD_SERVER = constants.TEST_ALGOD_SERVER;
 let ALGOD_PORT = constants.TEST_ALGOD_PORT;
 let ALGOD_TOKEN = constants.TEST_ALGOD_TOKEN;
+let compilationResults = {};
 
 const AlgodexInternalApi = {
 
@@ -1104,8 +1105,38 @@ const AlgodexInternalApi = {
             console.log("logging source!!");
             console.log(program);
         }
-        let compilation = await this.compileProgram(algodClient, program);
-        let uintAr = this._base64ToArrayBuffer(compilation.result);
+
+        // Simple but effective hash function
+        // https://stackoverflow.com/a/52171480
+        const cyrb53 = function(str, seed = 0) {
+            let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+            for (let i = 0, ch; i < str.length; i++) {
+                ch = str.charCodeAt(i);
+                h1 = Math.imul(h1 ^ ch, 2654435761);
+                h2 = Math.imul(h2 ^ ch, 1597334677);
+            }
+            h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+            h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+            return 4294967296 * (2097151 & h2) + (h1>>>0);
+        };
+
+        const hashedProgram = cyrb53(program);
+        console.log("hashed program: " + hashedProgram);
+        let compilationResult = null;
+        if (hashedProgram in compilationResults) {
+            compilationResult = compilationResults[hashedProgram];
+            console.log("got compilation results from hash! " + hashedProgram);
+        } else {
+            console.log("size is too large! resetting keys");
+            compilation = await this.compileProgram(algodClient, program);
+            compilationResult = compilation.result;
+            if (Object.keys(compilationResults).length > 200) {
+                compilationResults = {};
+            }
+            compilationResults[hashedProgram] = compilationResult;
+        }
+
+        let uintAr = this._base64ToArrayBuffer(compilationResult);
         let args = undefined;
         let lsig = algosdk.makeLogicSig(uintAr, args);
         console.log("lsig addr: " + lsig.address());
