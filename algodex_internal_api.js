@@ -471,9 +471,9 @@ const AlgodexInternalApi = {
             appAccts.push(takerAddr);
             // Call stateful contract
             
-            const txnFee = 0.004 * 1000000; //FIXME - make more accurate
+            const txnFee = 0.002 * 1000000; //FIXME - make more accurate
 
-            algoAmountReceiving -= txnFee; // this will be the transfer amount
+            //algoAmountReceiving -= txnFee; // this will be the transfer amount
             console.log("here1");
             console.log("takerOrderBalance: " + this.dumpVar(takerCombOrderBalance));
             console.log("algoAmount: " + algoAmountReceiving);
@@ -570,6 +570,7 @@ const AlgodexInternalApi = {
             algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
             asaAmount = parseInt(asaAmount.getValue());
 
+            algoAmountReceiving -= txnFee;
             return {
                 'algoAmountReceiving': algoAmountReceiving,
                 'asaAmountSending': asaAmount,

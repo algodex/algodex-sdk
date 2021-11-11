@@ -243,6 +243,8 @@ const AlgodexApi = {
                 cutOrderAmount = Math.max(minOrderAmount, queuedOrder.algoBalance / 4);
                 splitTimes = Math.floor(queuedOrder.algoBalance / cutOrderAmount);
             }
+            cutOrderAmount = Math.floor(cutOrderAmount);
+
             if (splitTimes == 0) {
                 splitTimes = 1;
             }
@@ -397,10 +399,20 @@ const AlgodexApi = {
                     queuedOrder.forceShouldClose = shouldClose;
                     queuedOrder.useForceShouldCloseOrNot = useForceShouldCloseOrNot;
                     queuedOrder.txnNum = jj;
-                    if (queuedOrder.isASAEscrow) {
-                        queuedOrder.asaBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+
+                    if (jj >= splitTimes - 1) {
+                        // This is the last iteration, so simply use the running balance
+                        if (queuedOrder.isASAEscrow) {
+                            queuedOrder.asaBalance = runningBalance;
+                        } else {
+                            queuedOrder.algoBalance = runningBalance;
+                        }
                     } else {
-                        queuedOrder.algoBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+                        if (queuedOrder.isASAEscrow) {
+                            queuedOrder.asaBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+                        } else {
+                            queuedOrder.algoBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+                        }
                     }
                 }
                 let singleOrderTransList = 
