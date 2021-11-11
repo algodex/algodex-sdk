@@ -159,6 +159,12 @@ const AlgodexInternalApi = {
         }
         //FIXME - check if lower than order balance
         const maxTradeAmount = Math.min(takerCombOrderBalance['algoBalance'], takerCombOrderBalance['walletAlgoBalance'] - executionFees);
+        const emptyReturnVal = {
+            'algoTradeAmount': 0,
+            'escrowAsaTradeAmount': 0,
+            'executionFees': 0,
+            'closeoutFromASABalance': false
+        }
 
         if (algoTradeAmount.compareTo(new BigN(maxTradeAmount)) == GREATER_THAN
                 && algoTradeAmount.compareTo(bDecOne) == GREATER_THAN
@@ -195,7 +201,7 @@ const AlgodexInternalApi = {
 
         if (takerCombOrderBalance['walletAlgoBalance'] < executionFees + parseInt(algoTradeAmount.getValue())) {
             console.log("here9992b algo balance too low, returning early! ", executionFees, algoTradeAmount.getValue(), takerCombOrderBalance);
-            return; //no balance left to use for buying ASAs
+            return emptyReturnVal; //no balance left to use for buying ASAs
         }
 
         escrowAsaTradeAmount = parseInt(escrowAsaTradeAmount.getValue());
@@ -203,11 +209,11 @@ const AlgodexInternalApi = {
 
         if (escrowAsaTradeAmount <= 0) {
             console.log("here77zz escrowAsaTradeAmount is at 0 or below. returning early! nothing to do");
-            return;
+            return emptyReturnVal;
         }
         if (algoTradeAmount <= 0) {
             console.log("here77zb algoTradeAmount is at 0 or below. returning early! nothing to do");
-            return;
+            return emptyReturnVal;
         }
 
         //FIXME - need more logic to transact correct price in case balances dont match order balances
@@ -251,6 +257,11 @@ const AlgodexInternalApi = {
             const {algoTradeAmount, escrowAsaTradeAmount, executionFees, 
                 closeoutFromASABalance: initialCloseoutFromASABalance} = 
                     this.getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry);
+
+            if (algoTradeAmount == 0) {
+                console.log("nothing to do, returning early");
+                return null;
+            }
 
             let closeoutFromASABalance = initialCloseoutFromASABalance;
             console.log('closeoutFromASABalance here111: ' + closeoutFromASABalance);
@@ -470,17 +481,23 @@ const AlgodexInternalApi = {
             const price = new BigN(d).divide(new BigN(n));
             const bDecOne = new BigN(1);
 
+            const emptyReturnVal = {
+                'algoAmountReceiving': 0,
+                'asaAmountSending': 0,
+                'txnFee': 0
+            };
+
             if (algoAmountReceiving - txnFee < 0) {
                 //dont allow overspend from user's wallet
                 console.log("here4");
                 console.log("returning early from overspend");
-                return null;
+                return emptyReturnVal;
             }
 
             if (algoAmountReceiving <= 0) {
                 console.log("here5");
                 console.log("can't afford, returning early");
-                return null; // can't afford any transaction!
+                return emptyReturnVal; // can't afford any transaction!
             }
             algoAmountReceiving = new BigN(algoAmountReceiving);
             let asaAmount = algoAmountReceiving.divide(price, 30);
@@ -594,6 +611,11 @@ const AlgodexInternalApi = {
 
             const {algoAmountReceiving, asaAmountSending, txnFee} = 
                     this.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
+            if (algoAmountReceiving == 0) {
+                console.log("algoAmountReceiving is 0, nothing to do, returning early");
+                return null;
+            }
 
             takerCombOrderBalance['algoBalance'] -= txnFee;
             takerCombOrderBalance['algoBalance'] += algoAmountReceiving;
