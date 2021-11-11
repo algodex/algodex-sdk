@@ -339,9 +339,6 @@ const AlgodexApi = {
 
         const getCutOrderTimes = this.getCutOrderTimes;
 
-        console.log('herevvvfd');
-        
-
         for (let i = 0; i < queuedOrders.length; i++) {
             if (takerOrderBalance['orderAlgoAmount'] <= txnFee) {
                 // Overspending issues
