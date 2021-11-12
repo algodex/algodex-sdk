@@ -327,18 +327,9 @@ const AlgodexInternalApi = {
                 ...params
             };
 
-            let accountInfo = await this.getAccountInfo(takerAddr);
-            let takerAlreadyOptedIntoASA = false;
-            if (accountInfo != null && accountInfo['assets'] != null
-                && accountInfo['assets'].length > 0) {
-                for (let i = 0; i < accountInfo['assets'].length; i++) {
-                    if (accountInfo['assets'][i]['asset-id'] === assetId) {
-                        takerAlreadyOptedIntoASA = true;
-                        break;
-                    }
-                }
-            }
-
+            const takerAlreadyOptedIntoASA = takerCombOrderBalance.takerIsOptedIn;
+            console.log({takerAlreadyOptedIntoASA});
+            
             // asset opt-in transfer
             let transaction2b = null;
 

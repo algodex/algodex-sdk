@@ -297,6 +297,21 @@ const AlgodexApi = {
             }
         }
 
+        const getTakerOptedIn = (accountInfo, assetId) => {
+            let takerAlreadyOptedIntoASA = false;
+            if (accountInfo != null && accountInfo['assets'] != null
+                && accountInfo['assets'].length > 0) {
+                for (let i = 0; i < accountInfo['assets'].length; i++) {
+                    if (accountInfo['assets'][i]['asset-id'] === assetId) {
+                        takerAlreadyOptedIntoASA = true;
+                        break;
+                    }
+                }
+            }
+            return takerAlreadyOptedIntoASA;
+        }
+        const takerIsOptedIn = getTakerOptedIn(execAccountInfo, assetId);
+
         orderAssetAmount = Math.max(1, orderAssetAmount);
         orderAlgoAmount = Math.max(1, orderAlgoAmount);
 
@@ -317,7 +332,8 @@ const AlgodexApi = {
             'walletASABalance': walletAssetAmount,
             'limitPrice': limitPrice,
             'takerAddr': userWalletAddr,
-            'walletMinBalance': takerMinBalance
+            'walletMinBalance': takerMinBalance,
+            'takerIsOptedIn': takerIsOptedIn
         };
 
         console.log("initial taker orderbalance: ", this.dumpVar(takerOrderBalance));
