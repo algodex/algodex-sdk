@@ -471,9 +471,9 @@ const AlgodexInternalApi = {
             appAccts.push(takerAddr);
             // Call stateful contract
             
-            const txnFee = 0.002 * 1000000; //FIXME - make more accurate
+            const txnFee = 0.002 * 1000000;
 
-            //algoAmountReceiving -= txnFee; // this will be the transfer amount
+            algoAmountReceiving -= txnFee; // this will be the transfer amount
             console.log("here1");
             console.log("takerOrderBalance: " + this.dumpVar(takerCombOrderBalance));
             console.log("algoAmount: " + algoAmountReceiving);
@@ -486,13 +486,6 @@ const AlgodexInternalApi = {
                 'asaAmountSending': 0,
                 'txnFee': 0
             };
-
-            if (algoAmountReceiving - txnFee < 0) {
-                //dont allow overspend from user's wallet
-                console.log("here4");
-                console.log("returning early from overspend");
-                return emptyReturnVal;
-            }
 
             if (algoAmountReceiving <= 0) {
                 console.log("here5");
@@ -570,7 +563,6 @@ const AlgodexInternalApi = {
             algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
             asaAmount = parseInt(asaAmount.getValue());
 
-            algoAmountReceiving -= txnFee;
             algoAmountReceiving = Math.max(0, algoAmountReceiving);
 
             return {

@@ -111,9 +111,9 @@ describe('Test Order Matching', () => {
 
     console.log({orderAmount});
 
-    expect(orderAmount.algoAmountReceiving).toBe(849999);
-    expect(orderAmount.asaAmountSending).toBe(2982456);
-    expect(orderAmount.txnFee).toBe(4000);
+    expect(orderAmount.algoAmountReceiving).toBe(851999);
+    expect(orderAmount.asaAmountSending).toBe(2989473);
+    expect(orderAmount.txnFee).toBe(2000);
   }, JEST_MINUTE_TIMEOUT);
 });
 
