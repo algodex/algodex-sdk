@@ -496,6 +496,12 @@ const AlgodexApi = {
             params
           )
 
+        if (singleOrderTransList == null) {
+          // Overspending issue
+          outerBreak = true
+          break
+        }
+
         const committed = singleOrderTransList
           .filter(
             (txObj) =>
@@ -515,12 +521,6 @@ const AlgodexApi = {
         committed / recieved <= limitPrice
           ? logger.log("Good deal")
           : logger.log("You might be over paying")
-
-        if (singleOrderTransList == null) {
-          // Overspending issue
-          outerBreak = true
-          break
-        }
         lastExecutedPrice = queuedOrder["price"]
 
         for (let k = 0; k < singleOrderTransList.length; k++) {

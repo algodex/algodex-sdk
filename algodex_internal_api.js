@@ -211,6 +211,7 @@ const AlgodexInternalApi = {
     if (algoTradeAmount.getValue().includes(".")) {
       algoTradeAmount = algoTradeAmount.floor().add(bDecOne) //round up to give seller more money
     }
+
     //FIXME - check if lower than order balance
     const maxTradeAmount = Math.min(
       takerCombOrderBalance["algoBalance"],
