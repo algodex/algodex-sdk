@@ -151,4 +151,121 @@ describe('Test Order Matching', () => {
     expect(orderAmount.txnFee).toBe(2000);
   }, JEST_MINUTE_TIMEOUT);
 
+  test('Algo buy order (NFT not enough in buy order #1)', async () => {
+    const d = 750e6;
+    const n = 1;
+    const price = d/n;
+    const orderEntry = n + "-" + d + "-0-15322902";
+    const orderBookEscrowEntry =  {
+      "orderEntry": orderEntry,
+      "price": price,
+      "n": n,
+      "d": d,
+      "min": 0,
+      "escrowAddr": "QLSUTY3GS4HQ4EZCPQBCZVRH2HO2DJT5IJX3JQJD2IABNQ5MYMAJ6B4BGE",
+      "algoBalance": 400e6,
+      "escrowOrderType": "buy",
+      "isASAEscrow": false,
+      "orderCreatorAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "assetId": 15322902,
+      "version": 4
+    };
+
+    const takerCombOrderBalance = {
+      "asaBalance": 1,
+      "algoBalance": 800e6,
+      "walletAlgoBalance": 800e6,
+      "walletASABalance": 1,
+      "limitPrice": 395e6,
+      "takerAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "walletMinBalance": 10768000
+    };
+
+    const orderAmount = AlgodexInternal.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
+    console.log({orderAmount});
+
+    expect(orderAmount.algoAmountReceiving).toBe(399998000);
+    expect(orderAmount.asaAmountSending).toBe(1);
+    expect(orderAmount.txnFee).toBe(2000);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test('Algo buy order (NFT not enough in buy order for price #2)', async () => {
+    const d = 750e6;
+    const n = 1;
+    const price = d/n;
+    const orderEntry = n + "-" + d + "-0-15322902";
+    const orderBookEscrowEntry =  {
+      "orderEntry": orderEntry,
+      "price": price,
+      "n": n,
+      "d": d,
+      "min": 0,
+      "escrowAddr": "QLSUTY3GS4HQ4EZCPQBCZVRH2HO2DJT5IJX3JQJD2IABNQ5MYMAJ6B4BGE",
+      "algoBalance": 400e6,
+      "escrowOrderType": "buy",
+      "isASAEscrow": false,
+      "orderCreatorAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "assetId": 15322902,
+      "version": 4
+    };
+
+    const takerCombOrderBalance = {
+      "asaBalance": 1,
+      "algoBalance": 800e6,
+      "walletAlgoBalance": 800e6,
+      "walletASABalance": 1,
+      "limitPrice": 401e6,
+      "takerAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "walletMinBalance": 10768000
+    };
+
+    const orderAmount = AlgodexInternal.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
+    console.log({orderAmount});
+
+    expect(orderAmount.algoAmountReceiving).toBe(0);
+    expect(orderAmount.asaAmountSending).toBe(0);
+    expect(orderAmount.txnFee).toBe(2000);
+  }, JEST_MINUTE_TIMEOUT);
+
+  test('Algo buy order (NFT)', async () => {
+    const d = 750e6;
+    const n = 1;
+    const price = d/n;
+    const orderEntry = n + "-" + d + "-0-15322902";
+    const orderBookEscrowEntry =  {
+      "orderEntry": orderEntry,
+      "price": price,
+      "n": n,
+      "d": d,
+      "min": 0,
+      "escrowAddr": "QLSUTY3GS4HQ4EZCPQBCZVRH2HO2DJT5IJX3JQJD2IABNQ5MYMAJ6B4BGE",
+      "algoBalance": 1300e6,
+      "escrowOrderType": "buy",
+      "isASAEscrow": false,
+      "orderCreatorAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "assetId": 15322902,
+      "version": 4
+    };
+
+    const takerCombOrderBalance = {
+      "asaBalance": 5,
+      "algoBalance": 800e6,
+      "walletAlgoBalance": 800e6,
+      "walletASABalance": 2,
+      "limitPrice": 740e6,
+      "takerAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "walletMinBalance": 10768000
+    };
+
+    const orderAmount = AlgodexInternal.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
+    console.log({orderAmount});
+
+    expect(orderAmount.algoAmountReceiving).toBe(750000000);
+    expect(orderAmount.asaAmountSending).toBe(1);
+    expect(orderAmount.txnFee).toBe(2000);
+  }, JEST_MINUTE_TIMEOUT);
+
 });
