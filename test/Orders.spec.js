@@ -115,7 +115,44 @@ describe('Test Order Matching', () => {
     expect(orderAmount.asaAmountSending).toBe(2989473);
     expect(orderAmount.txnFee).toBe(2000);
   }, JEST_MINUTE_TIMEOUT);
+
+  test('Algo buy order (partial)', async () => {
+    const orderBookEscrowEntry =  {
+      "orderEntry": "1000-285-0-15322902",
+      "price": 0.285,
+      "n": 1000,
+      "d": 285,
+      "min": 0,
+      "escrowAddr": "QLSUTY3GS4HQ4EZCPQBCZVRH2HO2DJT5IJX3JQJD2IABNQ5MYMAJ6B4BGE",
+      "algoBalance": 854000,
+      "escrowOrderType": "buy",
+      "isASAEscrow": false,
+      "orderCreatorAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "assetId": 15322902,
+      "version": 4
+    };
+
+    const takerCombOrderBalance = {
+      "asaBalance": 50000,
+      "algoBalance": 132734430069,
+      "walletAlgoBalance": 132734430069,
+      "walletASABalance": 479992396,
+      "limitPrice": 0.22,
+      "takerAddr": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "walletMinBalance": 10768000
+    };
+
+    const orderAmount = AlgodexInternal.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
+    console.log({orderAmount});
+
+    expect(orderAmount.algoAmountReceiving).toBe(14250);
+    expect(orderAmount.asaAmountSending).toBe(50000);
+    expect(orderAmount.txnFee).toBe(2000);
+  }, JEST_MINUTE_TIMEOUT);
+
 });
+
 
 describe('Test Splitting Initial Order', () => {
   test('Test getCutOrderTimes()', async () => {
