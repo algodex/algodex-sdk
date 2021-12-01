@@ -145,6 +145,7 @@ const AlgodexApi = {
         let algodServer = null;
         let port = null;
         let token = null;
+       
 
         this.initSmartContracts(environment);
 
@@ -441,6 +442,29 @@ const AlgodexApi = {
                     outerBreak = true;
                     break;
                 }
+                const committed = singleOrderTransList
+                .filter(
+                  (txObj) =>
+                    Object.keys(txObj).includes("txType") &&
+                    txObj.txType === "committed"
+                )
+                .map((tx) => tx.unsignedTxn.amount)[0];
+      
+              const recieved = singleOrderTransList
+                .filter(
+                  (txObj) =>
+                    Object.keys(txObj).includes("txType") &&
+                    txObj.txType === "recieved"
+                )
+                .map((tx) => tx.escrowAsaTradeAmount)[0];
+      
+              committed / recieved <= limitPrice
+                ? logger.log("Good deal")
+                : logger.log("You might be over paying");
+
+
+                debugger;
+
                 lastExecutedPrice = queuedOrder['price'];
 
                 for (let k = 0; k < singleOrderTransList.length; k++) {
