@@ -463,7 +463,7 @@ const AlgodexApi = {
                 : logger.log("You might be over paying");
 
 
-                debugger;
+               
 
                 lastExecutedPrice = queuedOrder['price'];
 
