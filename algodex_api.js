@@ -460,7 +460,7 @@ const AlgodexApi = {
                     .map((tx) => tx.amount)[0];
                 
             
-            // If buying asa make sure committed / recieved is lower than limit price and higher than limit price if selling.
+            // If algo/asa is less than limit price then it is a good deal when buying, bad deal when selling
             !isSellingASA
                 ?
                 algo / asa <= limitPrice
