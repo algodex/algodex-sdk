@@ -48,13 +48,13 @@ let compilationResults = {};
 
 const AlgodexInternalApi = {
 
-    setAlgodServer : function setAlgodServer(algod_server) {
+    setAlgodServer : function (algod_server) {
         ALGOD_SERVER = algod_server;
     },
-    setAlgodToken : function setAlgodServer(algod_token) {
+    setAlgodToken : function (algod_token) {
         ALGOD_TOKEN = algod_token;
     },
-    setAlgodPort : function setAlgodPort(algod_port) {
+    setAlgodPort : function (algod_port) {
         ALGOD_PORT = algod_port;
     },
 
