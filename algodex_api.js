@@ -444,13 +444,13 @@ const AlgodexApi = {
                 }
                 
                 const algo = singleOrderTransList
-                .filter(
-                    (txObj) =>
-                        Object.keys(txObj).includes("txType") &&
-                        txObj.txType === "algo"
-                )
-                .map((tx) => tx.amount)[0];
-            
+                    .filter(
+                        (txObj) =>
+                            Object.keys(txObj).includes("txType") &&
+                            txObj.txType === "algo"
+                    )
+                    .map((tx) => tx.amount)[0];
+
                 const asa = singleOrderTransList
                     .filter(
                         (txObj) =>
@@ -458,18 +458,18 @@ const AlgodexApi = {
                             txObj.txType === "asa"
                     )
                     .map((tx) => tx.amount)[0];
-                
-            
-            // If algo/asa is less than limit price then it is a good deal when buying, bad deal when selling
-            !isSellingASA
-                ?
-                algo / asa <= limitPrice
-                    ? logger.log("Good deal")
-                    : logger.log("You might be over paying")
-            
-                : algo / asa >= limitPrice
-                    ? logger.log("Good deal")
-                    : logger.log("You are selling for a price lower than what you set as the limit price");
+
+
+                // If algo/asa is less than limit price then it is a good deal when buying, bad deal when selling
+                !isSellingASA
+                    ?
+                    algo / asa <= limitPrice
+                        ? logger.log("Good deal")
+                        : logger.log("You might be over paying")
+
+                    : algo / asa >= limitPrice
+                        ? logger.log("Good deal")
+                        : logger.log("You are selling for a price lower than what you set as the limit price");
 
             
                 lastExecutedPrice = queuedOrder['price'];
