@@ -407,9 +407,10 @@ const AlgodexInternalApi = {
             retTxns.push({
                 'unsignedTxn': fixedTxn2,
                 'needsUserSig': true,
-                txType: "committed",
+                amount: fixedTxn2.amount,
+                txType: "algo",
             });
-
+            
             if (transaction2b != null) {
                 retTxns.push({
                     'unsignedTxn': transaction2b,
@@ -418,9 +419,10 @@ const AlgodexInternalApi = {
             }
             retTxns.push({
                 'signedTxn': signedTx3.blob,
-                escrowAsaTradeAmount: escrowAsaTradeAmount,
-                txType: "recieved",
+                amount: escrowAsaTradeAmount,
+                txType: "asa",
             });
+            
             if (signedTx4 != null) {
                 retTxns.push({
                     'signedTxn': signedTx4.blob,
@@ -705,10 +707,16 @@ const AlgodexInternalApi = {
             });
             retTxns.push({
                 'signedTxn': signedTx2.blob,
+                amount: transaction2.amount,
+                txType: 'algo'
+            
             });
             retTxns.push({
                 'unsignedTxn': transaction3,
-                'needsUserSig': true
+                'needsUserSig': true,
+                txType: 'asa',
+                amount: transaction3.amount
+            
             });
 
             if (transaction4 != null) {

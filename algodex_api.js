@@ -442,29 +442,36 @@ const AlgodexApi = {
                     outerBreak = true;
                     break;
                 }
-                const committed = singleOrderTransList
+                
+                const algo = singleOrderTransList
                 .filter(
-                  (txObj) =>
-                    Object.keys(txObj).includes("txType") &&
-                    txObj.txType === "committed"
+                    (txObj) =>
+                        Object.keys(txObj).includes("txType") &&
+                        txObj.txType === "algo"
                 )
-                .map((tx) => tx.unsignedTxn.amount)[0];
-      
-              const recieved = singleOrderTransList
-                .filter(
-                  (txObj) =>
-                    Object.keys(txObj).includes("txType") &&
-                    txObj.txType === "recieved"
-                )
-                .map((tx) => tx.escrowAsaTradeAmount)[0];
-      
-              committed / recieved <= limitPrice
-                ? logger.log("Good deal")
-                : logger.log("You might be over paying");
+                .map((tx) => tx.amount)[0];
+            
+                const asa = singleOrderTransList
+                    .filter(
+                        (txObj) =>
+                            Object.keys(txObj).includes("txType") &&
+                            txObj.txType === "asa"
+                    )
+                    .map((tx) => tx.amount)[0];
+                
+            
+            // If buying asa make sure committed / recieved is lower than limit price and higher than limit price if selling.
+            !isSellingASA
+                ?
+                algo / asa <= limitPrice
+                    ? logger.log("Good deal")
+                    : logger.log("You might be over paying")
+            
+                : algo / asa >= limitPrice
+                    ? logger.log("Good deal")
+                    : logger.log("You are selling for a price lower than what you set as the limit price");
 
-
-               
-
+            
                 lastExecutedPrice = queuedOrder['price'];
 
                 for (let k = 0; k < singleOrderTransList.length; k++) {
