@@ -449,7 +449,7 @@ const AlgodexApi = {
                             Object.keys(txObj).includes("txType") &&
                             txObj.txType === "algo"
                     )
-                    .map((tx) => tx.amount)[0];
+                    .map((txObj) => txObj.amount)[0];
 
                 const asa = singleOrderTransList
                     .filter(
@@ -457,19 +457,26 @@ const AlgodexApi = {
                             Object.keys(txObj).includes("txType") &&
                             txObj.txType === "asa"
                     )
-                    .map((tx) => tx.amount)[0];
+                    .map((txObj) => txObj.amount)[0];
 
 
                 // If algo/asa is less than limit price then it is a good deal when buying, bad deal when selling
-                !isSellingASA
+                (!isSellingASA)
                     ?
-                    algo / asa <= limitPrice
-                        ? logger.log("Good deal")
-                        : logger.log("You might be over paying")
+                    (algo / asa <= limitPrice)
+                        ? (logger.log("Good deal" ))
+                        : (logger.log("You might be over paying, cancelling order " ))
 
-                    : algo / asa >= limitPrice
-                        ? logger.log("Good deal")
-                        : logger.log("You are selling for a price lower than what you set as the limit price");
+                    :( algo / asa >= limitPrice)
+                        ? (logger.log("Good deal" ))
+                        : (logger.log("You are selling for a price lower than what you set as the limit price, cancelling order"));
+
+                
+                logger.log({algo, asa, limitPrice})
+                
+                if (!isSellingASA && algo/asa >limitPrice) return
+                if (isSellingASA && algo/asa < limitPrice) return
+
 
             
                 lastExecutedPrice = queuedOrder['price'];
