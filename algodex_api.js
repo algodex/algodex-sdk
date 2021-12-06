@@ -473,9 +473,15 @@ const AlgodexApi = {
 
                 
                 logger.log({algo, asa, limitPrice})
+
+                function LimitPriceException(message) {
+                    this.message = message;
+                    this.name = 'LimitPriceException';
+                  }
                 
-                if (!isSellingASA && algo/asa >limitPrice) return
-                if (isSellingASA && algo/asa < limitPrice) return
+                if (!isSellingASA && algo/asa >limitPrice) throw new LimitPriceException(" Attemping to buy at a price higher than limit price")
+                    
+                if (isSellingASA && algo/asa < limitPrice)  throw new LimitPriceException(" Attemping to sell at a price higher than limit price")
 
 
             
