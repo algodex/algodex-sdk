@@ -460,16 +460,6 @@ const AlgodexApi = {
                     .map((txObj) => txObj.amount)[0];
 
 
-                (!isSellingASA)
-                    ?
-                    (algo / asa <= limitPrice)
-                        ? (logger.log("Good deal" ))
-                        : (logger.log("You might be over paying, cancelling order " ))
-
-                    :( algo / asa >= limitPrice)
-                        ? (logger.log("Good deal" ))
-                        : (logger.log("You are selling for a price lower than what you set as the limit price, cancelling order"));
-
                 
                 logger.log({algo, asa, limitPrice})
 
