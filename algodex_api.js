@@ -145,6 +145,7 @@ const AlgodexApi = {
         let algodServer = null;
         let port = null;
         let token = null;
+       
 
         this.initSmartContracts(environment);
 
@@ -441,6 +442,38 @@ const AlgodexApi = {
                     outerBreak = true;
                     break;
                 }
+                
+                const algo = singleOrderTransList
+                    .filter(
+                        (txObj) =>
+                            Object.keys(txObj).includes("txType") &&
+                            txObj.txType === "algo"
+                    )
+                    .map((txObj) => txObj.amount)[0];
+
+                const asa = singleOrderTransList
+                    .filter(
+                        (txObj) =>
+                            Object.keys(txObj).includes("txType") &&
+                            txObj.txType === "asa"
+                    )
+                    .map((txObj) => txObj.amount)[0];
+
+
+                
+                logger.log({algo, asa, limitPrice})
+
+                function LimitPriceException(message) {
+                    this.message = message;
+                    this.name = 'LimitPriceException';
+                  }
+                
+                if (!isSellingASA && algo/asa >limitPrice) throw new LimitPriceException(" Attempting to buy at a price higher than limit price")
+                    
+                if (isSellingASA && algo/asa < limitPrice)  throw new LimitPriceException(" Attempting to sell at a price lower than limit price")
+
+
+            
                 lastExecutedPrice = queuedOrder['price'];
 
                 for (let k = 0; k < singleOrderTransList.length; k++) {
