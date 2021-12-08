@@ -1,9 +1,15 @@
 const Logger = {
-    logLevel: 0,
-
-    log: (msg) => {
-        console.log(msg);
+    shouldEnableLogs: () => {
+        if (typeof window != 'undefined') {
+            if (window.location.hostname === "localhost") {
+                return true;
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const enableDebug = urlParams.get('enableDebug') || false;
+            return enableDebug != false;
+        }
+        return true;
     }
 }
 
-module.exports = Logger;
+module.exports = Logger
