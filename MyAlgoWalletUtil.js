@@ -6,8 +6,8 @@ let ALGOD_SERVER = 'https://testnet.algoexplorerapi.io';
 
 exports.connectToWallet = async function(txn) {
     try {  
-        console.log("connecting...");
-        console.log(myAlgoWallet);
+        console.debug("connecting...");
+        console.debug(myAlgoWallet);
         accounts = await myAlgoWallet.connect();
 
         const addresses = accounts.map(account => account.address);
