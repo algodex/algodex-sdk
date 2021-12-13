@@ -180,10 +180,10 @@ exports.createOrderBookEntryObj = function(blockChainOrderVal, price, n, d, min,
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
+        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
 	return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false);
+        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 };
 
@@ -201,10 +201,10 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 exports.executeOrderAsMakerAndTaker = function(algodClient, isSellingASA, assetId, 
-        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders) {
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
 	return algodex.executeOrder(algodClient, isSellingASA, assetId, 
-        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true);
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
 
 };
 
@@ -218,8 +218,8 @@ exports.executeOrderAsMakerAndTaker = function(algodClient, isSellingASA, assetI
  * @param {int}       version:        escrow version as an int.
  * @returns {Object} Promise for when the transaction is fully confirmed
  */
-exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version) {
-	return algodex.closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version);
+exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector) {
+	return algodex.closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector);
 };
 
 /*
@@ -235,8 +235,8 @@ exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, 
  * @returns {Object} Promise for when the transaction is fully confirmed
  */
 
-exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize) {
-	return algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true);
+exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, walletConnector) {
+	return algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true, walletConnector);
 };
 
 /*
@@ -250,8 +250,8 @@ exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWallet
  * @param {Number}         assetId: Algorand ASA ID for the asset.
  * @returns {Object} Promise for when the transaction is fully confirmed
  */
-exports.placeASAToSellASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount) {
-	return algodex.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, true);
+exports.placeASAToSellASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, walletConnector) {
+	return algodex.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, true, walletConnector);
 };
 
 

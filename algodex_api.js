@@ -92,6 +92,7 @@ const AlgodexApi = {
         accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
         console.debug("in getMinWalletBalance. Checking: " + accountInfo.address);
         console.debug({accountInfo});
+        console.debug("eric hit refactor")
 
         let minBalance = 0;
 
@@ -555,6 +556,7 @@ const AlgodexApi = {
             if(txn.type ==="pay") return algosdk.makePaymentTxnWithSuggestedParams(txn.from, txn.to, txn.amount, undefined, undefined, params  )
             if(txn.type ==="axfer") return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.from, txn.to, undefined, undefined, txn.amount, undefined, txn.assetIndex, params )
         }));
+      
 
         const walletConnectTransactionObjs = walletConnectTransactions.map(txn => Object.assign({}, {txn}));
 
@@ -575,9 +577,9 @@ const AlgodexApi = {
         if(walletConnector) {
             const request = formatJsonRpcRequest("algo_signTxn", requestParams);
             const result = await walletConnector.connector.sendCustomRequest(request);
-            console.log("Raw response:", result);
+            console.debug("Raw response:", result);
             const rawSignedTxns = result.map(txn => Buffer.from(txn, "base64"));
-            const signedTxnArr = rawSignedTxns.map(txn => new Uint8Array(txn));
+            let signedTxnArr = rawSignedTxns.map(txn => new Uint8Array(txn));
 
             if (!Array.isArray(signedTxnArr)) {
                 signedTxnArr = [signedTxnArr];
@@ -598,12 +600,12 @@ const AlgodexApi = {
                     if (signedTxnArr.length > 0) {
                         try {
                             this.printTransactionDebug(signedTxnArr);
-                            debugger
+                            
                             let txn = await algodClient.sendRawTransaction(signedTxnArr).do();
                             sentTxns.push(txn.txId);
-                            logger.log("sent: " + txn.txId);
+                            console.debug("sent: " + txn.txId);
                         }  catch (e) {
-                            logger.log(e);
+                            console.debug(e);
                         }
                     }
                     // send batch of grouped transactions
@@ -620,21 +622,23 @@ const AlgodexApi = {
                             this.printTransactionDebug(signedTxnArr);
                             const DO_SEND = true;
                             if (DO_SEND) {
-                        
+                        ;
                                 let txn = await algodClient.sendRawTransaction(signedTxnArr).do();
                                 sentTxns.push(txn.txId);
-                                logger.log("sent: " + txn.txId);
+                                console.debug("sent: " + txn.txId);
                             } else {
-                                logger.log("skipping sending for debugging reasons!!!");
+                                console.debug("skipping sending for debugging reasons!!!");
                             }
                         }  catch (e) {
-                            logger.log(e);
+                            console.debug(e);
                         }
                     }
                     break;
                 }
             }
         }
+
+        if(walletConnector) return
 
 
 
