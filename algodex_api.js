@@ -8,6 +8,7 @@
 
 const http = require('http');
 const algosdk = require('algosdk');
+const {formatJsonRpcRequest} = require("@json-rpc-tools/utils")
 
 let MyAlgo = null;
 let myAlgoWalletUtil = null;

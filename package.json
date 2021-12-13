@@ -26,6 +26,7 @@
     "registry": "https://npm.pkg.github.com/algodex"
   },
   "dependencies": {
+    "@json-rpc-tools/utils": "^1.7.6",
     "@randlabs/myalgo-connect": "^1.0.1",
     "algosdk": "^1.10.0",
     "axios": "^0.21.1",
