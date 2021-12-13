@@ -257,7 +257,7 @@ const AlgodexApi = {
     },
 
     executeOrder : async function executeOrder (algodClient, isSellingASA, assetId, 
-        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
 
         console.debug("in executeOrder");
         
@@ -547,6 +547,98 @@ const AlgodexApi = {
         if (txnsForSigning == null || txnsForSigning.length == 0) {
             return;
         }
+
+        let groupID = txnsForSigning[0].group; //because internal methods handle the signing of lsigs need to pull the corresponding groupID.
+
+        const walletConnectTransactions = (txnsForSigning.map(txn => {
+            if(txn.type ==="pay") return algosdk.makePaymentTxnWithSuggestedParams(txn.from, txn.to, txn.amount, undefined, undefined, params  )
+            if(txn.type ==="axfer") return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.from, txn.to, undefined, undefined, txn.amount, undefined, txn.assetIndex, params )
+        }));
+
+        const walletConnectTransactionObjs = walletConnectTransactions.map(txn => Object.assign({}, {txn}));
+
+        for (let i = 0; i < walletConnectTransactionObjs.length; i++) {
+            walletConnectTransactionObjs[i].txn.group = {};
+            walletConnectTransactionObjs[i].txn.group = groupID;
+        }
+
+        const walletConnectForSigning = walletConnectTransactionObjs.map(txn => {
+            const encodedTxn = Buffer.from(algosdk.encodeUnsignedTransaction(txn.txn)).toString("base64");
+            return {
+                txn: encodedTxn,
+                message: 'WalletConnect/Algodex batch of related signatures',
+            };
+        })
+        const requestParams = [walletConnectForSigning];
+
+        if(walletConnector) {
+            const request = formatJsonRpcRequest("algo_signTxn", requestParams);
+            const result = await walletConnector.connector.sendCustomRequest(request);
+            console.log("Raw response:", result);
+            const rawSignedTxns = result.map(txn => Buffer.from(txn, "base64"));
+            const signedTxnArr = rawSignedTxns.map(txn => new Uint8Array(txn));
+
+            if (!Array.isArray(signedTxnArr)) {
+                signedTxnArr = [signedTxnArr];
+            }
+    
+            for (let i = 0; i < transNeededUserSigList.length; i++) {
+                transNeededUserSigList[i]['signedTxn'] = signedTxnArr[i]
+            }
+            signedTxnArr = [];
+            let sentTxns = [];
+    
+            let lastGroupNum = -1;
+
+
+            for (let i = 0; i < allTransList.length; i++) {  // loop to end of array 
+                if (lastGroupNum != allTransList[i]['groupNum']) {
+                    // If at beginning of new group, send last batch of transactions
+                    if (signedTxnArr.length > 0) {
+                        try {
+                            this.printTransactionDebug(signedTxnArr);
+                            debugger
+                            let txn = await algodClient.sendRawTransaction(signedTxnArr).do();
+                            sentTxns.push(txn.txId);
+                            logger.log("sent: " + txn.txId);
+                        }  catch (e) {
+                            logger.log(e);
+                        }
+                    }
+                    // send batch of grouped transactions
+                    signedTxnArr = [];
+                    lastGroupNum = allTransList[i]['groupNum'];
+                }
+    
+                signedTxnArr.push(allTransList[i]['signedTxn']);
+                
+                if (i == allTransList.length - 1) {
+                    // If at end of list send last batch of transactions
+                    if (signedTxnArr.length > 0) {
+                        try {
+                            this.printTransactionDebug(signedTxnArr);
+                            const DO_SEND = true;
+                            if (DO_SEND) {
+                        
+                                let txn = await algodClient.sendRawTransaction(signedTxnArr).do();
+                                sentTxns.push(txn.txId);
+                                logger.log("sent: " + txn.txId);
+                            } else {
+                                logger.log("skipping sending for debugging reasons!!!");
+                            }
+                        }  catch (e) {
+                            logger.log(e);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+
+
+
+
         let signedTxns =  await myAlgoWallet.signTransaction(txnsForSigning);
         
         if (!Array.isArray(signedTxns)) {
