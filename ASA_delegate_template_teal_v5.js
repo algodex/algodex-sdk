@@ -419,6 +419,11 @@ anyExecute:
     txn Sender // Escrow account
     ==
     &&
+    gtxn 1 Sender // The buyer
+    load 2 
+    gtxns AssetReceiver // Asset transfer is sent to the buyer
+    ==
+    &&
     gtxn 1 Receiver
     addr <contractWriterAddr> // contractWriterAddr
     ==
