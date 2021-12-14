@@ -108,7 +108,7 @@ const AlgodexInternalApi = {
     },
     getExecuteOrderTransactionsAsTakerFromOrderEntry : 
         async function getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, orderBookEscrowEntry, 
-          takerCombOrderBalance, params) {
+          takerCombOrderBalance, params, walletConnector) {
             console.debug("looking at another orderbook entry to execute orderBookEscrowEntry: " + this.dumpVar(orderBookEscrowEntry));
 
             // rec contains the original order creators address
@@ -126,11 +126,11 @@ const AlgodexInternalApi = {
             if (!isASAEscrow) {
                 console.debug("NOT asa escrow");
                 return await this.getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient
-                    ,lsig, takerCombOrderBalance, params);
+                    ,lsig, takerCombOrderBalance, params, walletConnector);
             } else {
                 console.debug("asa escrow");
                 return await this.getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient, 
-                    lsig, takerCombOrderBalance, params);
+                    lsig, takerCombOrderBalance, params, walletConnector);
             }   
     },
 // Helper function to get ASA Order Txns (3-4 transactions)
@@ -234,7 +234,7 @@ const AlgodexInternalApi = {
     },
 
     getExecuteASAOrderTxns : async function getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient, 
-                lsig, takerCombOrderBalance, params) {
+                lsig, takerCombOrderBalance, params, walletConnector) {
         console.debug("inside executeASAOrder!", this.dumpVar(takerCombOrderBalance));
         console.debug("orderBookEscrowEntry ", this.dumpVar(orderBookEscrowEntry));
         try {
@@ -351,6 +351,8 @@ const AlgodexInternalApi = {
             let transaction3 = algosdk.makeAssetTransferTxnWithSuggestedParams(lsig.address(), takerAddr, closeRemainderTo, undefined,
                 escrowAsaTradeAmount, undefined, assetId, params);
 
+               
+
             let transaction4 = null;
             if (closeRemainderTo != undefined) {
                 // Make payment tx signed with lsig back to owner creator
@@ -385,6 +387,42 @@ const AlgodexInternalApi = {
             }
             txns.push(transaction3);
             txns.push(transaction4);
+            debugger;
+
+            if (walletConnector) {
+                retTxns.push({
+                    'unsignedTxn': transaction1,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': fixedTxn2,
+                    'needsUserSig': true,
+                    amount: fixedTxn2.amount,
+                    txType: "algo",
+                });
+
+                if (transaction2b != null) {
+                    retTxns.push({
+                        'unsignedTxn': transaction2b,
+                        'needsUserSig': true
+                    });
+                }
+                retTxns.push({
+                    'unsignedTxn': transaction3,
+                    amount: escrowAsaTradeAmount,
+                    txType: "asa",
+                    'lsig': lsig
+                });
+
+                retTxns.push({
+                    'unsignedTxn': transaction4,
+                    'needsUserSig': true
+                });
+               
+            }
+
+            if (walletConnector) return retTxns
+            debugger;
 
             //let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
            
@@ -573,7 +611,7 @@ const AlgodexInternalApi = {
     // escrowAsaAmount is not used currently
     getExecuteAlgoOrderTxnsAsTaker : 
         async function getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient, lsig,
-                    takerCombOrderBalance, params) {
+                    takerCombOrderBalance, params, walletConnector) {
         try {
             console.debug("in getExecuteAlgoOrderTxnsAsTaker");
             console.debug("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
