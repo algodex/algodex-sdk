@@ -437,44 +437,19 @@ const AlgodexApi = {
                 let singleOrderTransList = 
                     await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, 
                         queuedOrder, takerOrderBalance, params, walletConnector);
-                        debugger;
+                        
 
                 if (singleOrderTransList == null) {
                     // Overspending issue
                     outerBreak = true;
                     break;
+              
                 }
+                const [algo, asa] = this.getAlgoandAsaAmounts(singleOrderTransList);
+          
+
+                this.finalPriceCheck(algo ,asa , limitPrice, isSellingASA)
         
-                const algo = singleOrderTransList
-                    .filter(
-                        (txObj) =>
-                            Object.keys(txObj).includes("txType") &&
-                            txObj.txType === "algo"
-                    )
-                    .map((txObj) => txObj.amount)[0];
-
-                const asa = singleOrderTransList
-                    .filter(
-                        (txObj) =>
-                            Object.keys(txObj).includes("txType") &&
-                            txObj.txType === "asa"
-                    )
-                    .map((txObj) => txObj.amount)[0];
-
-                       
-                
-                console.debug({algo, asa, limitPrice})
-
-                function LimitPriceException(message) {
-                    this.message = message;
-                    this.name = 'LimitPriceException';
-                  }
-                
-                if (!isSellingASA && algo/asa >limitPrice) throw new LimitPriceException(" Attempting to buy at a price higher than limit price")
-                    
-                if (isSellingASA && algo/asa < limitPrice)  throw new LimitPriceException(" Attempting to sell at a price lower than limit price")
-
-               
             
                 lastExecutedPrice = queuedOrder['price'];
 
@@ -496,13 +471,15 @@ const AlgodexApi = {
                 break;
             }
         }
-        debugger
+  
         if(walletConnector) {
-            this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector)
-           return
-
+          const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector)
+          console.log(confirmedWalletConnectArr)
+          return confirmedWalletConnectArr
+         
         }
-        // if(walletConnector) return
+       
+       
 
         let makerTxns = null;
         console.debug('here55999a ', {lastExecutedPrice, limitPrice} );
@@ -558,7 +535,12 @@ const AlgodexApi = {
             return;
         }
 
-        if(walletConnector) return
+        // if(walletConnector) {
+
+        //     await new Promise(resolve => setTimeout(resolve, 20000)); //hacky way to keep it open until user signs walletConnect
+        //     return
+
+        // }
 
         let signedTxns =  await myAlgoWallet.signTransaction(txnsForSigning);
         
@@ -685,6 +667,45 @@ const AlgodexApi = {
         }
     },
 
+    finalPriceCheck: function finalPriceCheck(algo,asa, limitPrice, isSellingASA) {
+        function LimitPriceException(message) {
+            this.message = message;
+            this.name = 'LimitPriceException';
+          }
+        
+        if (!isSellingASA && algo/asa >limitPrice) throw new LimitPriceException(" Attempting to buy at a price higher than limit price")
+            
+        if (isSellingASA && algo/asa < limitPrice)  throw new LimitPriceException(" Attempting to sell at a price lower than limit price")
+
+        console.debug({algo, asa, limitPrice})
+        
+        return
+       
+
+    },
+
+    getAlgoandAsaAmounts: 
+         function (txnList) {
+            const algo = txnList
+            .filter(
+                (txObj) =>
+                    Object.keys(txObj).includes("txType") &&
+                    txObj.txType === "algo"
+            )
+            .map((txObj) => txObj.amount)[0];
+
+        const asa = txnList
+            .filter(
+                (txObj) =>
+                    Object.keys(txObj).includes("txType") &&
+                    txObj.txType === "asa"
+            )
+            .map((txObj) => txObj.amount)[0];
+
+            return [algo, asa]
+        },
+
+
     signAndSendWalletConnectTransactions:
         async function (algodClient, outerTxns, params, walletConnector) {
             const groupBy = (items, key) => items.reduce(
@@ -728,8 +749,9 @@ const AlgodexApi = {
             const formattedTxn = txnsToSign.flat()
 
             const request = formatJsonRpcRequest("algo_signTxn", [formattedTxn]);
+           
             const result = await walletConnector.connector.sendCustomRequest(request);
-
+           
 
             let resultsFormattted = result.map((element, idx) => {
                 return element ? {
@@ -748,15 +770,16 @@ const AlgodexApi = {
 
             let lastGroupNum = -1
             orderedRawTransactions = []
+            let walletConnectSentTxn = []
             for (let i = 0; i < outerTxns.length; i++) {  // loop to end of array 
                 if (lastGroupNum != outerTxns[i]['groupNum']) {
                     // If at beginning of new group, send last batch of transactions
                     if (orderedRawTransactions.length > 0) {
                         try {
                             this.printTransactionDebug(orderedRawTransactions);
-                            debugger
+                           
                             let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
-                            sentTxns.push(txn.txId);
+                            walletConnectSentTxn.push(txn.txId);
                             console.debug("sent: " + txn.txId);
                         } catch (e) {
                             console.debug(e);
@@ -779,7 +802,7 @@ const AlgodexApi = {
                             if (DO_SEND) {
 
                                 let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
-                                sentTxns.push(txn.txId);
+                                walletConnectSentTxn.push(txn.txId);
                                 console.debug("sent: " + txn.txId);
                             } else {
                                 console.debug("skipping sending for debugging reasons!!!");
@@ -791,6 +814,8 @@ const AlgodexApi = {
                     break;
                 }
             }
+
+            return walletConnectSentTxn
 
         },
 

@@ -387,7 +387,7 @@ const AlgodexInternalApi = {
             }
             txns.push(transaction3);
             txns.push(transaction4);
-            debugger;
+       
 
             if (walletConnector) {
                 retTxns.push({
