@@ -470,14 +470,17 @@ const AlgodexApi = {
                     this.name = 'LimitPriceException';
                 }
                 LimitPriceException.prototype = Error.prototype;
-
+                const buyLimit = new BigN(limitPrice).multiply(new BigN(1.002));
+                const sellLimit = new BigN(limitPrice).multiply(new BigN(0.998));
                 if (!isSellingASA 
-                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(new BigN(limitPrice)) === GREATER_THAN) {
+                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(buyLimit) === GREATER_THAN) {
+                    // Throw an exception if price is 1% higher than limit price set by user
                     throw new LimitPriceException("Attempting to buy at a price higher than limit price");
                 }
                     
                 if (isSellingASA 
-                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(new BigN(limitPrice)) === LESS_THAN) {
+                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(sellLimit) === LESS_THAN) {
+                    // Throw an exception if price is 1% lower than limit price set by user
                     throw new LimitPriceException("Attempting to sell at a price lower than limit price");
                 }
 
