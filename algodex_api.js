@@ -92,7 +92,7 @@ const AlgodexApi = {
         accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
         console.debug("in getMinWalletBalance. Checking: " + accountInfo.address);
         console.debug({accountInfo});
-        console.debug("eric hit refactor")
+        
 
         let minBalance = 0;
 
@@ -479,8 +479,7 @@ const AlgodexApi = {
          
         }
        
-       
-
+    
         let makerTxns = null;
         console.debug('here55999a ', {lastExecutedPrice, limitPrice} );
         if (includeMaker) {
@@ -535,12 +534,6 @@ const AlgodexApi = {
             return;
         }
 
-        // if(walletConnector) {
-
-        //     await new Promise(resolve => setTimeout(resolve, 20000)); //hacky way to keep it open until user signs walletConnect
-        //     return
-
-        // }
 
         let signedTxns =  await myAlgoWallet.signTransaction(txnsForSigning);
         

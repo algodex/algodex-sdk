@@ -422,7 +422,7 @@ const AlgodexInternalApi = {
             }
 
             if (walletConnector) return retTxns
-            debugger;
+           
 
             //let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
            
