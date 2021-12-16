@@ -418,10 +418,13 @@ const AlgodexInternalApi = {
                     'unsignedTxn': transaction4,
                     'needsUserSig': true
                 });
+
+
+                return retTxns
                
             }
 
-            if (walletConnector) return retTxns
+            // if (walletConnector) return retTxns
            
 
             //let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
@@ -731,6 +734,36 @@ const AlgodexInternalApi = {
                 txns.push(transaction4);
             }
             //algosdk.assignGroupID(txns);
+
+            if (walletConnector) {
+                retTxns.push({
+                    'unsignedTxn': transaction1,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': transaction2,
+                    'amount': transaction2.amount,
+                    'lsig': lsig,
+                    'txType': "algo",
+                });
+
+               
+                retTxns.push({
+                    'unsignedTxn': transaction3,
+                    'needsUserSig': true,
+                    'amount': transaction3.amount,
+                    'txType': "asa",
+                    'lsig': lsig
+                });
+
+                retTxns.push({
+                    'unsignedTxn': transaction4,
+                    'needsUserSig': true
+                });
+
+                return retTxns
+               
+            }
 
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
