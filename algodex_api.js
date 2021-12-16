@@ -8,6 +8,11 @@
 
 const http = require('http');
 const algosdk = require('algosdk');
+const BigN = require('js-big-decimal');
+
+const LESS_THAN = -1;
+const EQUAL = 0;
+const GREATER_THAN = 1;
 
 let MyAlgo = null;
 let myAlgoWalletUtil = null;
@@ -442,7 +447,7 @@ const AlgodexApi = {
                     break;
                 }
                 
-                const algo = singleOrderTransList
+                const algoAmount = singleOrderTransList
                     .filter(
                         (txObj) =>
                             Object.keys(txObj).includes("txType") &&
@@ -450,7 +455,7 @@ const AlgodexApi = {
                     )
                     .map((txObj) => txObj.amount)[0];
 
-                const asa = singleOrderTransList
+                const asaAmount = singleOrderTransList
                     .filter(
                         (txObj) =>
                             Object.keys(txObj).includes("txType") &&
@@ -458,21 +463,27 @@ const AlgodexApi = {
                     )
                     .map((txObj) => txObj.amount)[0];
 
-
-                
-                console.debug({algo, asa, limitPrice})
+                console.debug({algoAmount, asaAmount, limitPrice})
 
                 function LimitPriceException(message) {
                     this.message = message;
                     this.name = 'LimitPriceException';
-                  }
-                
-                if (!isSellingASA && algo/asa >limitPrice) throw new LimitPriceException(" Attempting to buy at a price higher than limit price")
+                }
+                LimitPriceException.prototype = Error.prototype;
+                const buyLimit = new BigN(limitPrice).multiply(new BigN(1.002));
+                const sellLimit = new BigN(limitPrice).multiply(new BigN(0.998));
+                if (!isSellingASA 
+                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(buyLimit) === GREATER_THAN) {
+                    // Throw an exception if price is 1% higher than limit price set by user
+                    throw new LimitPriceException("Attempting to buy at a price higher than limit price");
+                }
                     
-                if (isSellingASA && algo/asa < limitPrice)  throw new LimitPriceException(" Attempting to sell at a price lower than limit price")
+                if (isSellingASA 
+                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(sellLimit) === LESS_THAN) {
+                    // Throw an exception if price is 1% lower than limit price set by user
+                    throw new LimitPriceException("Attempting to sell at a price lower than limit price");
+                }
 
-
-            
                 lastExecutedPrice = queuedOrder['price'];
 
                 for (let k = 0; k < singleOrderTransList.length; k++) {
