@@ -351,7 +351,7 @@ let delegateTemplate = `
     int pay
     ==
     &&
-    gtxn 3 Amount // Amount can be 2000 or higher (we will take more money if they give it)
+    gtxn 3 Amount // Amount for fee refund must be 2000
     int 2000
     ==
     &&
