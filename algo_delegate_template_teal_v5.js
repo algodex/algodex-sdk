@@ -137,6 +137,10 @@ let delegateTemplate = `
     addr <contractWriterAddr> // contractWriterAddr (order creator)
     ==
     &&
+    gtxn 2 Sender
+    gtxn 2 Receiver // required to be the same for ASA opt-in
+    ==
+    &&
     gtxn 2 OnCompletion
     int NoOp
     ==
