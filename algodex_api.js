@@ -472,12 +472,7 @@ const AlgodexApi = {
             }
         }
   
-        if(walletConnector) {
-          const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector)
-          console.log(confirmedWalletConnectArr)
-          return confirmedWalletConnectArr
-         
-        }
+   
        
     
         let makerTxns = null;
@@ -492,12 +487,12 @@ const AlgodexApi = {
                 console.debug("leftover ASA balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
-                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false, walletConnector);
             } else if (!isSellingASA && leftoverAlgoBalance > 0) {
                 console.debug("leftover Algo balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
-                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false);            
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);            
             }
         }
 
@@ -513,8 +508,12 @@ const AlgodexApi = {
                 }
 
                 if (typeof(trans.lsig) !== 'undefined') {
-                    let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
-                    trans.signedTxn = signedTxn.blob;
+                    if(!walletConnector) {
+                        let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
+                        trans.signedTxn = signedTxn.blob;
+
+                    }
+                 
                 } 
             }
             groupNum++;
@@ -533,6 +532,13 @@ const AlgodexApi = {
         if (txnsForSigning == null || txnsForSigning.length == 0) {
             return;
         }
+
+        if(walletConnector) {
+            const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector)
+            console.log(confirmedWalletConnectArr)
+            return confirmedWalletConnectArr
+           
+          }
 
 
         let signedTxns =  await myAlgoWallet.signTransaction(txnsForSigning);
@@ -868,7 +874,7 @@ const AlgodexApi = {
         return dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId, includeMakerAddr);
     },
     getPlaceAlgosToBuyASAOrderIntoOrderbook : async function 
-        getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend) {
+        getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend, walletConnector) {
         console.debug("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
             makerWalletAddr, n, d, min, assetId);
         let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, false, constants.ESCROW_CONTRACT_VERSION);
@@ -981,12 +987,12 @@ const AlgodexApi = {
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
-        this.assignGroups(unsignedTxns);
+        if(!walletConnector){this.assignGroups(unsignedTxns)};
         return outerTxns;
     },
 
     getPlaceASAToSellASAOrderIntoOrderbook : 
-        async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend) {
+        async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend, walletConnector) {
 
         console.debug("checking assetId type");
         assetId = parseInt(assetId+"");
@@ -1118,7 +1124,7 @@ const AlgodexApi = {
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
-        this.assignGroups(unsignedTxns);
+        if(!walletConnector){this.assignGroups(unsignedTxns)};
 
         return outerTxns;
     },
