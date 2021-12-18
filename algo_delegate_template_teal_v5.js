@@ -351,9 +351,9 @@ let delegateTemplate = `
     int pay
     ==
     &&
-    gtxn 3 Amount // Amount can be 2000 or higher (we will take more money if they give it)
+    gtxn 3 Amount // Refund amount must be 2000
     int 2000
-    >=
+    ==
     &&
     gtxn 3 Receiver // Fee refund recipient
     txn Sender // The escrow address
