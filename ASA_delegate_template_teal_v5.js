@@ -371,10 +371,6 @@ anyExecute:
     gtxn 2 AssetReceiver
     ==
     &&
-    gtxn 2 RekeyTo // verify no transaction contains a rekey
-    global ZeroAddress
-    ==
-    &&
     gtxn 2 AssetCloseTo
     global ZeroAddress
     ==
@@ -389,12 +385,12 @@ anyExecute:
     load 0
     int 2
     +
-    store 2 // store offset of 2nd transaction, depending on if opt-in exists
+    store 2 // store offset of transaction 2, depending on if opt-in exists
 
     load 0
     int 3
     +
-    store 3 // store offset of 2nd transaction, depending on if opt-in exists
+    store 3 // store offset of transaction 3, depending on if opt-in exists
 
 /// END OPTIONAL ASSET OPT IN CHECK
 

@@ -26,7 +26,7 @@ if (typeof window != 'undefined') {
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
 const algoDelegateTemplateV4 = require('./algo_delegate_template_teal_v4.js');
-const algoDelegateTemplateV5 = require('./algo_delegate_template_teal_v4.js');
+const algoDelegateTemplateV5 = require('./algo_delegate_template_teal_v5.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 const asaDelegateTemplateV4 = require('./ASA_delegate_template_teal_v4.js');
 const asaDelegateTemplateV5 = require('./ASA_delegate_template_teal_v5.js');
