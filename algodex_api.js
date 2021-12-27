@@ -508,7 +508,7 @@ const AlgodexApi = {
                 }
 
                 if (typeof(trans.lsig) !== 'undefined') {
-                    if(!walletConnector) {
+                    if(!walletConnector.connector['_connected']) {
                         let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
                         trans.signedTxn = signedTxn.blob;
 
@@ -533,7 +533,7 @@ const AlgodexApi = {
             return;
         }
 
-        if(walletConnector) {
+        if(walletConnector.connector['_connected']) {
             const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector)
             console.log(confirmedWalletConnectArr)
             return confirmedWalletConnectArr
@@ -987,7 +987,7 @@ const AlgodexApi = {
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
-        if(!walletConnector){this.assignGroups(unsignedTxns)};
+        if(!walletConnector.connector['_connected']){this.assignGroups(unsignedTxns)};
         return outerTxns;
     },
 
@@ -1124,7 +1124,7 @@ const AlgodexApi = {
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
-        if(!walletConnector){this.assignGroups(unsignedTxns)};
+        if(!walletConnector.connector['_connected']){this.assignGroups(unsignedTxns)};
 
         return outerTxns;
     },
