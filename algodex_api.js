@@ -534,9 +534,8 @@ const AlgodexApi = {
         }
 
         if(!!walletConnector && walletConnector.connector.connected) {
-            const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector)
-            console.log(confirmedWalletConnectArr)
-            return confirmedWalletConnectArr
+            const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+            return confirmedWalletConnectArr;
            
           }
 
@@ -672,11 +671,11 @@ const AlgodexApi = {
             this.name = 'LimitPriceException';
           }
         
-        if (!isSellingASA && algo/asa >limitPrice) throw new LimitPriceException(" Attempting to buy at a price higher than limit price")
+        if (!isSellingASA && algo/asa >limitPrice) {throw new LimitPriceException(" Attempting to buy at a price higher than limit price")};
             
-        if (isSellingASA && algo/asa < limitPrice)  throw new LimitPriceException(" Attempting to sell at a price lower than limit price")
+        if (isSellingASA && algo/asa < limitPrice)  {throw new LimitPriceException(" Attempting to sell at a price lower than limit price")};
 
-        console.debug({algo, asa, limitPrice})
+        console.debug({algo, asa, limitPrice});
         
         return
        
@@ -701,7 +700,7 @@ const AlgodexApi = {
             )
             .map((txObj) => txObj.amount)[0];
 
-            return [algo, asa]
+            return [algo, asa];
         },
 
 
@@ -717,7 +716,7 @@ const AlgodexApi = {
                 }),
                 {},
             );
-            const groups = groupBy(outerTxns, "groupNum")
+            const groups = groupBy(outerTxns, "groupNum");
 
             let numberOfGroups = Object.keys(groups);
 
@@ -725,14 +724,14 @@ const AlgodexApi = {
 
                 const allTxFormatted = (groups[group].map(txn => {
                     if (!txn.unsignedTxn.name) {
-                        if (txn.unsignedTxn.type === "pay") return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, undefined, undefined, params)
-                        if (txn.unsignedTxn.type === "axfer") return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, undefined, undefined, txn.unsignedTxn.amount, undefined, txn.unsignedTxn.assetIndex, params)
+                        if (txn.unsignedTxn.type === "pay") {return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, undefined, undefined, params)}
+                        if (txn.unsignedTxn.type === "axfer") {return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, undefined, undefined, txn.unsignedTxn.amount, undefined, txn.unsignedTxn.assetIndex, params)}
                     } else {
-                        return txn.unsignedTxn
+                        return txn.unsignedTxn;
                     }
                 }))
                 algosdk.assignGroupID(allTxFormatted.map(toSign => toSign));
-                return allTxFormatted
+                return allTxFormatted;
             }
             )
 
@@ -742,10 +741,10 @@ const AlgodexApi = {
                     if (algosdk.encodeAddress(txn.from.publicKey) !== walletConnector.connector.accounts[0]) return { txn: encodedTxn, signers: [] };
                     return { txn: encodedTxn };
                 })
-                return encodedGroup
+                return encodedGroup;
             })
 
-            const formattedTxn = txnsToSign.flat()
+            const formattedTxn = txnsToSign.flat();
 
             const request = formatJsonRpcRequest("algo_signTxn", [formattedTxn]);
            
@@ -814,7 +813,7 @@ const AlgodexApi = {
                 }
             }
 
-            return walletConnectSentTxn
+            return walletConnectSentTxn;
 
         },
 
