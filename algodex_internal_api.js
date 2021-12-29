@@ -387,9 +387,10 @@ const AlgodexInternalApi = {
             }
             txns.push(transaction3);
             txns.push(transaction4);
+
        
 
-            if (walletConnector) {
+            if (!!walletConnector && walletConnector.connector.connected) {
                 retTxns.push({
                     'unsignedTxn': transaction1,
                     'lsig': lsig
@@ -423,7 +424,7 @@ const AlgodexInternalApi = {
                 return retTxns
                
             }
-
+           
             // if (walletConnector) return retTxns
            
 
@@ -735,7 +736,7 @@ const AlgodexInternalApi = {
             }
             //algosdk.assignGroupID(txns);
 
-            if (walletConnector) {
+            if (!!walletConnector && walletConnector.connector.connected) {
                 retTxns.push({
                     'unsignedTxn': transaction1,
                     'lsig': lsig
