@@ -686,17 +686,17 @@ const AlgodexApi = {
          function (txnList) {
             const algo = txnList
             .filter(
-                (txObj) =>
+                (txObj) =>{
                     Object.keys(txObj).includes("txType") &&
-                    txObj.txType === "algo"
+                    txObj.txType === "algo"}
             )
             .map((txObj) => txObj.amount)[0];
 
         const asa = txnList
             .filter(
-                (txObj) =>
+                (txObj) =>{
                     Object.keys(txObj).includes("txType") &&
-                    txObj.txType === "asa"
+                    txObj.txType === "asa"}
             )
             .map((txObj) => txObj.amount)[0];
 
