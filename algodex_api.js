@@ -452,6 +452,7 @@ const AlgodexApi = {
               
                 }
                 const [algo, asa] = this.getAlgoandAsaAmounts(singleOrderTransList);
+            
           
 
                 this.finalPriceCheck(algo ,asa , limitPrice, isSellingASA)
@@ -679,6 +680,7 @@ const AlgodexApi = {
           LimitPriceException.prototype = Error.prototype;
           const buyLimit = new BigN(limitPrice).multiply(new BigN(1.002));
           const sellLimit = new BigN(limitPrice).multiply(new BigN(0.998));
+    
           if (!isSellingASA 
               && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(buyLimit) === GREATER_THAN) {
               // Throw an exception if price is 0.2% higher than limit price set by user
@@ -703,7 +705,7 @@ const AlgodexApi = {
             const algo = txnList
             .filter(
                 (txObj) =>{
-                    Object.keys(txObj).includes("txType") &&
+                    return Object.keys(txObj).includes("txType") &&
                     txObj.txType === "algo"}
             )
             .map((txObj) => txObj.amount)[0];
@@ -711,10 +713,12 @@ const AlgodexApi = {
         const asa = txnList
             .filter(
                 (txObj) =>{
-                    Object.keys(txObj).includes("txType") &&
+                    return Object.keys(txObj).includes("txType") &&
                     txObj.txType === "asa"}
             )
             .map((txObj) => txObj.amount)[0];
+
+       
 
             return [algo, asa];
         },
