@@ -90,7 +90,7 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
 
 // function to check for ASA opt in transaction
   check_asa_optin:
-    gtxn 2 TypeEnum // Check for asset opt-in
+    gtxn 2 TypeEnum
     int axfer
     ==
     gtxn 2 AssetAmount
@@ -101,16 +101,26 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     gtxn 2 AssetReceiver
     ==
     &&
-    store 0 //this will store the next transaction offset if opt-in exists
+    gtxn 2 AssetCloseTo
+    global ZeroAddress
+    ==
+    &&
+    gtxn 2 Sender
+    txn Sender // Sender must come from the user's wallet, not the escrow
+    != // should *not* be originating from escrow
+    &&
+    store 0 //this will store the next transaction offset depending if opt in exists
+
+
     load 0
     int 2
     +
-    store 2 // store offset of 2nd transaction, depending on if opt-in exists
-    
+    store 2 // store offset of transaction 2, depending on if opt-in exists
+
     load 0
     int 3
     +
-    store 3 // store offset of 3rd transaction, depending on if opt-in exists
+    store 3 // store offset of transaction 3, depending on if opt-in exists
     retsub
     
 ///////////////////////////////////////////////////////////////////////

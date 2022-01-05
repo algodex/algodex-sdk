@@ -26,8 +26,10 @@ if (typeof window != 'undefined') {
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
 const algoDelegateTemplateV4 = require('./algo_delegate_template_teal_v4.js');
+const algoDelegateTemplateV5 = require('./algo_delegate_template_teal_v5.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 const asaDelegateTemplateV4 = require('./ASA_delegate_template_teal_v4.js');
+const asaDelegateTemplateV5 = require('./ASA_delegate_template_teal_v5.js');
 //require('./dex_teal.js');
 
 //FIXME - import below from algodex_api.js
@@ -1163,7 +1165,10 @@ const AlgodexInternalApi = {
             min, assetid, N, D, writerAddr, isASAEscrow, orderBookId, version);
         let delegateTemplate = null;
         if (!isASAEscrow) {
-            if (version == 4) {
+            if (version == 5) {
+                console.debug('not isASAEscrow, using version 5');
+                delegateTemplate = algoDelegateTemplateV5.getTealTemplate();
+            } else if (version == 4) {
                 console.debug('not isASAEscrow, using version 4');
                 delegateTemplate = algoDelegateTemplateV4.getTealTemplate();
             } else {
@@ -1171,7 +1176,10 @@ const AlgodexInternalApi = {
                 delegateTemplate = algoDelegateTemplate.getTealTemplate();
             }
         } else {
-            if (version == 4) {
+            if (version == 5) {
+                console.debug('isASAEscrow, using version 5');
+                delegateTemplate = asaDelegateTemplateV5.getTealTemplate();
+            } else if (version == 4) {
                 console.debug('isASAEscrow, using version 4');
                 delegateTemplate = asaDelegateTemplateV4.getTealTemplate();
             } else {

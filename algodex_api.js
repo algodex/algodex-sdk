@@ -9,6 +9,11 @@
 const http = require('http');
 const algosdk = require('algosdk');
 const {formatJsonRpcRequest} = require("@json-rpc-tools/utils")
+const BigN = require('js-big-decimal');
+
+const LESS_THAN = -1;
+const EQUAL = 0;
+const GREATER_THAN = 1;
 
 let MyAlgo = null;
 let myAlgoWalletUtil = null;
@@ -262,6 +267,7 @@ const AlgodexApi = {
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
 
         console.debug("in executeOrder");
+      
         
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
