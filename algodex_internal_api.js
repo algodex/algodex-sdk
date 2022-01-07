@@ -315,11 +315,19 @@ const AlgodexInternalApi = {
 
             console.debug(appArgs.length);
 
+            let groupMetadata = { };
+            groupMetadata[`${takerAddr}-${orderBookEscrowEntry.assetId}`]= orderBookEscrowEntry
+            groupMetadata[`${takerAddr}-${orderBookEscrowEntry.assetId}`].txType = 'asa_escrow_execute_full'
+
             if (closeRemainderTo == undefined) {
                 transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
+              
             } else {
                 transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
+                
             }
+          
+
             console.debug("app call type is: " + appCallType);
 
             let fixedTxn2 = {
@@ -329,7 +337,7 @@ const AlgodexInternalApi = {
                 amount: algoTradeAmount,
                 ...params
             };
-
+// ***      
             const takerAlreadyOptedIntoASA = takerCombOrderBalance.takerIsOptedIn;
             console.debug({takerAlreadyOptedIntoASA});
 
@@ -378,6 +386,11 @@ const AlgodexInternalApi = {
                 myAlgoWalletUtil.setTransactionFee(transaction2b);
             }
 
+            transaction1.note= enc.encode(JSON.stringify(groupMetadata))
+            fixedTxn2.note= enc.encode(JSON.stringify(groupMetadata))
+            transaction3.note= enc.encode(JSON.stringify(groupMetadata))
+            transaction4.note =  enc.encode(JSON.stringify(groupMetadata))
+
             let txns = [];
             txns.push(transaction1);
             txns.push(fixedTxn2);
@@ -389,8 +402,6 @@ const AlgodexInternalApi = {
             }
             txns.push(transaction3);
             txns.push(transaction4);
-
-       
 
             if (!!walletConnector && walletConnector.connector.connected) {
                 retTxns.push({
