@@ -1068,6 +1068,9 @@ const AlgodexInternalApi = {
         while (nextRound < startingRound + numRoundTimeout) {
             // Check the pending transactions
             const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
+           
+            let noteString = new TextDecoder().decode(pendingInfo.txn.txn.note)
+            console.debug({noteString})
 
             if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
                 // Got the completed Transaction

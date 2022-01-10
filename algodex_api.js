@@ -546,7 +546,6 @@ const AlgodexApi = {
            
           }
 
-
         let signedTxns =  await myAlgoWallet.signTransaction(txnsForSigning);
         
         if (!Array.isArray(signedTxns)) {
@@ -567,7 +566,7 @@ const AlgodexApi = {
                     try {
                         this.printTransactionDebug(signedTxns);
                         let txn = await algodClient.sendRawTransaction(signedTxns).do();
-                        sentTxns.push(txn.txId);
+                        sentTxns.push(txn.txId);   
                         console.debug("sent: " + txn.txId);
                     }  catch (e) {
                         console.debug(e);
@@ -623,7 +622,6 @@ const AlgodexApi = {
         let transResults = JSON.stringify(confirmedTransactions, null, 2); 
         console.debug("trans results after confirmed are: " );
         console.debug(transResults);
-
        // await this.waitForConfirmation(algodClient, txn.txId);
         return;
     },
