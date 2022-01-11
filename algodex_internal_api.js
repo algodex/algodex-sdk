@@ -315,9 +315,6 @@ const AlgodexInternalApi = {
 
             console.debug(appArgs.length);
 
-            let groupMetadata = { };
-            groupMetadata[`${takerAddr}-${orderBookEscrowEntry.assetId}`]= orderBookEscrowEntry
-            groupMetadata[`${takerAddr}-${orderBookEscrowEntry.assetId}`].txType = 'asa_escrow_execute_full'
 
             if (closeRemainderTo == undefined) {
                 transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
@@ -386,10 +383,6 @@ const AlgodexInternalApi = {
                 myAlgoWalletUtil.setTransactionFee(transaction2b);
             }
 
-            transaction1.note= enc.encode(JSON.stringify(groupMetadata))
-            fixedTxn2.note= enc.encode(JSON.stringify(groupMetadata))
-            transaction3.note= enc.encode(JSON.stringify(groupMetadata))
-            transaction4.note =  enc.encode(JSON.stringify(groupMetadata))
 
             let txns = [];
             txns.push(transaction1);
@@ -402,6 +395,9 @@ const AlgodexInternalApi = {
             }
             txns.push(transaction3);
             txns.push(transaction4);
+
+            txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'asa')
+            // it goes by reference so modifying array affects individual objects and vice versa 
 
             if (!!walletConnector && walletConnector.connector.connected) {
                 retTxns.push({
@@ -1276,9 +1272,27 @@ const AlgodexInternalApi = {
             bytes[i] = binary_string.charCodeAt(i);
         }
         return bytes;*/
+    },
+
+    formatTransactionsWithMetadata : function formatTransactionWithMetaData(txns, takerAddr, orderBookEscrowEntry, orderType, currency){
+        let acceptedOrderTypes = ['open', 'execute_full', 'execute_partial', 'close']
+        let acceptedCurrency = ['algo', 'asa']
+        function OrderTypeException(message) {
+            this.message = message;
+            this.name = 'OrderTypeException';
+          }
+          OrderTypeException.prototype = Error.prototype;
+          if(!acceptedOrderTypes.includes(orderType)) {throw new OrderTypeException(`Invalid order type, please input one of the following: ${acceptedOrderTypes}`)}
+          if(!acceptedCurrency.includes(currency)) {throw new OrderTypeException(`Invalid currency type, please input one of the following: ${acceptedCurrency}`)}
+        let enc = new TextEncoder()
+        let groupMetadata = { };
+        groupMetadata[`${takerAddr}-${orderBookEscrowEntry.assetId}-[${orderType}]_[${currency}] `]= orderBookEscrowEntry
+        return txns.map(txn => { 
+            txn.note= enc.encode(JSON.stringify(groupMetadata))
+            return txn
+        })
+
     }
-
-
 
 }
 
