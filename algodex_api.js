@@ -35,6 +35,7 @@ if (MyAlgo != null) {
 }
 
 const constants = require('./constants.js');
+const { ESCROW_CONTRACT_VERSION } = require('./constants.js');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
@@ -494,12 +495,12 @@ const AlgodexApi = {
                 console.debug("leftover ASA balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
-                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false, walletConnector);
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false, walletConnector );
             } else if (!isSellingASA && leftoverAlgoBalance > 0) {
                 console.debug("leftover Algo balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
-                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);            
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector, queuedOrders[0]);            
             }
         }
 
@@ -1000,11 +1001,31 @@ const AlgodexApi = {
             return await this.signAndSendTransactions(algodClient, outerTxns);
         }
 
+
         unsignedTxns = [];
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
+
+        
+   let noteMetadata = { 
+       algoBalance: makerAccountInfo.amount,
+       asaBalance:makerAccountInfo.assets[0].amount,
+       assetId: assetId, 
+       n:n, 
+       d:d, 
+       escrowAddr: escrowAccountInfo.address,
+       orderEntry: generatedOrderEntry,
+       escrowOrderType:"buy",
+       version: constants.ESCROW_CONTRACT_VERSION
+    }
+    // look into accuracy of above object
+
+       unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "algo")
+
+        
         if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
+       
         return outerTxns;
     },
 

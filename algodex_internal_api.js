@@ -743,6 +743,7 @@ const AlgodexInternalApi = {
             if (transaction4 != null) {
                 txns.push(transaction4);
             }
+            txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'algo')
             //algosdk.assignGroupID(txns);
 
             if (!!walletConnector && walletConnector.connector.connected) {
@@ -1066,7 +1067,7 @@ const AlgodexInternalApi = {
             const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
            
             let noteString = new TextDecoder().decode(pendingInfo.txn.txn.note)
-            console.debug({noteString})
+            console.debug("noteString:" + noteString)
 
             if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
                 // Got the completed Transaction
