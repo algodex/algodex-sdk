@@ -8,6 +8,7 @@
 
 const http = require('http');
 const algosdk = require('algosdk');
+const {formatJsonRpcRequest} = require("@json-rpc-tools/utils")
 const BigN = require('js-big-decimal');
 
 const LESS_THAN = -1;
@@ -96,6 +97,7 @@ const AlgodexApi = {
         accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
         console.debug("in getMinWalletBalance. Checking: " + accountInfo.address);
         console.debug({accountInfo});
+        
 
         let minBalance = 0;
 
@@ -262,9 +264,10 @@ const AlgodexApi = {
     },
 
     executeOrder : async function executeOrder (algodClient, isSellingASA, assetId, 
-        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker) {
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
 
         console.debug("in executeOrder");
+      
         
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
@@ -439,51 +442,22 @@ const AlgodexApi = {
                 }
                 let singleOrderTransList = 
                     await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, 
-                        queuedOrder, takerOrderBalance, params);
+                        queuedOrder, takerOrderBalance, params, walletConnector);
+                        
 
                 if (singleOrderTransList == null) {
                     // Overspending issue
                     outerBreak = true;
                     break;
+              
                 }
-                
-                const algoAmount = singleOrderTransList
-                    .filter(
-                        (txObj) =>
-                            Object.keys(txObj).includes("txType") &&
-                            txObj.txType === "algo"
-                    )
-                    .map((txObj) => txObj.amount)[0];
+                const [algo, asa] = this.getAlgoandAsaAmounts(singleOrderTransList);
+            
+          
 
-                const asaAmount = singleOrderTransList
-                    .filter(
-                        (txObj) =>
-                            Object.keys(txObj).includes("txType") &&
-                            txObj.txType === "asa"
-                    )
-                    .map((txObj) => txObj.amount)[0];
-
-                console.debug({algoAmount, asaAmount, limitPrice})
-
-                function LimitPriceException(message) {
-                    this.message = message;
-                    this.name = 'LimitPriceException';
-                }
-                LimitPriceException.prototype = Error.prototype;
-                const buyLimit = new BigN(limitPrice).multiply(new BigN(1.002));
-                const sellLimit = new BigN(limitPrice).multiply(new BigN(0.998));
-                if (!isSellingASA 
-                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(buyLimit) === GREATER_THAN) {
-                    // Throw an exception if price is 0.2% higher than limit price set by user
-                    throw new LimitPriceException("Attempting to buy at a price higher than limit price");
-                }
-                    
-                if (isSellingASA 
-                    && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(sellLimit) === LESS_THAN) {
-                    // Throw an exception if price is 0.2% lower than limit price set by user
-                    throw new LimitPriceException("Attempting to sell at a price lower than limit price");
-                }
-
+                this.finalPriceCheck(algo ,asa , limitPrice, isSellingASA)
+        
+            
                 lastExecutedPrice = queuedOrder['price'];
 
                 for (let k = 0; k < singleOrderTransList.length; k++) {
@@ -504,7 +478,10 @@ const AlgodexApi = {
                 break;
             }
         }
-
+  
+   
+       
+    
         let makerTxns = null;
         console.debug('here55999a ', {lastExecutedPrice, limitPrice} );
         if (includeMaker) {
@@ -517,12 +494,12 @@ const AlgodexApi = {
                 console.debug("leftover ASA balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
-                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false);
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false, walletConnector);
             } else if (!isSellingASA && leftoverAlgoBalance > 0) {
                 console.debug("leftover Algo balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
-                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false);            
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);            
             }
         }
 
@@ -538,8 +515,12 @@ const AlgodexApi = {
                 }
 
                 if (typeof(trans.lsig) !== 'undefined') {
-                    let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
-                    trans.signedTxn = signedTxn.blob;
+                    if(!walletConnector || !walletConnector.connector.connected) {
+                        let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
+                        trans.signedTxn = signedTxn.blob;
+
+                    }
+                 
                 } 
             }
             groupNum++;
@@ -558,6 +539,14 @@ const AlgodexApi = {
         if (txnsForSigning == null || txnsForSigning.length == 0) {
             return;
         }
+
+        if(!!walletConnector && walletConnector.connector.connected) {
+            const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+            return confirmedWalletConnectArr;
+           
+          }
+
+
         let signedTxns =  await myAlgoWallet.signTransaction(txnsForSigning);
         
         if (!Array.isArray(signedTxns)) {
@@ -683,6 +672,171 @@ const AlgodexApi = {
         }
     },
 
+    finalPriceCheck: function finalPriceCheck(algoAmount,asaAmount, limitPrice, isSellingASA) {
+        function LimitPriceException(message) {
+            this.message = message;
+            this.name = 'LimitPriceException';
+          }
+          LimitPriceException.prototype = Error.prototype;
+          const buyLimit = new BigN(limitPrice).multiply(new BigN(1.002));
+          const sellLimit = new BigN(limitPrice).multiply(new BigN(0.998));
+    
+          if (!isSellingASA 
+              && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(buyLimit) === GREATER_THAN) {
+              // Throw an exception if price is 0.2% higher than limit price set by user
+              throw new LimitPriceException("Attempting to buy at a price higher than limit price");
+          }
+              
+          if (isSellingASA 
+              && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(sellLimit) === LESS_THAN) {
+              // Throw an exception if price is 0.2% lower than limit price set by user
+              throw new LimitPriceException("Attempting to sell at a price lower than limit price");
+          }
+
+        console.debug({algoAmount, asaAmount, limitPrice});
+        
+        return
+       
+
+    },
+
+    getAlgoandAsaAmounts: 
+         function (txnList) {
+            const algo = txnList
+            .filter(
+                (txObj) =>{
+                    return Object.keys(txObj).includes("txType") &&
+                    txObj.txType === "algo"}
+            )
+            .map((txObj) => txObj.amount)[0];
+
+        const asa = txnList
+            .filter(
+                (txObj) =>{
+                    return Object.keys(txObj).includes("txType") &&
+                    txObj.txType === "asa"}
+            )
+            .map((txObj) => txObj.amount)[0];
+
+       
+
+            return [algo, asa];
+        },
+
+
+    signAndSendWalletConnectTransactions:
+        async function (algodClient, outerTxns, params, walletConnector) {
+            const groupBy = (items, key) => items.reduce(
+                (result, item) => ({
+                    ...result,
+                    [item[key]]: [
+                        ...(result[item[key]] || []),
+                        item,
+                    ],
+                }),
+                {},
+            );
+            const groups = groupBy(outerTxns, "groupNum");
+
+            let numberOfGroups = Object.keys(groups);
+
+            const groupedGroups = numberOfGroups.map(group => {
+
+                const allTxFormatted = (groups[group].map(txn => {
+                    if (!txn.unsignedTxn.name) {
+                        if (txn.unsignedTxn.type === "pay") {return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, undefined, undefined, params)}
+                        if (txn.unsignedTxn.type === "axfer") {return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, undefined, undefined, txn.unsignedTxn.amount, undefined, txn.unsignedTxn.assetIndex, params)}
+                    } else {
+                        return txn.unsignedTxn;
+                    }
+                }))
+                algosdk.assignGroupID(allTxFormatted.map(toSign => toSign));
+                return allTxFormatted;
+            }
+            )
+
+            const txnsToSign = groupedGroups.map(group => {
+                const encodedGroup = group.map(txn => {
+                    const encodedTxn = Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64");
+                    if (algosdk.encodeAddress(txn.from.publicKey) !== walletConnector.connector.accounts[0]) return { txn: encodedTxn, signers: [] };
+                    return { txn: encodedTxn };
+                })
+                return encodedGroup;
+            })
+
+            const formattedTxn = txnsToSign.flat();
+
+            const request = formatJsonRpcRequest("algo_signTxn", [formattedTxn]);
+           
+            const result = await walletConnector.connector.sendCustomRequest(request);
+           
+
+            let resultsFormattted = result.map((element, idx) => {
+                return element ? {
+                    txID: formattedTxn[idx].txn,
+                    blob: new Uint8Array(Buffer.from(element, "base64"))
+                } : {
+                    ...algosdk.signLogicSigTransactionObject(outerTxns[idx].unsignedTxn, outerTxns[idx].lsig)
+                };
+            });
+
+            let orderedRawTransactions = resultsFormattted.map(obj => obj.blob);
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                outerTxns[i]['signedTxn'] = orderedRawTransactions[i];
+            }
+
+            let lastGroupNum = -1
+            orderedRawTransactions = []
+            let walletConnectSentTxn = []
+            for (let i = 0; i < outerTxns.length; i++) {  // loop to end of array 
+                if (lastGroupNum != outerTxns[i]['groupNum']) {
+                    // If at beginning of new group, send last batch of transactions
+                    if (orderedRawTransactions.length > 0) {
+                        try {
+                            this.printTransactionDebug(orderedRawTransactions);
+                           
+                            let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
+                            walletConnectSentTxn.push(txn.txId);
+                            console.debug("sent: " + txn.txId);
+                        } catch (e) {
+                            console.debug(e);
+                        }
+                    }
+                    // send batch of grouped transactions
+                    orderedRawTransactions = [];
+                    lastGroupNum = outerTxns[i]['groupNum'];
+                }
+
+                orderedRawTransactions.push(outerTxns[i]['signedTxn']);
+
+
+                if (i == outerTxns.length - 1) {
+                    // If at end of list send last batch of transactions
+                    if (orderedRawTransactions.length > 0) {
+                        try {
+                            this.printTransactionDebug(orderedRawTransactions);
+                            const DO_SEND = true;
+                            if (DO_SEND) {
+
+                                let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
+                                walletConnectSentTxn.push(txn.txId);
+                                console.debug("sent: " + txn.txId);
+                            } else {
+                                console.debug("skipping sending for debugging reasons!!!");
+                            }
+                        } catch (e) {
+                            console.debug(e);
+                        }
+                    }
+                    break;
+                }
+            }
+
+            return walletConnectSentTxn;
+
+        },
+
     signAndSendTransactions :
         async function signAndSendTransactions(algodClient, outerTxns) {
             console.debug("inside signAndSend transactions");
@@ -739,7 +893,7 @@ const AlgodexApi = {
         return dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId, includeMakerAddr);
     },
     getPlaceAlgosToBuyASAOrderIntoOrderbook : async function 
-        getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend) {
+        getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend, walletConnector) {
         console.debug("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
             makerWalletAddr, n, d, min, assetId);
         let program = this.buildDelegateTemplateFromArgs(min, assetId, n, d, makerWalletAddr, false, constants.ESCROW_CONTRACT_VERSION);
@@ -852,12 +1006,12 @@ const AlgodexApi = {
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
-        this.assignGroups(unsignedTxns);
+        if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
         return outerTxns;
     },
 
     getPlaceASAToSellASAOrderIntoOrderbook : 
-        async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend) {
+        async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend, walletConnector) {
 
         console.debug("checking assetId type");
         assetId = parseInt(assetId+"");
@@ -989,7 +1143,7 @@ const AlgodexApi = {
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
-        this.assignGroups(unsignedTxns);
+        if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
 
         return outerTxns;
     },
