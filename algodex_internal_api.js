@@ -1082,7 +1082,12 @@ const AlgodexInternalApi = {
                 }
                 if (txnInfo["pool-error"] !== null && txnInfo["pool-error"].length > 0) {
                     // transaction has been rejected
-                    throw new Error(txnInfo["pool-error"]);
+                    return {
+                        txId,
+                        status: "rejected",
+                        statusMsg: 'Transaction rejected due to pool error',
+                        transaction: txnInfo
+                    };
                 }
 
             }
