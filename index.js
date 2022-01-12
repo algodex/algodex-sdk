@@ -78,26 +78,15 @@ exports.initAlgodClient = function(environment) {
 	return algodex.initAlgodClient(environment);
 };
 
-/*
- * Check pending transactions
- *
- * @param {Object}     algodClient: object that has been initialized via initAlgodClient()
- * @param {String}            txid: transaction ID
- * @param {Number} numRoundTimeout: block id to have the timeout for if the transaction isn't complete
- * @returns Promise for when the transaction is in the pending queue
- */
-exports.checkPending = function(algodClient, txid, numRoundTimeout) {
-	return algodex.checkPending(algodClient, txid, numRoundTimeout);
-};
+
 
 /*
  * Wait for a transaction to be confirmed into the blockchain
- * @param   {Object} algodClient: object which has been initialized via initAlgodClient()
- * @param   {String}        txId: transaction ID
+ * @param   {String} txId: transaction ID
  * @returns {Object} Promise for when the transaction is complete
  */
-exports.waitForConfirmation = function(algodClient, txId) {
-	return algodex.waitForConfirmation(algodClient, txId);
+exports.waitForConfirmation = function(txId) {
+	return algodex.waitForConfirmation(txId);
 };
 
 /*

@@ -46,6 +46,11 @@ let ASA_ESCROW_ORDER_BOOK_ID = -1;
 let ALGOD_SERVER = constants.TEST_ALGOD_SERVER;
 let ALGOD_PORT = constants.TEST_ALGOD_PORT;
 let ALGOD_TOKEN = constants.TEST_ALGOD_TOKEN;
+
+let ALGOD_INDEXER_SERVER = constants.TEST_INDEXER_SERVER;
+let ALGOD_INDEXER_PORT = constants.TEST_INDEXER_PORT;
+let ALGOD_INDEXER_TOKEN = constants.TEST_INDEXER_TOKEN;
+
 let compilationResults = {};
 
 const AlgodexInternalApi = {
@@ -59,7 +64,11 @@ const AlgodexInternalApi = {
     setAlgodPort : function (algod_port) {
         ALGOD_PORT = algod_port;
     },
-
+    setAlgodIndexer : function (server, port, token) {
+        ALGOD_INDEXER_SERVER = server;
+        ALGOD_INDEXER_PORT = port;
+        ALGOD_INDEXER_TOKEN = token;
+    },
     doAlertInternal : function doAlertInternal() {
         alert(2);
         console.debug("internal api call!!!");
@@ -932,34 +941,25 @@ const AlgodexInternalApi = {
             let tx = await algodClient.sendRawTransaction(signed).do();
             console.debug(tx.txId);
 
-            await this.waitForConfirmation(algodClient, tx.txId);
-
+            const confirmation = await this.waitForConfirmation(tx.txId);
             // display results
-            let transactionResponse = await algodClient.pendingTransactionInformation(tx.txId).do();
-            console.debug("Called app-id:", transactionResponse['txn']['txn']['apid'])
-            if (transactionResponse['global-state-delta'] !== undefined) {
-                console.debug("Global State updated:", transactionResponse['global-state-delta']);
-            }
-            if (transactionResponse['local-state-delta'] !== undefined) {
-                console.debug("Local State updated:", transactionResponse['local-state-delta']);
-            }
+            console.debug({confirmation});
+            return confirmation;
         } catch (e) {
             throw e;
         }
 
-        // The transaction has now been confirmed
-        return;
     },
     getAccountInfo : async function getAccountInfo(accountAddr) {
-        try {
-            let port = (!!ALGOD_PORT) ? ':' + ALGOD_PORT : '';
 
-            const response = await axios.get(ALGOD_SERVER + port +  "/v2/accounts/"+accountAddr, {headers: {'X-Algo-API-Token': ALGOD_TOKEN}});
-            //console.debug(response);
-            return response.data;
-        } catch (error) {
-            console.error(error);
-            throw new Error("getAccountInfo failed: ", error);
+        let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
+
+        try {
+            const response = await axios.get(ALGOD_INDEXER_SERVER + port + 
+                "/v2/accounts/"+accountAddr, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
+            return response.data.account || response.data;
+        } catch (e) {
+            return null; // return null if account doesn't exist
         }
       
     },
@@ -1026,94 +1026,72 @@ const AlgodexInternalApi = {
 
             //console.debug(Buffer.concat(signed.map(txn => Buffer.from(txn))).toString('base64'));
             let tx = await algodClient.sendRawTransaction(signed).do();
-            console.debug(tx.txId);
-
-            await this.waitForConfirmation(algodClient, tx.txId);
-
+            const confirmation = await this.waitForConfirmation(tx.txId);
             // display results
-            let transactionResponse = await algodClient.pendingTransactionInformation(tx.txId).do();
-            console.debug("Called app-id:", transactionResponse['txn']['txn']['apid'])
-            if (transactionResponse['global-state-delta'] !== undefined) {
-                console.debug("Global State updated:", transactionResponse['global-state-delta']);
-            }
-            if (transactionResponse['local-state-delta'] !== undefined) {
-                console.debug("Local State updated:", transactionResponse['local-state-delta']);
-            }
+            console.debug({confirmation});
+            return confirmation;
         } catch (e) {
             throw e;
         }
     },
 
     // Wait for a transaction to be confirmed
-    waitForConfirmation : async (algodClient, txId, numRoundTimeout = 4) => {
+    waitForConfirmation : async (txId) => {
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
         const status = await algodClient.status().do();
         if (!status) {
             throw new Error("Unable to get node status");
         }
 
         const startingRound = status["last-round"];
-        let nextRound = startingRound;
+        const maxLoops = 25;
+        let loopCount = 0;
 
-        while (nextRound < startingRound + numRoundTimeout) {
+        while (loopCount < maxLoops) {
             // Check the pending transactions
-            const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
+            let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
+            let response = null;
+            let isError = false;
 
-            if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-                // Got the completed Transaction
-                console.debug(`Transaction ${txId} confirmed in round ${pendingInfo["confirmed-round"]}`);
-                return {
-                    txId,
-                    status: "confirmed",
-                    statusMsg: `Transaction confirmed in round ${pendingInfo["confirmed-round"]}`
-                };
+            try {
+                response = await axios.get(ALGOD_INDEXER_SERVER + port + 
+                    "/v2/transactions/"+txId, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
+
+            } catch (e) {
+                isError = true;
             }
-            if (pendingInfo["pool-error"] !== null && pendingInfo["pool-error"].length > 0) {
-                // transaction has been rejected
-                throw new Error(pendingInfo["pool-error"]);
+            if (response == null || response.data == null || response.data.transaction == null) {
+                isError = true;
             }
 
-            nextRound++;
-            await algodClient.statusAfterBlock(nextRound).do();
+            if (!isError) {
+                const txnInfo = response.data.transaction;
+
+                if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
+                    // Got the completed Transaction
+                    console.debug(`Transaction ${txId} confirmed in round ${txnInfo["confirmed-round"]}`);
+                    return {
+                        txId,
+                        status: "confirmed",
+                        statusMsg: `Transaction confirmed in round ${txnInfo["confirmed-round"]}`,
+                        transaction: txnInfo
+                    };
+                }
+                if (txnInfo["pool-error"] !== null && txnInfo["pool-error"].length > 0) {
+                    // transaction has been rejected
+                    throw new Error(txnInfo["pool-error"]);
+                }
+
+            }
+
+            await sleep(1000); // sleep a second
+            loopCount++;
         }
 
         throw new Error(`Transaction ${txId} timed out`);
-    },
-
-    // Check the status of pending transactions
-    checkPending : async function(algodClient, txid, numRoundTimeout) {
-
-        if (algodClient == null || txid == null || numRoundTimeout < 0) {
-            throw "Bad arguments.";
-        }
-        let status = (await algodClient.status().do());
-        if (status == undefined) throw "Unable to get node status";
-
-        let startingRound = status["last-round"];
-        let nextRound = startingRound;
-        while (nextRound < startingRound + numRoundTimeout) {
-            // Check the pending tranactions
-            let pendingInfo = await algodClient.pendingTransactionInformation(txid).do();
-            if (pendingInfo != undefined) {
-                if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-                    //Got the completed Transaction
-                    console.debug("Transaction " + txid + " confirmed in round " + pendingInfo["confirmed-round"]);
-                    return pendingInfo;
-                }
-                if (pendingInfo["pool-error"] != null && pendingInfo["pool-error"].length > 0) {
-                    // If there was a pool error, then the transaction has been rejected!
-                    return "Transaction Rejected";
-                }
-
-            }
-            nextRound++;
-            await algodClient.statusAfterBlock(nextRound).do();
-        }
-
-        if (pendingInfo != null) {
-            return "Transaction Still Pending";
-        }
-
-        return null;
     },
 
     printTransactionDebug : function printTransactionDebug(signedTxns) {

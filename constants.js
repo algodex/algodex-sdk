@@ -16,7 +16,7 @@ module.exports = {
     MIN_ESCROW_BALANCE: 500000,
     MIN_ASA_ESCROW_BALANCE: 500000,
 
-    LOCAL_ALGOD_SERVER:  process.env.ALGODEX_ALGOD_SERVER || process.env.NEXT_PUBLIC_ALGODEX_ALGOD_SERVER || "https://testnet.algoexplorerapi.io",
+    LOCAL_ALGOD_SERVER:  process.env.ALGODEX_ALGOD_SERVER || process.env.NEXT_PUBLIC_ALGODEX_ALGOD_SERVER || "https://node.testnet.algoexplorerapi.io",
     LOCAL_ALGOD_PORT: process.env.ALGODEX_ALGOD_PORT || process.env.NEXT_PUBLIC_ALGODEX_ALGOD_PORT || "",
     LOCAL_ALGOD_TOKEN: process.env.ALGODEX_ALGOD_TOKEN || process.env.NEXT_PUBLIC_ALGODEX_ALGOD_TOKEN || "",
 	LOCAL_BACKEND_API: "http://localhost/algodex-backend",
@@ -29,7 +29,7 @@ module.exports = {
         //const indexer_server = "http://localhost";
         //const indexer_port = "8980";
 
-    TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
+    TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://node.testnet.algoexplorerapi.io",
     TEST_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
     TEST_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
 	TEST_BACKEND_API: "https://api-testnet.algodex.com/algodex-backend",
@@ -39,7 +39,7 @@ module.exports = {
     TEST_ALGO_ORDERBOOK_APPID: 16021155,
     TEST_ASA_ORDERBOOK_APPID: 16021157,
 
-    PUBLIC_TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://testnet.algoexplorerapi.io",
+    PUBLIC_TEST_ALGOD_SERVER:  ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://node.testnet.algoexplorerapi.io",
     PUBLIC_TEST_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
     PUBLIC_TEST_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
 	PUBLIC_TEST_BACKEND_API: "https://api-testnet-public.algodex.com/algodex-backend",
@@ -49,7 +49,7 @@ module.exports = {
     PUBLIC_TEST_ALGO_ORDERBOOK_APPID: 22045503,
     PUBLIC_TEST_ASA_ORDERBOOK_APPID: 22045522,
 
-    PROD_ALGOD_SERVER: ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://algoexplorerapi.io",
+    PROD_ALGOD_SERVER: ("ALGODEX_ALGOD_SERVER" in process.env) ? process.env.ALGODEX_ALGOD_SERVER : "https://node.algoexplorerapi.io",
     PROD_ALGOD_PORT: ("ALGODEX_ALGOD_PORT" in process.env) ? process.env.ALGODEX_ALGOD_PORT : "",
     PROD_ALGOD_TOKEN: ("ALGODEX_ALGOD_TOKEN" in process.env) ? process.env.ALGODEX_ALGOD_TOKEN : "",
 	PROD_BACKEND_API: "https://api.algodex.com/algodex-backend",
