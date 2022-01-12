@@ -1041,12 +1041,6 @@ const AlgodexInternalApi = {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        const status = await algodClient.status().do();
-        if (!status) {
-            throw new Error("Unable to get node status");
-        }
-
-        const startingRound = status["last-round"];
         const maxLoops = 25;
         let loopCount = 0;
 
