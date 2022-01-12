@@ -862,7 +862,7 @@ const AlgodexInternalApi = {
         return queuedOrders;
     },
 
-    closeASAOrder : async function closeASAOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId) {
+    closeASAOrder : async function closeASAOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId, metadata) {
         console.debug("closing asa order!!!");
 
         try {
@@ -904,6 +904,26 @@ const AlgodexInternalApi = {
                 };
 
             let txns = [txn, txn2, txn3, txn4];
+            
+
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance:makerAccountInfo.assets[0].amount,
+                assetId: assetId, 
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'asa');
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
@@ -1067,6 +1087,7 @@ const AlgodexInternalApi = {
             const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
            
             let noteString = new TextDecoder().decode(pendingInfo.txn.txn.note)
+       
             console.debug("noteString:" + noteString)
 
             if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {

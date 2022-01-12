@@ -269,7 +269,6 @@ const AlgodexApi = {
 
         console.debug("in executeOrder");
       
-        
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
         let transNeededUserSigList = [];
@@ -637,6 +636,7 @@ const AlgodexApi = {
             let d = valSplit[1];
             let min = valSplit[2];
             let assetid = valSplit[3];
+            let infoForMetadata= {n:n, d:d, min:min, orderBookEntry: orderBookEntry, version:version}
             let appArgs = [];
             let enc = new TextEncoder();
             appArgs.push(enc.encode("close"));
@@ -652,7 +652,9 @@ const AlgodexApi = {
             }
             const isAsaOrder = (assetId != null);
 
+
             let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder, version);
+           
             let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
             console.debug("lsig is: " + lsig.address());            
             if (assetId == null) {
@@ -660,7 +662,7 @@ const AlgodexApi = {
                 await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig);
             } else {
                 console.debug("closing ASA order");
-                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ESCROW_ORDER_BOOK_ID, appArgs, lsig, assetId);
+                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ESCROW_ORDER_BOOK_ID, appArgs, lsig, assetId,infoForMetadata );
             }
     },
 
@@ -1043,6 +1045,7 @@ const AlgodexApi = {
         let generatedOrderEntry = dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId);
         console.debug("address is: " + lsig.address());
         
+        let makerAccountInfo = await this.getAccountInfo(makerWalletAddr);
         // check if the lsig has already opted in
         let accountInfo = await this.getAccountInfo(lsig.address());
         let alreadyOptedIn = false;
@@ -1068,8 +1071,9 @@ const AlgodexApi = {
             amount: assetAmount
         };
 
-
         console.debug("herez88888 ", this.dumpVar(assetSendTrans));
+        
+
 
         if (alreadyOptedIn) {
             outerTxns.push({
@@ -1154,7 +1158,6 @@ const AlgodexApi = {
             unsignedTxn: assetSendTrans,
             needsUserSig: true
         });
-
         if (signAndSend) {
             return await this.signAndSendTransactions(algodClient, outerTxns);
         }
@@ -1162,6 +1165,21 @@ const AlgodexApi = {
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
+        // Check if just coincidence that asa balance in question is Always at the top of the asset array, if it is then make function to filter relevant balance via assetId
+        // Also look into modifying internal methods to have more consistent naming ex. (getAlgotoBuy and getAsaToSell would have same naming scheme of makerAccountInfo and EscrowAccountInfo)
+        let noteMetadata = { 
+            algoBalance: makerAccountInfo.amount,
+            asaBalance: makerAccountInfo.assets[0].amount,
+            assetId: assetId, 
+            n:n, 
+            d:d, 
+            escrowAddr: accountInfo.address,
+            orderEntry: generatedOrderEntry,
+            escrowOrderType:"sell",
+            version: constants.ESCROW_CONTRACT_VERSION
+         }
+         unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
+
         if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
 
         return outerTxns;
