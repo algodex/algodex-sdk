@@ -108,10 +108,10 @@ const AlgodexApi = {
         if (accountInfo['assets']) {
             minBalance += accountInfo['assets'].length * 100000;
         }
-        if (accountInfo['apps-total-schema']['num-uint']) {
+        if (accountInfo['apps-total-schema'] != undefined && accountInfo['apps-total-schema']['num-uint']) {
             minBalance += (25000+3500) * accountInfo['apps-total-schema']['num-uint']; // Total Ints
         }
-        if (accountInfo['apps-total-schema']['num-byte-slice']) {
+        if (accountInfo['apps-total-schema'] != undefined && accountInfo['apps-total-schema']['num-byte-slice']) {
             minBalance += (25000+25000) * accountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
         }
         minBalance += 1000000;
