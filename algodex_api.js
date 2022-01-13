@@ -280,7 +280,7 @@ const AlgodexApi = {
         console.debug("herezz56");
         console.debug({execAccountInfo});
 
-        let takerMinBalance = this.getMinWalletBalance(execAccountInfo, true);
+        let takerMinBalance = await this.getMinWalletBalance(execAccountInfo, true);
 
         console.debug({min_bal: takerMinBalance});
 
