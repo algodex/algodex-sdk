@@ -93,21 +93,28 @@ const AlgodexApi = {
         return ASA_ESCROW_ORDER_BOOK_ID
     },
     
-    getMinWalletBalance : async function(accountInfo) {
-        accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
+    getMinWalletBalance : async function(accountInfo, includesFullAccountInfo = false) {
+        if (!includesFullAccountInfo) {
+            accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
+        }
         console.debug("in getMinWalletBalance. Checking: " + accountInfo.address);
         console.debug({accountInfo});
         
-
         let minBalance = 0;
 
-        minBalance += 100000 * (accountInfo['created-apps'].length); // Apps
-        minBalance += (25000+3500) * accountInfo['apps-total-schema']['num-uint']; // Total Ints
-        minBalance += (25000+25000) * accountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
-        minBalance += accountInfo['assets'].length * 100000;
+        if (accountInfo['created-apps'] != null) {
+            minBalance += 100000 * (accountInfo['created-apps'].length); // Apps
+        }
+        if (accountInfo['assets'] != null) {
+            minBalance += accountInfo['assets'].length * 100000;
+        }
+        if (accountInfo['apps-total-schema']['num-uint'] != null) {
+            minBalance += (25000+3500) * accountInfo['apps-total-schema']['num-uint']; // Total Ints
+        }
+        if (accountInfo['apps-total-schema']['num-byte-slice'] != null) {
+            minBalance += (25000+25000) * accountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
+        }
         minBalance += 1000000;
-
-        console.debug({ minBalance});
 
         return minBalance;
     },
@@ -142,6 +149,8 @@ const AlgodexApi = {
 
         const indexerClient = new algosdk.Indexer(token, server, port);
         console.debug({server, port, token});
+        
+        dexInternal.setAlgodIndexer(server, port, token);
 
         return indexerClient;
     },
@@ -186,15 +195,9 @@ const AlgodexApi = {
         return algodClient;
     },
 
-
-    // Check the status of pending transactions
-    checkPending : async function(algodClient, txid, numRoundTimeout) {
-        return dexInternal.checkPending(algodClient, txid, numRoundTimeout);
-    },
-
     // Wait for a transaction to be confirmed
-    waitForConfirmation : async function(algodClient, txId) {
-        return dexInternal.waitForConfirmation(algodClient, txId);
+    waitForConfirmation : async function(txId) {
+        return dexInternal.waitForConfirmation(txId);
     },
 
     dumpVar : function dumpVar(x) {
@@ -277,13 +280,7 @@ const AlgodexApi = {
         console.debug("herezz56");
         console.debug({execAccountInfo});
 
-        let takerMinBalance = 0;
-
-        takerMinBalance += 100000 * (execAccountInfo['created-apps'].length); // Apps
-        takerMinBalance += (25000+3500) * execAccountInfo['apps-total-schema']['num-uint']; // Total Ints
-        takerMinBalance += (25000+25000) * execAccountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
-        takerMinBalance += execAccountInfo['assets'].length * 100000;
-        takerMinBalance += 1000000;
+        let takerMinBalance = await this.getMinWalletBalance(execAccountInfo, true);
 
         console.debug({min_bal: takerMinBalance});
 
@@ -608,7 +605,7 @@ const AlgodexApi = {
 
         for (let i = 0; i < sentTxns.length; i++) {
             console.debug("creating promise to wait for: " + sentTxns[i]);
-            const confirmPromise = this.waitForConfirmation(algodClient, sentTxns[i]);
+            const confirmPromise = this.waitForConfirmation(sentTxns[i]);
             waitConfirmedPromises.push(confirmPromise);
         }
 
@@ -655,7 +652,12 @@ const AlgodexApi = {
 
             let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder, version);
             let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
-            console.debug("lsig is: " + lsig.address());            
+            console.debug("lsig is: " + lsig.address());   
+
+            if (lsig.address() != escrowAccountAddr) {
+                throw 'Lsig address does not equal input address! ' + lsig.address() + ' vs ' + escrowAccountAddr;
+            }
+
             if (assetId == null) {
                 console.debug("closing order");
                 await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig);
@@ -887,7 +889,7 @@ const AlgodexApi = {
             this.printTransactionDebug(signed);
 
             const groupTxn = await algodClient.sendRawTransaction(signed).do()
-            return this.waitForConfirmation(algodClient, groupTxn.txId)
+            return this.waitForConfirmation(groupTxn.txId)
     },
     generateOrder : function (makerWalletAddr, n, d, min, assetId, includeMakerAddr) {
         return dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId, includeMakerAddr);
