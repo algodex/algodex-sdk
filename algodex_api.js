@@ -93,21 +93,28 @@ const AlgodexApi = {
         return ASA_ESCROW_ORDER_BOOK_ID
     },
     
-    getMinWalletBalance : async function(accountInfo) {
-        accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
+    getMinWalletBalance : async function(accountInfo, includesFullAccountInfo = false) {
+        if (!includesFullAccountInfo) {
+            accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
+        }
         console.debug("in getMinWalletBalance. Checking: " + accountInfo.address);
         console.debug({accountInfo});
         
-
         let minBalance = 0;
 
-        minBalance += 100000 * (accountInfo['created-apps'].length); // Apps
-        minBalance += (25000+3500) * accountInfo['apps-total-schema']['num-uint']; // Total Ints
-        minBalance += (25000+25000) * accountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
-        minBalance += accountInfo['assets'].length * 100000;
+        if (accountInfo['created-apps'] != null) {
+            minBalance += 100000 * (accountInfo['created-apps'].length); // Apps
+        }
+        if (accountInfo['assets'] != null) {
+            minBalance += accountInfo['assets'].length * 100000;
+        }
+        if (accountInfo['apps-total-schema']['num-uint'] != null) {
+            minBalance += (25000+3500) * accountInfo['apps-total-schema']['num-uint']; // Total Ints
+        }
+        if (accountInfo['apps-total-schema']['num-byte-slice'] != null) {
+            minBalance += (25000+25000) * accountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
+        }
         minBalance += 1000000;
-
-        console.debug({ minBalance});
 
         return minBalance;
     },
@@ -273,21 +280,7 @@ const AlgodexApi = {
         console.debug("herezz56");
         console.debug({execAccountInfo});
 
-        let takerMinBalance = 0;
-
-        if (execAccountInfo['created-apps'] != null) {
-            takerMinBalance += 100000 * (execAccountInfo['created-apps'].length); // Apps
-        }
-        if (execAccountInfo['assets'] != null) {
-            takerMinBalance += execAccountInfo['assets'].length * 100000;
-        }
-        if (execAccountInfo['apps-total-schema']['num-uint'] != null) {
-            takerMinBalance += (25000+3500) * execAccountInfo['apps-total-schema']['num-uint']; // Total Ints
-        }
-        if (execAccountInfo['apps-total-schema']['num-byte-slice'] != null) {
-            takerMinBalance += (25000+25000) * execAccountInfo['apps-total-schema']['num-byte-slice']; // Total Bytes
-        }
-        takerMinBalance += 1000000;
+        let takerMinBalance = this.getMinWalletBalance(execAccountInfo, true);
 
         console.debug({min_bal: takerMinBalance});
 
