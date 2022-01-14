@@ -659,10 +659,10 @@ const AlgodexApi = {
             console.debug("lsig is: " + lsig.address());            
             if (assetId == null) {
                 console.debug("closing order");
-                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig);
+                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig, infoForMetadata);
             } else {
                 console.debug("closing ASA order");
-                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ESCROW_ORDER_BOOK_ID, appArgs, lsig, assetId,infoForMetadata );
+                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ESCROW_ORDER_BOOK_ID, appArgs, lsig, assetId, infoForMetadata );
             }
     },
 

@@ -396,7 +396,15 @@ const AlgodexInternalApi = {
             txns.push(transaction3);
             txns.push(transaction4);
 
-            txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'asa')
+            if (closeRemainderTo != undefined ) {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'asa')
+            } else {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_partial', 'asa')
+
+            }
+
+
+            
             // it goes by reference so modifying array affects individual objects and vice versa 
 
             if (!!walletConnector && walletConnector.connector.connected) {
@@ -434,11 +442,7 @@ const AlgodexInternalApi = {
                
             }
            
-            // if (walletConnector) return retTxns
-           
 
-            //let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
-           
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
@@ -743,7 +747,14 @@ const AlgodexInternalApi = {
             if (transaction4 != null) {
                 txns.push(transaction4);
             }
-            txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'algo')
+
+            if (closeRemainderTo ==undefined) {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_partial', 'algo')
+
+            } else {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'algo')
+            }
+           
             //algosdk.assignGroupID(txns);
 
             if (!!walletConnector && walletConnector.connector.connected) {
@@ -992,7 +1003,7 @@ const AlgodexInternalApi = {
       
     },
     // close order 
-    closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig) {
+    closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata) {
         let accountInfo = await this.getAccountInfo(lsig.address());
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['assets'] != null
@@ -1025,6 +1036,25 @@ const AlgodexInternalApi = {
             myAlgoWalletUtil.setTransactionFee(txn3);
 
             let txns = [txn, txn2, txn3];
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance:makerAccountInfo.assets[0].amount,
+                         
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                assetId:0,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'algo');
             const groupID = algosdk.computeGroupID(txns)
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
