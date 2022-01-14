@@ -1139,9 +1139,6 @@ const AlgodexInternalApi = {
 
             if (!isError) {
                 const txnInfo = response.data.transaction;
-                //let noteString = new TextDecoder().decode(txnInfo.txn.txn.note)
-       
-                //console.debug("noteString:" + noteString)
               
                 if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
                     // Got the completed Transaction
