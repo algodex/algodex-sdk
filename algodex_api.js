@@ -95,7 +95,14 @@ const AlgodexApi = {
     
     getMinWalletBalance : async function(accountInfo, includesFullAccountInfo = false) {
         if (!includesFullAccountInfo) {
-            accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
+            try {
+                accountInfo = await this.getAccountInfo(accountInfo.address); // get full account info
+            } catch (e) {
+                return 1000000;
+            }
+        }
+        if (!accountInfo || !accountInfo.address) {
+            return 1000000;
         }
         console.debug("in getMinWalletBalance. Checking: " + accountInfo.address);
         console.debug({accountInfo});
