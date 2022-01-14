@@ -989,16 +989,34 @@ const AlgodexInternalApi = {
         }
 
     },
-    getAccountInfo : async function getAccountInfo(accountAddr) {
+    getAccountInfo : async function getAccountInfo(accountAddr, returnEmptyAccount=true) {
 
+        const getEmptyAccountInfo = (address) => {
+            return {
+                        "address":address,
+                        "amount":0,"amount-without-pending-rewards":0,"apps-local-state":[],
+                        "apps-total-schema":{"num-byte-slice":0,"num-uint":0},"assets":[],
+                        "created-apps":[],"created-assets":[],"pending-rewards":0,
+                        "reward-base":0,"rewards":0,"round":-1,"status":"Offline"
+                    }
+            }
         let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
 
         try {
             const response = await axios.get(ALGOD_INDEXER_SERVER + port + 
                 "/v2/accounts/"+accountAddr, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
-            return response.data.account || response.data;
+            if (response.data && response.data.account) {
+                return response.data.account;
+            } else if (returnEmptyAccount) {
+                return getEmptyAccountInfo(accountAddr);
+            } else {
+                return null;
+            }
         } catch (e) {
-            return null; // return null if account doesn't exist
+            if (returnEmptyAccount) {
+                return getEmptyAccountInfo(accountAddr);
+            }
+            return null;
         }
       
     },
