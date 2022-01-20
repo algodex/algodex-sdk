@@ -74,12 +74,10 @@ async function updateApp(client, appId, creatorAccount, approvalProgram, clearPr
     await client.sendRawTransaction(signedTxn).do();
 
     // Wait for confirmation
-    await waitForConfirmation(client, txId);
+    await algodex.waitForConfirmation(txId);
 
     // display results
-    let transactionResponse = await client.pendingTransactionInformation(txId).do();
-    transactionResponse['application-index'];
-    console.log("Updated new app-id: ",appId);
+    console.log("Updated app-id: ",appId);
     return appId;
 }
 

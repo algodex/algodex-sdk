@@ -8,12 +8,9 @@ const algodex = require('../index.js');
 
 // user declared account mnemonics
 
-//fund the two accounts below before creating
-//WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI
-const creatorMnemonic = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
-//UUEUTRNQY7RUXESXRDO7HSYRSJJSSVKYVB4DI7X2HVVDWYOBWJOP5OSM3A
-const userMnemonic = "three satisfy build purse lens another idle fashion base equal echo recall proof hill shadow coach early palm act wealth dawn menu portion above mystery";
+//fund the account below before creating
 
+const userMnemonic = "into client electric fantasy region output firm urban cattle slim action great exit mammal swear dolphin sting fame mix blouse often crime camp absent alone"
 
 // declare application state storage (immutable)
 localInts = 2;
@@ -64,27 +61,26 @@ async function createApp(client, creatorAccount, approvalProgram, clearProgram, 
     onComplete = algosdk.OnApplicationComplete.NoOpOC;
 
 	// get node suggested parameters
-    let params = await client.getTransactionParams().do();
+    const params = await client.getTransactionParams().do();
 
     // create unsigned transaction
-    let txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
+    const txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
                                             approvalProgram, clearProgram, 
                                             localInts, localBytes, globalInts, globalBytes,);
-    let txId = txn.txID().toString();
+    const txId = txn.txID().toString();
 
     // Sign the transaction
-    let signedTxn = txn.signTxn(creatorAccount.sk);
+    const signedTxn = txn.signTxn(creatorAccount.sk);
     console.log("Signed transaction with txID: %s", txId);
 
     // Submit the transaction
     await client.sendRawTransaction(signedTxn).do();
 
     // Wait for confirmation
-    await waitForConfirmation(client, txId);
-
     // display results
-    let transactionResponse = await client.pendingTransactionInformation(txId).do();
-    let appId = transactionResponse['application-index'];
+
+    const transactionResponse = (await algodex.waitForConfirmation(txId)).transaction;
+    const appId = transactionResponse['created-application-index'];
     console.log("Created new app-id: ",appId);
     return appId;
 }
