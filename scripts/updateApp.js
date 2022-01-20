@@ -1,6 +1,7 @@
 //
 // USAGE:
-//   node scripts/updateApp.js --environment=[local|test|production] --orderbook=[algo|asa] --sender=[sender] --saveToDisk=[true|false]
+//   node scripts/updateApp.js --environment=[local|test|production] --appId=[appId]
+//         --orderbook=[algo|asa] --sender=[sender] --saveToDisk=[true|false]
 
 
 const algosdk = require('algosdk');
@@ -102,6 +103,7 @@ async function main() {
         const mnemonic = args['mnemonic'];
         const fromAddr = args['sender'];
         const saveToDisk = args['saveToDisk'] === 'true';
+        const inputAppId = args['appId'];
 
         let approvalProgramSourceInitial = null;
 
@@ -119,7 +121,7 @@ async function main() {
         // initialize an algodClient
         let algodClient = algodex.initAlgodClient(environment);
         algodex.initIndexer(environment);
-        let appId = algodex.getOrderBookId(orderbook === 'algo');
+        const appId = inputAppId || algodex.getOrderBookId(orderbook === 'algo');
 
         let creatorAccount = getCreatorAccount(mnemonic, fromAddr);
         console.log({creatorAccount});
