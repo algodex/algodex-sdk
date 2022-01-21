@@ -907,7 +907,6 @@ const AlgodexApi = {
         console.debug("here111 generatedOrderEntry " + generatedOrderEntry);
         // check if the lsig has already opted in
         let alreadyOptedIntoOrderbook = false;
-        
         let makerAccountInfo = await this.getAccountInfo(makerWalletAddr);
         let makerAlreadyOptedIntoASA = false;
         if (makerAccountInfo != null && makerAccountInfo['assets'] != null
@@ -936,7 +935,7 @@ const AlgodexApi = {
         }
         console.debug("alreadyOptedIn: " + alreadyOptedIntoOrderbook);
         console.debug("acct info:" + JSON.stringify(escrowAccountInfo));
-
+        
         let params = await algodClient.getTransactionParams().do();
         console.debug("sending trans to: " + lsig.address());
         let txn = {
@@ -946,7 +945,7 @@ const AlgodexApi = {
             to:  lsig.address(),
             amount: parseInt(algoOrderSize), // the order size that gets stored into the contract account
         };
-
+  
         let outerTxns = [];
 
         outerTxns.push({
@@ -955,7 +954,7 @@ const AlgodexApi = {
         });
 
         myAlgoWalletUtil.setTransactionFee(txn);
-
+    
         console.debug("here3 calling app from logic sig to open order");
         let appArgs = [];
         var enc = new TextEncoder();
@@ -1000,12 +999,7 @@ const AlgodexApi = {
                 needsUserSig: true
             });
         }
-        
-        if (signAndSend) {
-            return await this.signAndSendTransactions(algodClient, outerTxns);
-        }
-
-
+    
         unsignedTxns = [];
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
@@ -1026,6 +1020,10 @@ const AlgodexApi = {
     // look into accuracy of above object
 
        unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "algo")
+
+       if (signAndSend) {
+        return await this.signAndSendTransactions(algodClient, outerTxns);
+    }
 
         
         if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
@@ -1082,11 +1080,13 @@ const AlgodexApi = {
                 unsignedTxn: assetSendTrans,
                 needsUserSig: true
             });
-            if (signAndSend) {
-                return await this.signAndSendTransactions(algodClient, outerTxns);
-            } else {
-                return outerTxns;
-            }
+
+// For Alex: Not sure if the commented out code is neccessarry. 
+            // if (signAndSend) {
+            //     return await this.signAndSendTransactions(algodClient, outerTxns);
+            // } else {
+            //     return outerTxns;
+            // }
         }
 
         let payTxn = {
@@ -1160,9 +1160,7 @@ const AlgodexApi = {
             unsignedTxn: assetSendTrans,
             needsUserSig: true
         });
-        if (signAndSend) {
-            return await this.signAndSendTransactions(algodClient, outerTxns);
-        }
+   
         unsignedTxns = [];
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
@@ -1181,6 +1179,9 @@ const AlgodexApi = {
             version: constants.ESCROW_CONTRACT_VERSION
          }
          unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
+         if (signAndSend) {
+            return await this.signAndSendTransactions(algodClient, outerTxns);
+        }
 
         if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
 
