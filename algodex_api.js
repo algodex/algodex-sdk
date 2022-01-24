@@ -1070,6 +1070,17 @@ const AlgodexApi = {
             to:  lsig.address(),
             amount: assetAmount
         };
+        let noteMetadata = { 
+            algoBalance: makerAccountInfo.amount,
+            asaBalance: makerAccountInfo.assets[0].amount,
+            assetId: assetId, 
+            n:n, 
+            d:d, 
+            escrowAddr: accountInfo.address,
+            orderEntry: generatedOrderEntry,
+            escrowOrderType:"sell",
+            version: constants.ESCROW_CONTRACT_VERSION
+         }
 
         console.debug("herez88888 ", this.dumpVar(assetSendTrans));
         
@@ -1081,12 +1092,17 @@ const AlgodexApi = {
                 needsUserSig: true
             });
 
-// For Alex: Not sure if the commented out code is neccessarry. 
-            // if (signAndSend) {
-            //     return await this.signAndSendTransactions(algodClient, outerTxns);
-            // } else {
-            //     return outerTxns;
-            // }
+// Below Conditional is neccessarry for when an order is already open and the maker is just adding more asset value into it
+            if (signAndSend) {
+               let unsignedTxns = [];
+                for (let i = 0; i < outerTxns.length; i++) {
+                    unsignedTxns.push(outerTxns[i].unsignedTxn);
+                }
+                unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
+                return await this.signAndSendTransactions(algodClient, outerTxns);
+            } else {
+                return outerTxns;
+            }
         }
 
         let payTxn = {
@@ -1167,17 +1183,7 @@ const AlgodexApi = {
         }
         // Check if just coincidence that asa balance in question is Always at the top of the asset array, if it is then make function to filter relevant balance via assetId
         // Also look into modifying internal methods to have more consistent naming ex. (getAlgotoBuy and getAsaToSell would have same naming scheme of makerAccountInfo and EscrowAccountInfo)
-        let noteMetadata = { 
-            algoBalance: makerAccountInfo.amount,
-            asaBalance: makerAccountInfo.assets[0].amount,
-            assetId: assetId, 
-            n:n, 
-            d:d, 
-            escrowAddr: accountInfo.address,
-            orderEntry: generatedOrderEntry,
-            escrowOrderType:"sell",
-            version: constants.ESCROW_CONTRACT_VERSION
-         }
+     
          unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
          if (signAndSend) {
             return await this.signAndSendTransactions(algodClient, outerTxns);
