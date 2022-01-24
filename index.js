@@ -184,6 +184,8 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
  * @param {Number}                    assetId: Algorand ASA ID for the asset.
  * @param {String}            takerWalletAddr: public address of the taker's wallet address
  * @param {Number}                 limitPrice: price of the base unit ASA in terms of microALGO
+ * @param {Number}                 worstAcceptablePrice: price of the base unit ASA in terms of microALGO after accounting for tolerance
+ * @param {Number}                 tolerance: float from 0-1
  * @param {Number}           orderAssetAmount: Must be integer. max amount of the asset to buy or sell in base units
  * @param {Number}            orderAlgoAmount: Must be integer. max amount of algo to buy or sell in microAlgos
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
@@ -192,9 +194,9 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
 
 exports.executeMarketOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
-		const lowestAcceptedPrice = isSellingASA_AsTakerOrder ? Math.floor(currentMarketPrice * (1- tolerance)) :  Math.floor(currentMarketPrice * (1+ tolerance))
+		const worstAcceptablePrice = isSellingASA_AsTakerOrder ? Math.floor(currentMarketPrice * (1- tolerance)) :  Math.floor(currentMarketPrice * (1+ tolerance))
 	return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
-		takerWalletAddr, lowestAcceptedPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+		takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 };
 
