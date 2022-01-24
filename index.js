@@ -191,10 +191,10 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
  */
 
 exports.executeMarketOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
-	takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
-
+	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
+		let lowestAcceptedPrice = Math.floor(currentMarketPrice * (1- tolerance))
 	return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
-		takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+		takerWalletAddr, lowestAcceptedPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 };
 
