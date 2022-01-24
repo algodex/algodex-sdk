@@ -25,7 +25,7 @@ let delegateTemplate = `
     <=
     assert
     txn Fee
-    int MinTxnFee
+    global MinTxnFee
     ==
     assert
 
