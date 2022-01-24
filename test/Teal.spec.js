@@ -23,7 +23,7 @@ config = {
   openAccount: testHelper.getOpenAccount(),
   maliciousAccount: testHelper.getRandomAccount(),
   client: testHelper.getLocalClient(),
-  assetId: 15322902,
+  assetId: 66711302,
 };
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
