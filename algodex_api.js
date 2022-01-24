@@ -492,7 +492,7 @@ const AlgodexApi = {
 
                 makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
                     userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false, walletConnector );
-            } else if (!isSellingASA && leftoverAlgoBalance > 0) {
+            } else if ((!isSellingASA && leftoverAlgoBalance > 0) && queuedOrders.length > 0) {
                 console.debug("leftover Algo balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
