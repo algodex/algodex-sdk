@@ -7,6 +7,7 @@
 
 const http = require('http');
 const algosdk = require('algosdk');
+const axios = require('axios').default;
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
@@ -22,9 +23,15 @@ const transactionGenerator = require('./generate_transaction_types.js');
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
 
+const ALGOD_SERVER='https://testnet.algoexplorerapi.io';
+const ALGOD_TOKEN = ''; //{ 'X-API-Key': 'VELyABA1dGqGbAVktbew4oACvp0c0298gMgYtYIb' }
+const ALGOD_PORT='';
+
+
 const TestHelper = {
     getLocalClient : function getLocalClientAndEnv() {
-        const algodClient = algodex.initAlgodClient("test");
+        //const algodClient = algodex.initAlgodClient("test");
+        const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, ALGOD_PORT);
         return algodClient;
     },
 
@@ -32,8 +39,22 @@ const TestHelper = {
         return algosdk.generateAccount();
     },
 
-    getAccountInfo : function getAccountInfo(addr) {
-        return algodex.getAccountInfo(addr);
+    getAccountInfo : async function getAccountInfo(addr) {
+        //return algodex.getAccountInfo(addr);
+
+        // This is the old account info that uses algod, not the indexer
+        // This is necessary for the tests to go faster as the indexer takes time to update.
+
+        try {
+            let port = (!!ALGOD_PORT) ? ':' + ALGOD_PORT : '';
+
+            const response = await axios.get(ALGOD_SERVER + port +  "/v2/accounts/"+addr, {headers: {'X-Algo-API-Token': ALGOD_TOKEN}});
+            //console.debug(response);
+            return response.data;
+        } catch (error) {
+            console.error(error);
+            throw new Error("getAccountInfo failed: ", error);
+        }
     },
 
     printOuterTransactions : function (outerTxns) {
