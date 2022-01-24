@@ -1094,7 +1094,7 @@ const AlgodexApi = {
 
 // Below Conditional is neccessarry for when an order is already open and the maker is just adding more asset value into it
             if (signAndSend) {
-               let unsignedTxns = [];
+                unsignedTxns = [];
                 for (let i = 0; i < outerTxns.length; i++) {
                     unsignedTxns.push(outerTxns[i].unsignedTxn);
                 }
