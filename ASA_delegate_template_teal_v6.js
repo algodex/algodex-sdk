@@ -27,7 +27,7 @@ const asaDelegateTemplate = {
     <=
     assert
     txn Fee
-    int MinTxnFee
+    global MinTxnFee
     ==
     assert
 
