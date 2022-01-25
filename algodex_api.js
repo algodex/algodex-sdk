@@ -270,7 +270,6 @@ const AlgodexApi = {
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
 
         console.debug("in executeOrder");
-      
         
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
@@ -1013,7 +1012,7 @@ const AlgodexApi = {
     },
     executeMarketOrder : 
         async function executeMarketOrder(algodClient, isSellingASA, assetId, 
-            userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector, slippage) {
+            userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
                 console.log("in Execute Market Order")
     
            this.executeOrder(algodClient, isSellingASA, assetId, 
