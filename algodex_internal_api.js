@@ -931,7 +931,7 @@ const AlgodexInternalApi = {
 
             let noteMetadata = { 
                 algoBalance: makerAccountInfo.amount,
-                asaBalance:makerAccountInfo.assets[0].amount,
+                asaBalance:(makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
                 assetId: assetId, 
                 n: metadata.n, 
                 d: metadata.d, 
@@ -1059,7 +1059,7 @@ const AlgodexInternalApi = {
 
             let noteMetadata = { 
                 algoBalance: makerAccountInfo.amount,
-                asaBalance: makerAccountInfo.assets.length > 0 ? makerAccountInfo.assets[0].amount : 0,
+                asaBalance: (makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
                 n: metadata.n, 
                 d: metadata.d, 
                 orderEntry: metadata.orderBookEntry,
