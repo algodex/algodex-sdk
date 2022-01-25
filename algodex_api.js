@@ -1018,6 +1018,14 @@ const AlgodexApi = {
         if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
         return outerTxns;
     },
+    executeMarketOrder : 
+        async function executeMarketOrder(algodClient, isSellingASA, assetId, 
+            userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector, slippage) {
+                console.log("in Execute Market Order")
+    
+           this.executeOrder(algodClient, isSellingASA, assetId, 
+            userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector)
+        },
 
     getPlaceASAToSellASAOrderIntoOrderbook : 
         async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend, walletConnector) {
