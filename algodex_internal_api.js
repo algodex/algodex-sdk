@@ -27,9 +27,11 @@ if (typeof window != 'undefined') {
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
 const algoDelegateTemplateV4 = require('./algo_delegate_template_teal_v4.js');
 const algoDelegateTemplateV5 = require('./algo_delegate_template_teal_v5.js');
+const algoDelegateTemplateV6 = require('./algo_delegate_template_teal_v6.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 const asaDelegateTemplateV4 = require('./ASA_delegate_template_teal_v4.js');
 const asaDelegateTemplateV5 = require('./ASA_delegate_template_teal_v5.js');
+const asaDelegateTemplateV6 = require('./ASA_delegate_template_teal_v6.js');
 //require('./dex_teal.js');
 
 //FIXME - import below from algodex_api.js
@@ -324,11 +326,16 @@ const AlgodexInternalApi = {
 
             console.debug(appArgs.length);
 
+
             if (closeRemainderTo == undefined) {
                 transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
+              
             } else {
                 transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
+                
             }
+          
+
             console.debug("app call type is: " + appCallType);
 
             let fixedTxn2 = {
@@ -338,7 +345,7 @@ const AlgodexInternalApi = {
                 amount: algoTradeAmount,
                 ...params
             };
-
+// ***      
             const takerAlreadyOptedIntoASA = takerCombOrderBalance.takerIsOptedIn;
             console.debug({takerAlreadyOptedIntoASA});
 
@@ -387,6 +394,7 @@ const AlgodexInternalApi = {
                 myAlgoWalletUtil.setTransactionFee(transaction2b);
             }
 
+
             let txns = [];
             txns.push(transaction1);
             txns.push(fixedTxn2);
@@ -399,7 +407,16 @@ const AlgodexInternalApi = {
             txns.push(transaction3);
             txns.push(transaction4);
 
-       
+            if (closeRemainderTo != undefined ) {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'asa')
+            } else {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_partial', 'asa')
+
+            }
+
+
+            
+            // it goes by reference so modifying array affects individual objects and vice versa 
 
             if (!!walletConnector && walletConnector.connector.connected) {
                 retTxns.push({
@@ -436,11 +453,7 @@ const AlgodexInternalApi = {
                
             }
            
-            // if (walletConnector) return retTxns
-           
 
-            //let txns = [transaction1, fixedTxn2, transaction2b, transaction3, transaction4 ];
-           
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
@@ -745,6 +758,14 @@ const AlgodexInternalApi = {
             if (transaction4 != null) {
                 txns.push(transaction4);
             }
+
+            if (closeRemainderTo ==undefined) {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_partial', 'algo')
+
+            } else {
+                txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'algo')
+            }
+           
             //algosdk.assignGroupID(txns);
 
             if (!!walletConnector && walletConnector.connector.connected) {
@@ -863,7 +884,7 @@ const AlgodexInternalApi = {
         return queuedOrders;
     },
 
-    closeASAOrder : async function closeASAOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId) {
+    closeASAOrder : async function closeASAOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId, metadata) {
         console.debug("closing asa order!!!");
 
         try {
@@ -905,6 +926,26 @@ const AlgodexInternalApi = {
                 };
 
             let txns = [txn, txn2, txn3, txn4];
+            
+
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance:(makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
+                assetId: assetId, 
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'asa');
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
@@ -950,21 +991,39 @@ const AlgodexInternalApi = {
         }
 
     },
-    getAccountInfo : async function getAccountInfo(accountAddr) {
+    getAccountInfo : async function getAccountInfo(accountAddr, returnEmptyAccount=true) {
 
+        const getEmptyAccountInfo = (address) => {
+            return {
+                        "address":address,
+                        "amount":0,"amount-without-pending-rewards":0,"apps-local-state":[],
+                        "apps-total-schema":{"num-byte-slice":0,"num-uint":0},"assets":[],
+                        "created-apps":[],"created-assets":[],"pending-rewards":0,
+                        "reward-base":0,"rewards":0,"round":-1,"status":"Offline"
+                    }
+            }
         let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
 
         try {
             const response = await axios.get(ALGOD_INDEXER_SERVER + port + 
                 "/v2/accounts/"+accountAddr, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
-            return response.data.account || response.data;
+            if (response.data && response.data.account) {
+                return response.data.account;
+            } else if (returnEmptyAccount) {
+                return getEmptyAccountInfo(accountAddr);
+            } else {
+                return null;
+            }
         } catch (e) {
-            return null; // return null if account doesn't exist
+            if (returnEmptyAccount) {
+                return getEmptyAccountInfo(accountAddr);
+            }
+            return null;
         }
       
     },
     // close order 
-    closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig) {
+    closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata) {
         let accountInfo = await this.getAccountInfo(lsig.address());
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['assets'] != null
@@ -997,6 +1056,24 @@ const AlgodexInternalApi = {
             myAlgoWalletUtil.setTransactionFee(txn3);
 
             let txns = [txn, txn2, txn3];
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance: (makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                assetId:0,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'algo');
             const groupID = algosdk.computeGroupID(txns)
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
@@ -1063,7 +1140,7 @@ const AlgodexInternalApi = {
 
             if (!isError) {
                 const txnInfo = response.data.transaction;
-
+              
                 if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
                     // Got the completed Transaction
                     console.debug(`Transaction ${txId} confirmed in round ${txnInfo["confirmed-round"]}`);
@@ -1142,7 +1219,10 @@ const AlgodexInternalApi = {
             min, assetid, N, D, writerAddr, isASAEscrow, orderBookId, version);
         let delegateTemplate = null;
         if (!isASAEscrow) {
-            if (version == 5) {
+            if (version == 6) {
+                console.debug('not isASAEscrow, using version 6');
+                delegateTemplate = algoDelegateTemplateV6.getTealTemplate();
+            } else if (version == 5) {
                 console.debug('not isASAEscrow, using version 5');
                 delegateTemplate = algoDelegateTemplateV5.getTealTemplate();
             } else if (version == 4) {
@@ -1153,7 +1233,10 @@ const AlgodexInternalApi = {
                 delegateTemplate = algoDelegateTemplate.getTealTemplate();
             }
         } else {
-            if (version == 5) {
+            if (version == 6) {
+                console.debug('isASAEscrow, using version 6');
+                delegateTemplate = asaDelegateTemplateV6.getTealTemplate();
+            } else if (version == 5) {
                 console.debug('isASAEscrow, using version 5');
                 delegateTemplate = asaDelegateTemplateV5.getTealTemplate();
             } else if (version == 4) {
@@ -1239,9 +1322,27 @@ const AlgodexInternalApi = {
             bytes[i] = binary_string.charCodeAt(i);
         }
         return bytes;*/
+    },
+
+    formatTransactionsWithMetadata : function formatTransactionWithMetaData(txns, takerAddr, orderBookEscrowEntry, orderType, currency){
+        let acceptedOrderTypes = ['open', 'execute_full', 'execute_partial', 'close']
+        let acceptedCurrency = ['algo', 'asa']
+        function OrderTypeException(message) {
+            this.message = message;
+            this.name = 'OrderTypeException';
+          }
+          OrderTypeException.prototype = Error.prototype;
+          if(!acceptedOrderTypes.includes(orderType)) {throw new OrderTypeException(`Invalid order type, please input one of the following: ${acceptedOrderTypes}`)}
+          if(!acceptedCurrency.includes(currency)) {throw new OrderTypeException(`Invalid currency type, please input one of the following: ${acceptedCurrency}`)}
+        let enc = new TextEncoder()
+        let groupMetadata = { };
+        groupMetadata[`${takerAddr}-${orderBookEscrowEntry.assetId}-[${orderType}]_[${currency}] `]= orderBookEscrowEntry
+        return txns.map(txn => { 
+            txn.note= enc.encode(JSON.stringify(groupMetadata))
+            return txn
+        })
+
     }
-
-
 
 }
 

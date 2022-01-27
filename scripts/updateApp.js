@@ -1,19 +1,22 @@
 //
 // USAGE:
-//   node scripts/updateApp.js --environment=[local|test|production] --orderbook=[algo|asa]
+//   node scripts/updateApp.js --environment=[local|test|production] --appId=[appId]
+//         --orderbook=[algo|asa] --sender=[sender] --saveToDisk=[true|false]
 
 
 const algosdk = require('algosdk');
 const algodex = require('../index.js');
 const constants = require('../constants.js');
+const fs = require('fs');
 
 // user declared account mnemonics
 
 //fund the two accounts below before creating
 //WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI
-const creatorMnemonic = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
+//const creatorMnemonic = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
+
 //UUEUTRNQY7RUXESXRDO7HSYRSJJSSVKYVB4DI7X2HVVDWYOBWJOP5OSM3A
-const userMnemonic = "three satisfy build purse lens another idle fashion base equal echo recall proof hill shadow coach early palm act wealth dawn menu portion above mystery";
+//const userMnemonic = "three satisfy build purse lens another idle fashion base equal echo recall proof hill shadow coach early palm act wealth dawn menu portion above mystery";
 
 // declare application state storage (immutable)
 localInts = 2;
@@ -33,25 +36,28 @@ async function compileProgram(client, programSource) {
     return compiledBytes;
 }
 
-// helper function to await transaction confirmation
-// Function used to wait for a tx confirmation
-const waitForConfirmation = async function (algodclient, txId) {
-    let status = (await algodclient.status().do());
-    let lastRound = status["last-round"];
-      while (true) {
-        const pendingInfo = await algodclient.pendingTransactionInformation(txId).do();
-        if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-          //Got the completed Transaction
-          console.log("Transaction " + txId + " confirmed in round " + pendingInfo["confirmed-round"]);
-          break;
+const getCreatorAccount = (mnemonic, fromAddr) => {
+    let accountStr = null;
+    let account = null;
+    if (mnemonic) {
+        account = algosdk.mnemonicToSecretKey(mnemonic);
+    } else {
+        accountStr = fromAddr;
+        account = {
+            addr: fromAddr,
+            sk: null
         }
-        lastRound++;
-        await algodclient.statusAfterBlock(lastRound).do();
-      }
-    };
+    }
+
+    if (mnemonic && fromAddr && fromAddr != accountStr) {
+        throw 'fromAddr does not match mnemonic addr!';
+    }
+
+    return account;
+}
 
 // create new application
-async function updateApp(client, appId, creatorAccount, approvalProgram, clearProgram) {
+async function updateApp(client, appId, creatorAccount, approvalProgram, clearProgram, saveToDisk=false) {
     // define sender as creator
     sender = creatorAccount.addr;
 
@@ -66,6 +72,12 @@ async function updateApp(client, appId, creatorAccount, approvalProgram, clearPr
                                             approvalProgram, clearProgram);
     let txId = txn.txID().toString();
 
+    if (saveToDisk) {
+        fs.writeFileSync('./unsigned.txn', algosdk.encodeUnsignedTransaction( txn ));
+        console.log("Saved [unsigned.txn] to disk! returning early");
+        return -1;
+    }
+
     // Sign the transaction
     let signedTxn = txn.signTxn(creatorAccount.sk);
     console.log("Signed transaction with txID: %s", txId);
@@ -74,12 +86,11 @@ async function updateApp(client, appId, creatorAccount, approvalProgram, clearPr
     await client.sendRawTransaction(signedTxn).do();
 
     // Wait for confirmation
-    await waitForConfirmation(client, txId);
+    console.log("waiting for confirmation...");
+    await algodex.waitForConfirmation(txId);
 
     // display results
-    let transactionResponse = await client.pendingTransactionInformation(txId).do();
-    transactionResponse['application-index'];
-    console.log("Updated new app-id: ",appId);
+    console.log("Updated app-id: ",appId);
     return appId;
 }
 
@@ -89,6 +100,11 @@ async function main() {
         const args = require('minimist')(process.argv.slice(2))
         const environment = args['environment'];
         const orderbook = args['orderbook'];
+        const mnemonic = args['mnemonic'];
+        const fromAddr = args['sender'];
+        const saveToDisk = args['saveToDisk'] === 'true';
+        const inputAppId = args['appId'];
+
         let approvalProgramSourceInitial = null;
 
         // asa or algo
@@ -104,14 +120,12 @@ async function main() {
 
         // initialize an algodClient
         let algodClient = algodex.initAlgodClient(environment);
-        let appId = algodex.getOrderBookId(orderbook === 'algo');
+        algodex.initIndexer(environment);
+        const appId = inputAppId || algodex.getOrderBookId(orderbook === 'algo');
 
-        // get accounts from mnemonic
-        let creatorAccount = algosdk.mnemonicToSecretKey(creatorMnemonic);
-        //create sample token and optin note the switch of accounts
-        //useraccount will be the token creator
-        //await createToken(algodClient, userAccount, creatorAccount);
-
+        let creatorAccount = getCreatorAccount(mnemonic, fromAddr);
+        console.log({creatorAccount});
+        
         // declare clear state program source
         clearProgramSource = `#pragma version 2
             int 1
@@ -122,7 +136,7 @@ async function main() {
         let clearProgram = await compileProgram(algodClient, clearProgramSource);
 
         // create new application
-        await updateApp(algodClient, appId, creatorAccount, approvalProgram, clearProgram);
+        await updateApp(algodClient, appId, creatorAccount, approvalProgram, clearProgram, saveToDisk);
         console.log( "APPID="+appId);
 
     }

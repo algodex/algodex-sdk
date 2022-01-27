@@ -1,19 +1,14 @@
 //
 // USAGE:
-//   node scripts/createApp.js --environment=[local|test|production] --orderbook=[algo|asa]
-
+//   node scripts/createApp.js --environment=[local|test|production] --orderbook=[algo|asa] --sender=[sender] --mnemonic=[mnemonic] --saveToDisk=[true|false]
 
 const algosdk = require('algosdk');
 const algodex = require('../index.js');
+const fs = require('fs');
 
 // user declared account mnemonics
 
-//fund the two accounts below before creating
-//WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI
-const creatorMnemonic = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
-//UUEUTRNQY7RUXESXRDO7HSYRSJJSSVKYVB4DI7X2HVVDWYOBWJOP5OSM3A
-const userMnemonic = "three satisfy build purse lens another idle fashion base equal echo recall proof hill shadow coach early palm act wealth dawn menu portion above mystery";
-
+//fund the account below before creating
 
 // declare application state storage (immutable)
 localInts = 2;
@@ -38,25 +33,9 @@ async function compileProgram(client, programSource) {
     return compiledBytes;
 }
 
-// helper function to await transaction confirmation
-// Function used to wait for a tx confirmation
-const waitForConfirmation = async function (algodclient, txId) {
-    let status = (await algodclient.status().do());
-    let lastRound = status["last-round"];
-      while (true) {
-        const pendingInfo = await algodclient.pendingTransactionInformation(txId).do();
-        if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-          //Got the completed Transaction
-          console.log("Transaction " + txId + " confirmed in round " + pendingInfo["confirmed-round"]);
-          break;
-        }
-        lastRound++;
-        await algodclient.statusAfterBlock(lastRound).do();
-      }
-    };
-
 // create new application
-async function createApp(client, creatorAccount, approvalProgram, clearProgram, localInts, localBytes, globalInts, globalBytes) {
+async function createApp(client, creatorAccount, approvalProgram, clearProgram, localInts, 
+    localBytes, globalInts, globalBytes, saveToDisk=false) {
     // define sender as creator
     sender = creatorAccount.addr;
 
@@ -64,30 +43,61 @@ async function createApp(client, creatorAccount, approvalProgram, clearProgram, 
     onComplete = algosdk.OnApplicationComplete.NoOpOC;
 
 	// get node suggested parameters
-    let params = await client.getTransactionParams().do();
+    const params = await client.getTransactionParams().do();
 
     // create unsigned transaction
-    let txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
+    const txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
                                             approvalProgram, clearProgram, 
                                             localInts, localBytes, globalInts, globalBytes,);
-    let txId = txn.txID().toString();
+    const txId = txn.txID().toString();
 
+    if (saveToDisk) {
+        fs.writeFileSync('./unsigned.txn', algosdk.encodeUnsignedTransaction( txn ));
+        console.log("Saved [unsigned.txn] to disk! returning early");
+        return -1;
+    }
+    /*fs.readFile('./unsigned.txn', null, function(err, data) {
+         if (err) throw err;
+        const arr = new Uint8Array(data);
+        console.log(arr.join(','));
+    });*/
+   
     // Sign the transaction
-    let signedTxn = txn.signTxn(creatorAccount.sk);
+    const signedTxn = txn.signTxn(creatorAccount.sk);
     console.log("Signed transaction with txID: %s", txId);
 
     // Submit the transaction
     await client.sendRawTransaction(signedTxn).do();
 
     // Wait for confirmation
-    await waitForConfirmation(client, txId);
-
     // display results
-    let transactionResponse = await client.pendingTransactionInformation(txId).do();
-    let appId = transactionResponse['application-index'];
+
+    const transactionResponse = (await algodex.waitForConfirmation(txId)).transaction;
+    const appId = transactionResponse['created-application-index'];
     console.log("Created new app-id: ",appId);
     return appId;
 }
+
+ const getCreatorAccount = (mnemonic, fromAddr) => {
+    let accountStr = null;
+    let account = null;
+    if (mnemonic) {
+        account = algosdk.mnemonicToSecretKey(mnemonic);
+    } else {
+        accountStr = fromAddr;
+        account = {
+            addr: fromAddr,
+            sk: null
+        }
+    }
+
+    if (mnemonic && fromAddr && fromAddr != accountStr) {
+        throw 'fromAddr does not match mnemonic addr!';
+    }
+
+    return account;
+}
+
 
 async function main() {
     try {
@@ -95,8 +105,11 @@ async function main() {
         const args = require('minimist')(process.argv.slice(2))
         const environment = args['environment'];
         const orderbook = args['orderbook'];
+        const mnemonic = args['mnemonic'];
+        const fromAddr = args['sender'];
+        const saveToDisk = args['saveToDisk'] === 'true';
         let approvalProgramSourceInitial = null;
-
+        console.log({environment, orderbook, mnemonic});
         // asa or algo
         if (orderbook === 'algo') {
             approvalProgramSourceInitial = algodex.getAlgoOrderBookTeal();
@@ -105,10 +118,11 @@ async function main() {
         }
 
         // initialize an algodClient
+       
         let algodClient = algodex.initAlgodClient(environment);
 
-        // get accounts from mnemonic
-        let creatorAccount = algosdk.mnemonicToSecretKey(userMnemonic);
+        let creatorAccount = getCreatorAccount(mnemonic, fromAddr);
+        console.log({creatorAccount});
         //create sample token and optin note the switch of accounts
         //useraccount will be the token creator
         //await createToken(algodClient, userAccount, creatorAccount);
@@ -118,7 +132,8 @@ async function main() {
         let clearProgram = await compileProgram(algodClient, clearProgramSource);
 
         // create new application
-        let appId = await createApp(algodClient, creatorAccount, approvalProgram, clearProgram, localInts, localBytes, globalInts, globalBytes);
+        let appId = await createApp(algodClient, creatorAccount, approvalProgram, clearProgram, 
+            localInts, localBytes, globalInts, globalBytes, saveToDisk);
         console.log( "APPID="+appId);
 
     }
