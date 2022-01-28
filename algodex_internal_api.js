@@ -920,11 +920,6 @@ const AlgodexInternalApi = {
                 }
     
 
-                // retTxns.push({
-                //     'unsignedTxn': transaction4,
-                //     'needsUserSig': true
-                // });
-
                 return retTxns
                
             }
