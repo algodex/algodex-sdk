@@ -44,6 +44,11 @@ let delegateTemplate = `
     global ZeroAddress
     ==
     assert
+    load 9
+    gtxns AssetSender
+    global ZeroAddress
+    ==
+    assert
 
     load 9
     int 1
@@ -328,6 +333,11 @@ let delegateTemplate = `
 
     partialPayTxn:
     
+    global MinTxnFee
+    global MinTxnFee
+    +
+    store 8 // store 2x minimum fee
+
     gtxn 0 OnCompletion // The application call must be a NoOp
     int NoOp
     ==
@@ -355,8 +365,8 @@ let delegateTemplate = `
     int pay
     ==
     &&
-    gtxn 3 Amount // Refund amount must be 2000
-    int 2000
+    gtxn 3 Amount // Refund amount must be 2x min amount
+    load 8
     ==
     &&
     gtxn 3 Receiver // Fee refund recipient

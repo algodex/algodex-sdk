@@ -41,6 +41,11 @@ const asaDelegateTemplate = {
     global ZeroAddress
     ==
     assert
+    load 9
+    gtxns AssetSender
+    global ZeroAddress
+    ==
+    assert
 
     load 9
     int 1
@@ -493,6 +498,11 @@ anyExecute:
     ==
     bnz execute_with_closeout
 
+    global MinTxnFee
+    global MinTxnFee
+    +
+    store 8 // store 2x minimum fee
+
     gtxn 0 OnCompletion // The application call must be a general application call
     int NoOp
     ==
@@ -508,12 +518,12 @@ anyExecute:
     &&
     load 3
     gtxns Fee // check fee refund has no close remainder to
-    int 1000
+    global MinTxnFee
     ==
     &&
     load 3
-    gtxns Amount // check fee refund amount is 2000
-    int 2000
+    gtxns Amount // check fee refund amount is 2x minimum fee
+    load 8
     ==
     &&
     load 3

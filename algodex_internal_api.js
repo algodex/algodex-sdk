@@ -28,10 +28,12 @@ const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
 const algoDelegateTemplateV4 = require('./algo_delegate_template_teal_v4.js');
 const algoDelegateTemplateV5 = require('./algo_delegate_template_teal_v5.js');
 const algoDelegateTemplateV6 = require('./algo_delegate_template_teal_v6.js');
+const algoDelegateTemplateV7 = require('./algo_delegate_template_teal_v7.js');
 const asaDelegateTemplate = require('./ASA_delegate_template_teal.js');
 const asaDelegateTemplateV4 = require('./ASA_delegate_template_teal_v4.js');
 const asaDelegateTemplateV5 = require('./ASA_delegate_template_teal_v5.js');
 const asaDelegateTemplateV6 = require('./ASA_delegate_template_teal_v6.js');
+const asaDelegateTemplateV7 = require('./ASA_delegate_template_teal_v7.js');
 //require('./dex_teal.js');
 
 //FIXME - import below from algodex_api.js
@@ -1219,7 +1221,10 @@ const AlgodexInternalApi = {
             min, assetid, N, D, writerAddr, isASAEscrow, orderBookId, version);
         let delegateTemplate = null;
         if (!isASAEscrow) {
-            if (version == 6) {
+            if (version == 7) {
+                console.debug('not isASAEscrow, using version 7');
+                delegateTemplate = algoDelegateTemplateV7.getTealTemplate();
+            } else if (version == 6) {
                 console.debug('not isASAEscrow, using version 6');
                 delegateTemplate = algoDelegateTemplateV6.getTealTemplate();
             } else if (version == 5) {
@@ -1233,7 +1238,10 @@ const AlgodexInternalApi = {
                 delegateTemplate = algoDelegateTemplate.getTealTemplate();
             }
         } else {
-            if (version == 6) {
+            if (version == 7) {
+                console.debug('isASAEscrow, using version 7');
+                delegateTemplate = asaDelegateTemplateV7.getTealTemplate();
+            } if (version == 6) {
                 console.debug('isASAEscrow, using version 6');
                 delegateTemplate = asaDelegateTemplateV6.getTealTemplate();
             } else if (version == 5) {
