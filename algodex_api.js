@@ -630,7 +630,7 @@ const AlgodexApi = {
         return;
     },
 
-    closeOrderFromOrderBookEntry : async function closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version) {
+    closeOrderFromOrderBookEntry : async function closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector) {
             let valSplit = orderBookEntry.split("-");
             console.debug("closing order from order book entry!");
             console.debug("escrowAccountAddr, creatorAddr, orderBookEntry, version", 
@@ -668,10 +668,10 @@ const AlgodexApi = {
 
             if (assetId == null) {
                 console.debug("closing order");
-                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig, infoForMetadata);
+                await dexInternal.closeOrder(algodClient, escrowAccountAddr, creatorAddr, ALGO_ESCROW_ORDER_BOOK_ID, appArgs, lsig, infoForMetadata, walletConnector);
             } else {
                 console.debug("closing ASA order");
-                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ESCROW_ORDER_BOOK_ID, appArgs, lsig, assetId, infoForMetadata );
+                await dexInternal.closeASAOrder(algodClient, escrowAccountAddr, creatorAddr, ASA_ESCROW_ORDER_BOOK_ID, appArgs, lsig, assetId, infoForMetadata, walletConnector);
             }
     },
 
@@ -1029,6 +1029,11 @@ const AlgodexApi = {
        unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "algo")
 
        if (signAndSend) {
+        if(!!walletConnector && walletConnector.connector.connected) {
+            return await this.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+        } else {
+            return await this.signAndSendTransactions(algodClient, outerTxns);
+        }
         return await this.signAndSendTransactions(algodClient, outerTxns);
     }
 
@@ -1048,7 +1053,6 @@ const AlgodexApi = {
 
     getPlaceASAToSellASAOrderIntoOrderbook : 
         async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend, walletConnector) {
-
         console.debug("checking assetId type");
         assetId = parseInt(assetId+"");
 
@@ -1113,8 +1117,14 @@ const AlgodexApi = {
                 for (let i = 0; i < outerTxns.length; i++) {
                     unsignedTxns.push(outerTxns[i].unsignedTxn);
                 }
+                
                 unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
-                return await this.signAndSendTransactions(algodClient, outerTxns);
+                if(!!walletConnector && walletConnector.connector.connected) {
+                    return await this.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                } else {
+                    return await this.signAndSendTransactions(algodClient, outerTxns);
+                }
+                
             } else {
                 return outerTxns;
             }
@@ -1201,6 +1211,9 @@ const AlgodexApi = {
      
          unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
          if (signAndSend) {
+             if(!!walletConnector && walletConnector.connector.connected) {
+                 return await this.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+             }
             return await this.signAndSendTransactions(algodClient, outerTxns);
         }
 
