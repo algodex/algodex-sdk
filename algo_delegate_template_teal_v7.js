@@ -318,6 +318,10 @@ let delegateTemplate = `
     global ZeroAddress
     ==
     && 
+    gtxn 2 AssetCloseTo
+    global ZeroAddress
+    ==
+    && 
     assert
 
     b handle_rate_check

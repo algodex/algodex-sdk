@@ -376,6 +376,10 @@ anyExecute:
     gtxn 2 AssetReceiver
     ==
     &&
+    gtxn 2 XferAsset
+    int <assetid> // asset id to trade for
+    ==
+    &&
     gtxn 2 AssetCloseTo
     global ZeroAddress
     ==
