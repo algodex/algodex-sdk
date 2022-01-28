@@ -1,6 +1,6 @@
 {
   "name": "@algodex/algodex-sdk",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,6 @@
     "registry": "https://npm.pkg.github.com/algodex"
   },
   "dependencies": {
-    "@algodex/algodex-sdk": "^1.1.5",
     "@json-rpc-tools/utils": "^1.7.6",
     "@randlabs/myalgo-connect": "^1.0.1",
     "algosdk": "^1.10.0",
