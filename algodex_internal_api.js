@@ -443,11 +443,19 @@ const AlgodexInternalApi = {
                     'lsig': lsig
                 });
 
+                if(closeRemainderTo != undefined) {
+
                 retTxns.push({
                     'unsignedTxn': transaction4,
-                    'needsUserSig': true
-                });
+                    'lsig': lsig
+                })
+                } else {
+                    retTxns.push({
+                        'unsignedTxn': transaction4,
+                        'needsUserSig': true
+                    });
 
+                }
 
                 return retTxns
                
