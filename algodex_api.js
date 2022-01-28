@@ -1034,7 +1034,6 @@ const AlgodexApi = {
         } else {
             return await this.signAndSendTransactions(algodClient, outerTxns);
         }
-        return await this.signAndSendTransactions(algodClient, outerTxns);
     }
 
         

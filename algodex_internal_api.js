@@ -1072,9 +1072,9 @@ const AlgodexInternalApi = {
              }
             
             txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'asa');
-            let retTxns = []
 
             if (!!walletConnector && walletConnector.connector.connected) {
+                let retTxns = []
                 retTxns.push({
                     'unsignedTxn': txn,
                     'lsig': lsig
