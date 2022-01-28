@@ -515,6 +515,7 @@ const AlgodexApi = {
                 }
 
                 if (typeof(trans.lsig) !== 'undefined') {
+                   
                     if(!walletConnector || !walletConnector.connector.connected) {
                         let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
                         trans.signedTxn = signedTxn.blob;
@@ -742,9 +743,10 @@ const AlgodexApi = {
 
             const groupedGroups = numberOfGroups.map(group => {
 
+
                 const allTxFormatted = (groups[group].map(txn => {
-                    if (!txn.unsignedTxn.name) {
-                        if (txn.unsignedTxn.type === "pay") {return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, undefined, undefined, params)}
+                    if (!txn.unsignedTxn.name ) {
+                        if (txn.unsignedTxn.type === "pay") {return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, txn.unsignedTxn?.closeRemainderTo, undefined, params)}
                         if (txn.unsignedTxn.type === "axfer") {return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, undefined, undefined, txn.unsignedTxn.amount, undefined, txn.unsignedTxn.assetIndex, params)}
                     } else {
                         return txn.unsignedTxn;
@@ -763,7 +765,7 @@ const AlgodexApi = {
                 })
                 return encodedGroup;
             })
-
+            
             const formattedTxn = txnsToSign.flat();
 
             const request = formatJsonRpcRequest("algo_signTxn", [formattedTxn]);

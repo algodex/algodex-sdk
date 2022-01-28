@@ -240,6 +240,7 @@ const AlgodexInternalApi = {
         console.debug("inside executeASAOrder!", this.dumpVar(takerCombOrderBalance));
         console.debug("orderBookEscrowEntry ", this.dumpVar(orderBookEscrowEntry));
         try {
+            
             let retTxns = [];
             let appAccts = [];
 
@@ -356,6 +357,7 @@ const AlgodexInternalApi = {
                
 
             let transaction4 = null;
+           
             if (closeRemainderTo != undefined) {
                 // Make payment tx signed with lsig back to owner creator
                 console.debug("making transaction4 due to closeRemainderTo");
@@ -417,11 +419,18 @@ const AlgodexInternalApi = {
                     'lsig': lsig
                 });
 
-                retTxns.push({
-                    'unsignedTxn': transaction4,
-                    'needsUserSig': true
-                });
+                if(closeRemainderTo != undefined) {
+                    retTxns.push({
+                        'unsignedTxn': transaction4,
+                        lsig: lsig
+                    }) 
+                } else {
+                    retTxns.push({
+                        'unsignedTxn': transaction4,
+                        'needsUserSig': true,
+                    }) 
 
+                }
 
                 return retTxns
                
