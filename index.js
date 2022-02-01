@@ -8,6 +8,7 @@
 
 //import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');
+const orderService = require('./order.js');
 const algoOrderBook = require('./dex_teal.js');
 const asaOrderBook = require('./asa_dex_teal.js');
 const constants = require('./constants.js');
@@ -76,6 +77,18 @@ exports.initIndexer = function(environment) {
  */
 exports.initAlgodClient = function(environment) {
 	return algodex.initAlgodClient(environment);
+};
+
+/*
+ * Executes a limit order as a taker and submits it to the blockchain
+ * @param {Object}         order: the order that the user placed
+ * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
+ * @returns {Object} Promise for when the order succeeds or fails?
+ */
+
+exports.OrderService = function() {
+	
+	return orderService
 };
 
 
