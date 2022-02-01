@@ -1,33 +1,13 @@
-const algodex = require('./algodex_api.js')
+const algodex = require('./index.js')
 const executeOrder = require('./executeOrder.js')
-const Big = require('big.js');
-
-    const convertToBaseUnits = (amount, decimals = 6) => {
-        const multiplier = new Big(10).pow(decimals)
-        const wholeUnits = new Big(amount).round(decimals)
-        return wholeUnits.times(multiplier).toNumber()
-    }
-    const convertToAsaUnits = (toConvert, decimals) => {
-            if (!toConvert) {
-                return 0
-            }
-            const multiplier = new Big(10).pow(6 - decimals)
-            const algoUnits = new Big(toConvert)
-            return algoUnits.times(multiplier).toNumber()
-            }
-
-
-
-
-// const AlgodClient = new algodex.initAlgodClient(algodex_environment)
+const Big = require('big.js')
+const converter = require('./convert.js')
 
 const OrderService = {
   placeOrder: (AlgodClient, order, orderBook) => {
 
-      debugger
+ 
 
-
-   
     console.log('OrderService.placeOrder', { order })
     const assetId = order.asset.id
     const address = order.address
@@ -35,8 +15,8 @@ const OrderService = {
     // const algodex_environment = 'public_test'
     // const AlgodClient = new algodex.initAlgodClient(algodex_environment)
 
-    const asaAmount = convertToBaseUnits(order.amount, order.asset.decimals)
-    const algoAmount = convertToBaseUnits(order.total)
+    const asaAmount = converter.convertToBaseUnits(order.amount, order.asset.decimals)
+    const algoAmount = converter.convertToBaseUnits(order.total)
 
     const price = convertToAsaUnits(order.price, order.asset.decimals)
     const { n: numerator, d: denominator } = algodex.getNumeratorAndDenominatorFromPrice(price)
@@ -180,7 +160,7 @@ const OrderService = {
    * @param {int}              version: escrow contract version
    * @returns {Object} Promise for when the transaction is fully confirmed
    */
-  closeOrder: async (escrowAccountAddr, creatorAddr, orderBookEntry, version) => {
+  closeOrder: async (AlgodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version) => {
     return await executeOrder.closeOrderFromOrderBookEntry(
       AlgodClient,
       escrowAccountAddr,

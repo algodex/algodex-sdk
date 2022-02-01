@@ -9,6 +9,7 @@
 //import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');
 const orderService = require('./order.js');
+const walletService = require('./wallet.js')
 const algoOrderBook = require('./dex_teal.js');
 const asaOrderBook = require('./asa_dex_teal.js');
 const constants = require('./constants.js');
@@ -80,18 +81,27 @@ exports.initAlgodClient = function(environment) {
 };
 
 /*
- * Executes a limit order as a taker and submits it to the blockchain
+ * Returns orderService object with necessary methods for execution order
+ * @param {Object}         AlgodClient: instance of AlgodClient needed for order Execution
  * @param {Object}         order: the order that the user placed
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the order succeeds or fails?
  */
 
 exports.OrderService = function() {
-	
 	return orderService
 };
 
+/*
+ * Returns walletService object with necessary methods for wallet retrieval and interaction with frontend 
+ * @param {Object}         AlgodClient: instance of AlgodClient needed for order Execution
+ * @param {String}         address: address of the target wallet
+ * @returns {Object} Promise for when the wallet returns?
+ */
 
+exports.WalletService = function() {
+	return walletService
+};
 
 /*
  * Wait for a transaction to be confirmed into the blockchain
