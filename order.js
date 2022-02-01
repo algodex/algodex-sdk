@@ -1,4 +1,5 @@
 const algodex = require('./algodex_api.js')
+const executeOrder = require('./executeOrder.js')
 const Big = require('big.js');
 
     const convertToBaseUnits = (amount, decimals = 6) => {
@@ -48,7 +49,7 @@ const OrderService = {
           assetId,
           algoAmount
         })
-        return algodex.placeAlgosToBuyASAOrderIntoOrderbook(
+        return executeOrder.placeAlgosToBuyASAOrderIntoOrderbook(
           AlgodClient,
           address,
           numerator,
@@ -64,7 +65,7 @@ const OrderService = {
           assetId,
           asaAmount
         })
-        return algodex.placeASAToSellASAOrderIntoOrderbook(
+        return executeOrder.placeASAToSellASAOrderIntoOrderbook(
           AlgodClient,
           address,
           numerator,
@@ -90,7 +91,7 @@ const OrderService = {
         asaAmount,
         algoAmount
       })
-      return algodex.executeOrderAsTaker(
+      return executeOrder.executeOrderAsTaker(
         AlgodClient,
         isSellOrder,
         assetId,
@@ -113,7 +114,7 @@ const OrderService = {
         asaAmount,
         algoAmount
       })
-      return algodex.executeMarketOrder( //First issue is figuring out the organization. Order.js on react uses the methods in index. Talk to Alex about the best way to handle this as there is nuance in the 
+      return executeOrder.executeMarketOrderAsTaker( //First issue is figuring out the organization. Order.js on react uses the methods in index. Talk to Alex about the best way to handle this as there is nuance in the 
         AlgodClient,                     //in the exported methods. (ex. toggling sign and send depending on the order criteria)
         isSellOrder,
         assetId,
@@ -136,7 +137,7 @@ const OrderService = {
       algoAmount
     })
 
-    return algodex.executeOrderAsMakerAndTaker(
+    return executeOrder.executeOrderAsMakerAndTaker(
       AlgodClient,
       isSellOrder,
       assetId,
@@ -180,7 +181,7 @@ const OrderService = {
    * @returns {Object} Promise for when the transaction is fully confirmed
    */
   closeOrder: async (escrowAccountAddr, creatorAddr, orderBookEntry, version) => {
-    return await algodex.closeOrderFromOrderBookEntry(
+    return await executeOrder.closeOrderFromOrderBookEntry(
       AlgodClient,
       escrowAccountAddr,
       creatorAddr,
