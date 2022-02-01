@@ -188,7 +188,7 @@ const AlgodexInternalApi = {
 
             console.debug("here999a reducing algoTradeAmount, currently at: " + algoTradeAmount.getValue()); 
             algoTradeAmount = new BigN(maxTradeAmount);
-            escrowAsaTradeAmount = algoTradeAmount.divide(price);
+            escrowAsaTradeAmount = algoTradeAmount.divide(price, 30);
             console.debug("checking max: " + escrowAsaTradeAmount.getValue() + " " + 1 );
             if (escrowAsaTradeAmount.compareTo(bDecOne) == LESS_THAN) { //don't allow 0 value
                 escrowAsaTradeAmount = bDecOne;
@@ -543,7 +543,7 @@ const AlgodexInternalApi = {
             console.debug("takerOrderBalance: " + this.dumpVar(takerCombOrderBalance));
             console.debug("algoAmount: " + algoAmountReceiving);
             
-            const price = new BigN(d).divide(new BigN(n));
+            const price = new BigN(d).divide(new BigN(n), 30);
             const bDecOne = new BigN(1);
 
             const emptyReturnVal = {
