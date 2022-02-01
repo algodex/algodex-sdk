@@ -47,7 +47,7 @@ async function writeSignedMultisigTransactionToFile(account, firstAddress, secon
 
     let multsigaddr = algosdk.multisigAddress(mparams);
     console.log("Multisig Address: " + multsigaddr);
-
+    console.log(algosdk.encodeAddress(txn.from.publicKey))
     let stxn = algosdk.signMultisigTransaction(txn, mparams, account.sk).blob;
 
     fs.writeFileSync(outFile, stxn ); 
