@@ -18,7 +18,7 @@ const OrderService = {
     const asaAmount = converter.convertToBaseUnits(order.amount, order.asset.decimals)
     const algoAmount = converter.convertToBaseUnits(order.total)
 
-    const price = convertToAsaUnits(order.price, order.asset.decimals)
+    const price = converter.convertToAsaUnits(order.price, order.asset.decimals)
     const { n: numerator, d: denominator } = algodex.getNumeratorAndDenominatorFromPrice(price)
 
     if (order.execution === 'maker') {
@@ -58,9 +58,9 @@ const OrderService = {
     }
 
     const isSellOrder = order.type === 'sell'
-    const limitPrice = convertToAsaUnits(order.price, order.asset.decimals)
+    const limitPrice = converter.convertToAsaUnits(order.price, order.asset.decimals)
 
-    const allOrderBookOrders = OrderService.getAllEscrowOrders(orderBook)
+    const allOrderBookOrders = Array.isArray(orderBook) ? orderBook : OrderService.getAllEscrowOrders(orderBook)  //if orderbook is array then no need to concatenate. (experimental-next has dif orderbook structure)
 
     if (order.execution === 'taker') {
       console.log(`Taker ${order.type} order`, {
@@ -94,9 +94,8 @@ const OrderService = {
         asaAmount,
         algoAmount
       })
-      return executeOrder.executeMarketOrderAsTaker( //First issue is figuring out the organization. Order.js on react uses the methods in index. Talk to Alex about the best way to handle this as there is nuance in the 
-        AlgodClient,                     //in the exported methods. (ex. toggling sign and send depending on the order criteria)
-        isSellOrder,
+      return executeOrder.executeMarketOrderAsTaker(
+        AlgodClient,                   
         assetId,
         address,
         limitPrice,
@@ -147,7 +146,7 @@ const OrderService = {
         assetId: order.assetId
       }))
     }
-    return mapOrders(orderBook.buyOrders, 'buy').concat(mapOrders(orderBook.sellOrders, 'sell'))
+    return mapOrders(orderBook.buyOrders, 'buy').concat(mapOrders(orderBook.sellOrders, 'sell')) 
   },
 
   /**
