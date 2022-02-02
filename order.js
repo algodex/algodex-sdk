@@ -6,7 +6,7 @@ const converter = require('./convert.js')
 const OrderService = {
   placeOrder: (AlgodClient, order, orderBook) => {
 
- 
+
 
     console.log('OrderService.placeOrder', { order })
     const assetId = order.asset.id
@@ -59,8 +59,8 @@ const OrderService = {
 
     const isSellOrder = order.type === 'sell'
     const limitPrice = converter.convertToAsaUnits(order.price, order.asset.decimals)
-
-    const allOrderBookOrders = Array.isArray(orderBook) ? orderBook : OrderService.getAllEscrowOrders(orderBook)  //if orderbook is array then no need to concatenate. (experimental-next has dif orderbook structure)
+ 
+    const allOrderBookOrders = (Array.isArray(orderBook) || !orderBook) ? orderBook : OrderService.getAllEscrowOrders(orderBook)  //if orderbook is array then no need to concatenate. (experimental-next has dif orderbook structure)
 
     if (order.execution === 'taker') {
       console.log(`Taker ${order.type} order`, {
@@ -95,7 +95,7 @@ const OrderService = {
         algoAmount
       })
       return executeOrder.executeMarketOrderAsTaker(
-        AlgodClient,                   
+        AlgodClient,
         assetId,
         address,
         limitPrice,
@@ -146,7 +146,7 @@ const OrderService = {
         assetId: order.assetId
       }))
     }
-    return mapOrders(orderBook.buyOrders, 'buy').concat(mapOrders(orderBook.sellOrders, 'sell')) 
+    return mapOrders(orderBook.buyOrders, 'buy').concat(mapOrders(orderBook.sellOrders, 'sell'))
   },
 
   /**
