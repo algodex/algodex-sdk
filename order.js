@@ -6,8 +6,6 @@ const converter = require('./convert.js')
 const OrderService = {
   placeOrder: (AlgodClient, order, orderBook) => {
 
-
-
     console.log('OrderService.placeOrder', { order })
     const assetId = order.asset.id
     const address = order.address
@@ -96,6 +94,7 @@ const OrderService = {
       })
       return executeOrder.executeMarketOrderAsTaker(
         AlgodClient,
+        isSellOrder,
         assetId,
         address,
         limitPrice,

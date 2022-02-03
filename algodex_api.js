@@ -1041,7 +1041,6 @@ const AlgodexApi = {
         async function executeMarketOrder(algodClient, isSellingASA, assetId, 
             userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
                 console.log("in Execute Market Order")
-    
            return this.executeOrder(algodClient, isSellingASA, assetId, 
             userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector)
         },
