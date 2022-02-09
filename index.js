@@ -81,7 +81,7 @@ exports.initAlgodClient = function(environment) {
 };
 
 /*
- * Returns orderService object with necessary methods for execution order
+ * Returns orderService object with necessary methods for order execution
  * @param {Object}         AlgodClient: instance of AlgodClient needed for order Execution
  * @param {Object}         order: the order that the user placed
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj

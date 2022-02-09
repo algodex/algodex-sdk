@@ -10,8 +10,6 @@ const OrderService = {
     const assetId = order.asset.id
     const address = order.address
     const minimumAmount = 0
-    // const algodex_environment = 'public_test'
-    // const AlgodClient = new algodex.initAlgodClient(algodex_environment)
 
     const asaAmount = converter.convertToBaseUnits(order.amount, order.asset.decimals)
     const algoAmount = converter.convertToBaseUnits(order.total)
@@ -85,7 +83,6 @@ const OrderService = {
       )
     }
 
-    // const marketPrice = order.price
 
     if (order.execution === 'market') {
       console.log(`Market ${order.type} order`, {
@@ -108,8 +105,6 @@ const OrderService = {
         walletConnection
       )
     }
-
-    // order.execution === 'both' (default)
 
     console.log(`Maker/Taker ${order.type} order`, {
       isSellOrder,
