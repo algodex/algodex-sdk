@@ -4,7 +4,7 @@ const Big = require('big.js')
 const converter = require('./convert.js')
 
 const OrderService = {
-  placeOrder: (AlgodClient, order, orderBook) => {
+  placeOrder: (AlgodClient, order, orderBook, walletConnection=undefined ) => {
 
     console.log('OrderService.placeOrder', { order })
     const assetId = order.asset.id
@@ -25,7 +25,7 @@ const OrderService = {
           address,
           price,
           assetId,
-          algoAmount
+          algoAmount,
         })
         return executeOrder.placeAlgosToBuyASAOrderIntoOrderbook(
           AlgodClient,
@@ -34,14 +34,16 @@ const OrderService = {
           denominator,
           minimumAmount,
           assetId,
-          algoAmount
+          algoAmount,
+          walletConnection
         )
       } else if (order.type === 'sell') {
         console.log('Maker sell order', {
           address,
           price,
           assetId,
-          asaAmount
+          asaAmount,
+          
         })
         return executeOrder.placeASAToSellASAOrderIntoOrderbook(
           AlgodClient,
@@ -50,7 +52,8 @@ const OrderService = {
           denominator,
           minimumAmount,
           assetId,
-          asaAmount
+          asaAmount,
+          walletConnection
         )
       }
     }
@@ -77,7 +80,8 @@ const OrderService = {
         limitPrice,
         asaAmount,
         algoAmount,
-        allOrderBookOrders
+        allOrderBookOrders,
+        walletConnection
       )
     }
 
@@ -100,7 +104,8 @@ const OrderService = {
         limitPrice,
         asaAmount,
         algoAmount,
-        allOrderBookOrders
+        allOrderBookOrders,
+        walletConnection
       )
     }
 
@@ -123,7 +128,8 @@ const OrderService = {
       limitPrice,
       asaAmount,
       algoAmount,
-      allOrderBookOrders
+      allOrderBookOrders,
+      walletConnection
     )
   },
 
