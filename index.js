@@ -168,10 +168,19 @@ exports.createOrderBookEntryObj = function(blockChainOrderVal, price, n, d, min,
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+exports.executeOrderAsTaker = async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
-	return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+
+	const { params, allTransList } = await algodex.structureOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
+		takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+
+
+	if (!!walletConnector && walletConnector.connector.connected) {
+		const confirmedWalletConnectArr = await algodex.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		return confirmedWalletConnectArr;
+	}
+	// return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
+    //     takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 };
 
@@ -191,13 +200,23 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 
-exports.executeMarketOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+exports.executeMarketOrderAsTaker = async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
 		
 	const worstAcceptablePrice = isSellingASA_AsTakerOrder ? currentMarketPrice * (1 - tolerance) : currentMarketPrice * (1 + tolerance);
 
-	return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
-		takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+	const {params, allTransList} = await algodex.structureOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
+        takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+	
+
+	if(!!walletConnector && walletConnector.connector.connected) {
+		const confirmedWalletConnectArr = await algodex.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		return confirmedWalletConnectArr;
+	  }
+
+
+	// return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
+	// 	takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 };
 
@@ -216,11 +235,21 @@ exports.executeMarketOrderAsTaker = function(algodClient, isSellingASA_AsTakerOr
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-exports.executeOrderAsMakerAndTaker = function(algodClient, isSellingASA, assetId, 
+exports.executeOrderAsMakerAndTaker = async function(algodClient, isSellingASA, assetId, 
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
-	return algodex.executeOrder(algodClient, isSellingASA, assetId, 
+	const {params, allTransList} = await algodex.structureOrder(algodClient, isSellingASA, assetId, 
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
+	
+
+	if(!!walletConnector && walletConnector.connector.connected) {
+		const confirmedWalletConnectArr = await algodex.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		return confirmedWalletConnectArr;
+	  }
+
+	// return algodex.executeOrder(algodClient, isSellingASA, assetId, 
+    //     userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
+
 
 };
 

@@ -630,6 +630,283 @@ const AlgodexApi = {
         return;
     },
 
+    structureOrder: async function structureOrder(algodClient, isSellingASA, assetId,
+        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
+
+        console.debug("in executeOrder");
+
+        let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
+        let allTransList = [];
+        let transNeededUserSigList = [];
+        let execAccountInfo = await this.getAccountInfo(userWalletAddr);
+        let alreadyOptedIn = false;
+        console.debug("herezz56");
+        console.debug({ execAccountInfo });
+
+        let takerMinBalance = await this.getMinWalletBalance(execAccountInfo, true);
+
+        console.debug({ min_bal: takerMinBalance });
+  
+        let walletAssetAmount = 0;
+        const walletAlgoAmount = execAccountInfo['amount'] - takerMinBalance - (0.004 * 1000000);
+        if (walletAlgoAmount <= 0) {
+            console.debug("not enough to trade!! returning early");
+            return;
+        }
+
+        if (execAccountInfo != null && execAccountInfo['assets'] != null
+            && execAccountInfo['assets'].length > 0) {
+            for (let i = 0; i < execAccountInfo['assets'].length; i++) {
+                let asset = execAccountInfo['assets'][i];
+                if (asset['asset-id'] == assetId) {
+                    walletAssetAmount = asset['amount']
+                    break;
+                    //console.debug("execAccountInfo: " + execAccountInfo);
+                }
+            }
+        }
+
+        const getTakerOptedIn = (accountInfo, assetId) => {
+            let takerAlreadyOptedIntoASA = false;
+            if (accountInfo != null && accountInfo['assets'] != null
+                && accountInfo['assets'].length > 0) {
+                for (let i = 0; i < accountInfo['assets'].length; i++) {
+                    if (accountInfo['assets'][i]['asset-id'] === assetId) {
+                        takerAlreadyOptedIntoASA = true;
+                        break;
+                    }
+                }
+            }
+            return takerAlreadyOptedIntoASA;
+        }
+        const takerIsOptedIn = getTakerOptedIn(execAccountInfo, assetId);
+
+        orderAssetAmount = Math.max(1, orderAssetAmount);
+        orderAlgoAmount = Math.max(1, orderAlgoAmount);
+
+
+        if (isSellingASA) {
+            // we are selling an ASA so check wallet balance
+            orderAlgoBalance = walletAlgoAmount;
+            orderAssetBalance = Math.min(orderAssetAmount, walletAssetAmount);
+        } else {
+            // wallet ASA balance doesn't matter since we are selling algos
+            orderAlgoBalance = Math.min(orderAlgoAmount, walletAlgoAmount);
+            orderAssetBalance = walletAssetAmount;
+        }
+
+        const takerOrderBalance = {
+            'asaBalance': orderAssetBalance,
+            'algoBalance': orderAlgoBalance,
+            'walletAlgoBalance': walletAlgoAmount,
+            'walletASABalance': walletAssetAmount,
+            'limitPrice': limitPrice,
+            'takerAddr': userWalletAddr,
+            'walletMinBalance': takerMinBalance,
+            'takerIsOptedIn': takerIsOptedIn
+        };
+
+        console.debug("initial taker orderbalance: ", this.dumpVar(takerOrderBalance));
+
+        //let walletBalance = 10; // wallet balance
+        //let walletASABalance = 15;
+        if (queuedOrders == null && !includeMaker) {
+            console.debug("null queued orders, returning early");
+            return;
+        }
+        if (queuedOrders == null) {
+            queuedOrders = [];
+        }
+        let txOrderNum = 0;
+        let groupNum = 0;
+        let txnFee = 0.004 * 1000000 //FIXME minimum fee;
+
+        //console.debug("queued orders: ", this.dumpVar(queuedOrders));
+        let params = await algodClient.getTransactionParams().do();
+        let lastExecutedPrice = -1;
+
+        const getCutOrderTimes = this.getCutOrderTimes;
+
+        for (let i = 0; i < queuedOrders.length; i++) {
+            if (takerOrderBalance['orderAlgoAmount'] <= txnFee) {
+                // Overspending issues
+                continue;
+            }
+
+            if (isSellingASA && parseFloat(takerOrderBalance['asaBalance']) <= 0) {
+                console.debug('breaking due to 0 asaBalance balance!');
+                break;
+            }
+            if (!isSellingASA && parseFloat(takerOrderBalance['algoBalance']) <= 0) {
+                console.debug('breaking due to 0 algoBalance balance!');
+                break;
+            }
+
+            if (isSellingASA && parseFloat(takerOrderBalance['limitPrice']) > queuedOrders[i]['price']) {
+                //buyer & seller prices don't match
+                continue;
+            }
+            if (!isSellingASA && parseFloat(takerOrderBalance['limitPrice']) < queuedOrders[i]['price']) {
+                //buyer & seller prices don't match
+                continue;
+            }
+
+
+            // let cutOrder = null;
+            // let splitTimes = 1;
+            const getSplitTimesByIter = (i) => {
+                let cutOrder = null;
+                let splitTimes = 1;
+                if (i == 0) {
+                    cutOrder = getCutOrderTimes(queuedOrders[i]);
+                    splitTimes = cutOrder.splitTimes;
+                } else {
+                    cutOrder = null;
+                }
+                return { cutOrder, splitTimes };
+            }
+            const { cutOrder, splitTimes } = getSplitTimesByIter(i);
+
+            console.debug('cutOrder, splitTimes: ', { cutOrder, splitTimes });
+            let runningBalance = queuedOrders[i].isASAEscrow ? queuedOrders[i].asaBalance :
+                queuedOrders[i].algoBalance;
+
+            let outerBreak = false;
+            for (let jj = 0; jj < splitTimes; jj++) {
+                if (runningBalance <= 0) {
+                    throw "Unexpected 0 or below balance";
+                }
+                console.debug("running balance: " + runningBalance + " isASAEscrow: " + queuedOrders[i].isASAEscrow);
+                const queuedOrder = Object.assign({}, queuedOrders[i]);
+
+                if (cutOrder != null) {
+                    const shouldClose = (jj < cutOrder.splitTimes - 1) ? false : null;
+                    const useForceShouldCloseOrNot = (jj < cutOrder.splitTimes - 1);
+                    queuedOrder.forceShouldClose = shouldClose;
+                    queuedOrder.useForceShouldCloseOrNot = useForceShouldCloseOrNot;
+                    queuedOrder.txnNum = jj;
+
+                    if (jj >= splitTimes - 1) {
+                        // This is the last iteration, so simply use the running balance
+                        if (queuedOrder.isASAEscrow) {
+                            queuedOrder.asaBalance = runningBalance;
+                        } else {
+                            queuedOrder.algoBalance = runningBalance;
+                        }
+                    } else {
+                        if (queuedOrder.isASAEscrow) {
+                            queuedOrder.asaBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+                        } else {
+                            queuedOrder.algoBalance = Math.min(cutOrder.cutOrderAmount, runningBalance);
+                        }
+                    }
+                }
+                debugger
+                let singleOrderTransList =
+                    await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient,
+                        queuedOrder, takerOrderBalance, params, walletConnector);
+
+
+                if (singleOrderTransList == null) {
+                    // Overspending issue
+                    outerBreak = true;
+                    break;
+
+                }
+                const [algo, asa] = this.getAlgoandAsaAmounts(singleOrderTransList);
+
+
+
+                this.finalPriceCheck(algo, asa, limitPrice, isSellingASA)
+
+
+                lastExecutedPrice = queuedOrder['price'];
+
+                for (let k = 0; k < singleOrderTransList.length; k++) {
+                    let trans = singleOrderTransList[k];
+                    trans['txOrderNum'] = txOrderNum;
+                    trans['groupNum'] = groupNum;
+                    txOrderNum++;
+                    allTransList.push(trans);
+                    if (trans['needsUserSig'] === true) {
+                        transNeededUserSigList.push(trans);
+                    }
+                }
+                groupNum++;
+
+                runningBalance -= cutOrder != null ? cutOrder.cutOrderAmount : 0;
+            }
+            if (outerBreak) {
+                break;
+            }
+        }
+
+
+
+
+        let makerTxns = null;
+        console.debug('here55999a ', { lastExecutedPrice, limitPrice });
+        if (includeMaker) {
+            const numAndDenom = lastExecutedPrice != -1 ? this.getNumeratorAndDenominatorFromPrice(lastExecutedPrice) :
+                this.getNumeratorAndDenominatorFromPrice(limitPrice);
+            let leftoverASABalance = Math.floor(takerOrderBalance['asaBalance']);
+            let leftoverAlgoBalance = Math.floor(takerOrderBalance['algoBalance']);
+            console.debug("includeMaker is true");
+            if (isSellingASA && leftoverASABalance > 0) {
+                console.debug("leftover ASA balance is: " + leftoverASABalance);
+
+                makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient,
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false, walletConnector);
+            } else if (!isSellingASA && leftoverAlgoBalance > 0) {
+                console.debug("leftover Algo balance is: " + leftoverASABalance);
+
+                makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);
+            }
+        }
+
+        if (makerTxns != null) {
+            for (let k = 0; k < makerTxns.length; k++) {
+                let trans = makerTxns[k];
+                trans['txOrderNum'] = txOrderNum;
+                trans['groupNum'] = groupNum;
+                txOrderNum++;
+                allTransList.push(trans);
+                if (trans['needsUserSig'] === true) {
+                    transNeededUserSigList.push(trans);
+                }
+
+                if (typeof (trans.lsig) !== 'undefined') {
+                    if (!walletConnector || !walletConnector.connector.connected) {
+                        let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
+                        trans.signedTxn = signedTxn.blob;
+
+                    }
+
+                }
+            }
+            groupNum++;
+        }
+
+        if (allTransList == null || allTransList.length == 0) {
+            console.debug("no transactions, returning early");
+        }
+
+        let txnsForSigning = [];
+        for (let i = 0; i < transNeededUserSigList.length; i++) {
+            txnsForSigning.push(transNeededUserSigList[i]['unsignedTxn']);
+        }
+
+        console.debug("here 8899b signing!!");
+        if (txnsForSigning == null || txnsForSigning.length == 0) {
+            return;
+        }
+
+      
+
+        return{params, allTransList}
+    },
+
     closeOrderFromOrderBookEntry : async function closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector) {
             let valSplit = orderBookEntry.split("-");
             console.debug("closing order from order book entry!");
