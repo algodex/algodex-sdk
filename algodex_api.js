@@ -1123,6 +1123,102 @@ const AlgodexApi = {
             return walletConnectSentTxn;
 
         },
+    signAndSendProto: 
+        async function signAndSendProto(algodClient, outerTxns) {
+            const needsUserSig = outerTxns.filter(transaction => !!transaction.unsignedTxn).map(transaction => transaction.unsignedTxn)
+           
+            let signedTxnsFromUser =  await myAlgoWallet.signTransaction(needsUserSig);
+
+            if (Array.isArray(signedTxnsFromUser)) {
+                let userSigIndex = 0;
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
+                        userSigIndex++;
+                    }
+                }
+            } else {
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
+                        break;
+                    }
+                }
+            }
+            // You would want to return outerTxns now having been updated with the signedTXNS so Signed function can process.
+            let signed = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                signed.push(outerTxns[i].signedTxn);
+            }
+            let lastGroupNum = -1;
+            let signedTxns= []
+            let sentTxns = [];
+            for (let i = 0; i < outerTxns.length; i++) {  // loop to end of array 
+                if (lastGroupNum != outerTxns[i]['groupNum']) {
+                    // If at beginning of new group, send last batch of transactions
+                    if (signedTxns.length > 0) {
+                        try {
+                            this.printTransactionDebug(signedTxns);
+                            let txn = await algodClient.sendRawTransaction(signedTxns).do();
+                            sentTxns.push(txn.txId);
+                            console.debug("sent: " + txn.txId);
+                        } catch (e) {
+                            console.debug(e);
+                        }
+                    }
+                    // send batch of grouped transactions
+                    signedTxns = [];
+                    lastGroupNum = outerTxns[i]['groupNum'];
+                }
+
+                signedTxns.push(outerTxns[i]['signedTxn']);
+
+                if (i == outerTxns.length - 1) {
+                    // If at end of list send last batch of transactions
+                    if (signedTxns.length > 0) {
+                        try {
+                            this.printTransactionDebug(signedTxns);
+                            const DO_SEND = true;
+                            if (DO_SEND) {
+                                let txn = await algodClient.sendRawTransaction(signedTxns).do();
+                                sentTxns.push(txn.txId);
+                                console.debug("sent: " + txn.txId);
+                            } else {
+                                console.debug("skipping sending for debugging reasons!!!");
+                            }
+                        } catch (e) {
+                            console.debug(e);
+                        }
+                    }
+                    break;
+                }
+
+            }
+            console.debug("going to wait for confirmations");
+
+            let waitConfirmedPromises = [];
+
+            for (let i = 0; i < sentTxns.length; i++) {
+                console.debug("creating promise to wait for: " + sentTxns[i]);
+                const confirmPromise = this.waitForConfirmation(sentTxns[i]);
+                waitConfirmedPromises.push(confirmPromise);
+            }
+
+            console.debug("final9 trans are: ");
+            // console.debug(alTransList);
+            // console.debug(transNeededUserSigList);
+
+            console.debug("going to send all ");
+
+            let confirmedTransactions = await this.allSettled(waitConfirmedPromises);
+
+            let transResults = JSON.stringify(confirmedTransactions, null, 2);
+            console.debug("trans results after confirmed are: ");
+            console.debug(transResults);
+            // await this.waitForConfirmation(algodClient, txn.txId);
+            return;
+        },
 
     signAndSendTransactions :
         async function signAndSendTransactions(algodClient, outerTxns) {
@@ -1136,6 +1232,7 @@ const AlgodexApi = {
                     txnsForSig.push(outerTxns[i].unsignedTxn);
                 }
             }
+            debugger
 
             this.assignGroups(txns);
 

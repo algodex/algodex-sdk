@@ -212,6 +212,9 @@ exports.executeMarketOrderAsTaker = async function(algodClient, isSellingASA_AsT
 	if(!!walletConnector && walletConnector.connector.connected) {
 		const confirmedWalletConnectArr = await algodex.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
 		return confirmedWalletConnectArr;
+	  } else {
+		  const confirmedMyAlgoWalletArr = await algodex.signAndSendProto(algodClient, allTransList );
+		  return confirmedMyAlgoWalletArr
 	  }
 
 
