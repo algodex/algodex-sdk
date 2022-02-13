@@ -13,6 +13,7 @@ const Test = {
         console.log("creator account is: " + creatorAccount.addr);
         
         let outerTxns = await transactionGenerator.getCloseAlgoEscrowOrderTxns(client, creatorAccount, price, assetId, appId);
+
         if (returnOuterTransactions) {
             return outerTxns;
         }
@@ -22,7 +23,40 @@ const Test = {
         
         return true;
     },
+    runNegativeTest : async function (config, price, returnOuterTransactions = false, negTestTxnConfig) {
+        console.log("STARTING close algo escrow order test");
+        console.log({negTestTxnConfig});
+        const client = config.client;
+        const creatorAccount = config.creatorAccount;
+        const assetId = config.assetId;
+        const appId = config.appId;
+        console.log("creator account is: " + creatorAccount.addr);
+        
+        let outerTxns = await transactionGenerator.getCloseAlgoEscrowOrderTxns(client, creatorAccount, price, assetId, appId);
 
+        if (returnOuterTransactions) {
+            return outerTxns;
+        }
+
+        const {txnNum, field, val, negTxn} = negTestTxnConfig;
+        if (!negTxn) {
+            outerTxns[txnNum].unsignedTxn[field] = val;
+        } else {
+            outerTxns[txnNum] = negTxn;
+        }
+        const txn = outerTxns[txnNum];
+        console.log({txn});
+        let signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+
+        try {
+            await testHelper.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return testHelper.checkFailureType(e);
+        }
+        
+        return false;
+    },
     getOuterTransactions: async function(config) {
         const outerTxns = await this.runTest(config, 1.2, true);
         return outerTxns;
