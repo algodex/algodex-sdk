@@ -78,7 +78,8 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
       if (negTestTxnConfig.negTxn) {
         negTestTxnConfig.negTxn.unsignedTxn = await negTestTxnConfig.negTxn.unsignedTxnPromise;
       }
-      const result = await closeOrderTest.runNegativeTest(config, 1.2, false, negTestTxnConfig);
+      const outerTxns = await closeOrderTest.runTest(config, 1.2, true);
+      const result = await testHelper.runNegativeTest(config.client, outerTxns, negTestTxnConfig);
       expect (result).toBeTruthy();
     }, JEST_MINUTE_TIMEOUT);
   });

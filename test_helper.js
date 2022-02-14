@@ -66,7 +66,7 @@ const TestHelper = {
     checkFailureType : function (error) {
         let hasKnownError = false;
 
-        if (error != null && error.response.body.message != null) {
+        if (error != null && error.response && error.response.body && error.response.body.message != null) {
             const msg = error.response.body.message;
             if (msg.includes("rejected by logic err=assert failed")) {
                 hasKnownError = true;
@@ -206,7 +206,33 @@ const TestHelper = {
         }
         await this.checkPending(client, fundTxnId);
     },
+    runNegativeTest : async function (client, outerTxns, negTestTxnConfig) {
+        console.log("STARTING runNegativeTest");
+        console.log({negTestTxnConfig});
 
+        const {txnNum, field, val, negTxn} = negTestTxnConfig;
+        
+        const txn = outerTxns[txnNum];
+        console.log({txn});
+
+        if (!negTxn) {
+            
+            outerTxns[txnNum].unsignedTxn[field] = val;
+        } else {
+            outerTxns[txnNum] = negTxn;
+        }
+
+        let signedTxns = this.groupAndSignTransactions(outerTxns);
+
+        try {
+            await this.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return this.checkFailureType(e);
+        }
+        
+        return false;
+    },
     deleteApplication : async function deleteApplication (client, sender, appId) {
         // create unsigned transaction
         let params = await client.getTransactionParams().do();
