@@ -99,8 +99,8 @@ exports.OrderService = function() {
  * @returns {Object} Promise for when the wallet returns?
  */
 
-exports.WalletService = function() {
-	return walletService
+exports.WalletService = function(algodexEnvironment) {
+	return new walletService(algodexEnvironment)
 };
 
 /*
