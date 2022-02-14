@@ -208,23 +208,34 @@ const TestHelper = {
         }
         await this.checkPending(client, fundTxnId);
     },
-    runNegativeTest : async function (client, outerTxns, negTestTxnConfig) {
+    runNegativeTest : async function (config, client, outerTxns, negTestTxnConfig) {
         console.log("STARTING runNegativeTest");
         console.log({negTestTxnConfig});
 
-        const {txnNum, field, val, negTxn, innerNum} = negTestTxnConfig;
+        const {txnNum, field, val, negTxn, innerNum, configKeyForVal} = negTestTxnConfig;
         const txn = outerTxns[txnNum];
+
+        const getVal = () => {
+            if (configKeyForVal !== undefined) {
+                console.log({configKeyForVal, config});
+                return config[configKeyForVal];
+            }
+            return val;
+        }
 
         if (!negTxn) {
             if (innerNum === undefined) {
-                outerTxns[txnNum].unsignedTxn[field] = val;
+                const valToSet = getVal();
+                console.log(`setting ${txnNum} ${field} to ${valToSet}`);
+                outerTxns[txnNum].unsignedTxn[field] = valToSet;
             } else {
-                outerTxns[txnNum].unsignedTxn[field][innerNum] = val;
-                const t = outerTxns[txnNum].unsignedTxn[field];
+                outerTxns[txnNum].unsignedTxn[field][innerNum] = getVal();
             }
         } else {
             outerTxns[txnNum] = negTxn;
         }
+        const t = outerTxns[0].unsignedTxn;
+        console.log({t});
 
         let signedTxns = this.groupAndSignTransactions(outerTxns);
 

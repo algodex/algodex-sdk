@@ -31,7 +31,8 @@ const textEncoder = new TextEncoder();
 
 const negTests = [ 
    {txnNum: 0, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
-   {txnNum: 0, field: 'appArgs', innerNum: 0, val: textEncoder.encode('execute') }
+   {txnNum: 0, field: 'appArgs', innerNum: 0, val: textEncoder.encode('execute') },
+   {txnNum: 0, field: 'appIndex', configKeyForVal: 'fakeAppId' }
 
    /*
     {txnNum: 0, field: 'appIndex', val: 888},
@@ -86,7 +87,7 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
         const unsignedTxn = txn.unsignedTxn;
         //console.log({unsignedTxn});
       });
-      const result = await testHelper.runNegativeTest(config.client, outerTxns, negTestTxnConfig);
+      const result = await testHelper.runNegativeTest(config, config.client, outerTxns, negTestTxnConfig);
       expect (result).toBeTruthy();
     }, JEST_MINUTE_TIMEOUT);
   });
