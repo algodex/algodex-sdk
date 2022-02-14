@@ -27,8 +27,13 @@ config = {
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
+const textEncoder = new TextEncoder();
+
 const negTests = [ 
-   /* {txnNum: 0, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
+   {txnNum: 0, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
+   {txnNum: 0, field: 'appArgs', innerNum: 0, val: textEncoder.encode('execute') }
+
+   /*
     {txnNum: 0, field: 'appIndex', val: 888},
     {txnNum: 0, field: 'appOnComplete', val: 0},
     {txnNum: 0, negTxn: {
@@ -77,6 +82,10 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
         negTestTxnConfig.negTxn.unsignedTxn = await negTestTxnConfig.negTxn.unsignedTxnPromise;
       }
       const outerTxns = await executeAlgoOrderTest.runFullExecTest(config, true);
+      outerTxns.map( (txn) => {
+        const unsignedTxn = txn.unsignedTxn;
+        //console.log({unsignedTxn});
+      });
       const result = await testHelper.runNegativeTest(config.client, outerTxns, negTestTxnConfig);
       expect (result).toBeTruthy();
     }, JEST_MINUTE_TIMEOUT);

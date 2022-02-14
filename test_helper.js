@@ -74,6 +74,8 @@ const TestHelper = {
                 hasKnownError = true;
             } else if (msg.includes("rejected by logic err=gtxn lookup TxnGroup") && msg.includes("but it only has") ) {
                 hasKnownError = true;
+            } else if (msg.includes("logic eval error: assert failed")) {
+                hasKnownError = true;
             } else {
                 throw("Unknown error type: " + msg);
             }
@@ -210,14 +212,16 @@ const TestHelper = {
         console.log("STARTING runNegativeTest");
         console.log({negTestTxnConfig});
 
-        const {txnNum, field, val, negTxn} = negTestTxnConfig;
-        
+        const {txnNum, field, val, negTxn, innerNum} = negTestTxnConfig;
         const txn = outerTxns[txnNum];
-        console.log({txn});
 
         if (!negTxn) {
-            
-            outerTxns[txnNum].unsignedTxn[field] = val;
+            if (innerNum === undefined) {
+                outerTxns[txnNum].unsignedTxn[field] = val;
+            } else {
+                outerTxns[txnNum].unsignedTxn[field][innerNum] = val;
+                const t = outerTxns[txnNum].unsignedTxn[field];
+            }
         } else {
             outerTxns[txnNum] = negTxn;
         }
