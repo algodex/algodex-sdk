@@ -42,7 +42,15 @@ const negTests = [
             senderAcct: config.maliciousAccount
             }
     },
-
+   {txnNum: 2, field: 'from', txnKeyForVal: 'from', txnNumForVal: 1}, //set to from escrow
+   {txnNum: 2, field: 'to', val: algosdk.decodeAddress(config.maliciousAccount.addr)},
+   {txnNum: 2, negTxn: {
+            unsignedTxnPromise: transactionGenerator.getPayTxn(config.client, 
+            config.maliciousAccount.addr, config.maliciousAccount.addr,
+                1000, false),
+            senderAcct: config.maliciousAccount
+        }
+    },
    //{txnNum: 1, field: 'appOnComplete', val: 1 },
    
    

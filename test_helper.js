@@ -212,13 +212,16 @@ const TestHelper = {
         console.log("STARTING runNegativeTest");
         console.log({negTestTxnConfig});
 
-        const {txnNum, field, val, negTxn, innerNum, configKeyForVal} = negTestTxnConfig;
+        const {txnNum, field, val, negTxn, innerNum, configKeyForVal, txnKeyForVal, txnNumForVal} = negTestTxnConfig;
         const txn = outerTxns[txnNum];
 
         const getVal = () => {
             if (configKeyForVal !== undefined) {
                 console.log({configKeyForVal, config});
                 return config[configKeyForVal];
+            }
+            if (txnKeyForVal !== undefined) {
+                return outerTxns[txnNumForVal].unsignedTxn[txnKeyForVal];
             }
             return val;
         }
