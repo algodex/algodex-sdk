@@ -27,7 +27,7 @@ config = {
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
-const cancelTests = [ 
+const negativeTests = [ 
     {txnNum: 0, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
     {txnNum: 0, field: 'appIndex', val: 888},
     {txnNum: 0, field: 'appOnComplete', val: 0},
@@ -70,7 +70,7 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
     expect (asaBalance).toEqual(0);
   }, JEST_MINUTE_TIMEOUT);
 
-  cancelTests.map( (negTestTxnConfig) => {
+  negativeTests.map( (negTestTxnConfig) => {
     const testName = `Negative cancel order test: txnNum: ${negTestTxnConfig.txnNum} field: ${negTestTxnConfig.field} val: ${negTestTxnConfig.val}`;
     test (testName, async () => {
       if (negTestTxnConfig.negTxn) {
