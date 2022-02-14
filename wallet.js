@@ -7,6 +7,9 @@ const convert = require('./convert.js')
 function WalletService(
   algodex_environment,
 ) {
+  if (!new.target) {
+    throw Error("Cannot be called without the new keyword");
+  }
   this.getMinWalletBalance = async (accountInfo) => {
     return await algodex.getMinWalletBalance(accountInfo)
   };
