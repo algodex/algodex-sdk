@@ -32,7 +32,14 @@ const textEncoder = new TextEncoder();
 const negTests = [ 
    {txnNum: 0, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
    {txnNum: 0, field: 'appArgs', innerNum: 0, val: textEncoder.encode('execute') },
-   {txnNum: 0, field: 'appIndex', configKeyForVal: 'fakeAppId' }
+   {txnNum: 0, field: 'appIndex', configKeyForVal: 'fakeAppId' },
+   {txnNum: 0, field: 'appOnComplete', val: 0},
+   {txnNum: 1, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
+   {txnNum: 1, field: 'closeRemainderTo', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
+   //{txnNum: 1, field: 'appOnComplete', val: 1 },
+   
+   
+   
 
    /*
     {txnNum: 0, field: 'appIndex', val: 888},

@@ -225,9 +225,7 @@ const TestHelper = {
 
         if (!negTxn) {
             if (innerNum === undefined) {
-                const valToSet = getVal();
-                console.log(`setting ${txnNum} ${field} to ${valToSet}`);
-                outerTxns[txnNum].unsignedTxn[field] = valToSet;
+                outerTxns[txnNum].unsignedTxn[field] = getVal();
             } else {
                 outerTxns[txnNum].unsignedTxn[field][innerNum] = getVal();
             }
