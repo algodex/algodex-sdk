@@ -1,5 +1,3 @@
-
-
 const testHelper = require('../test_helper.js');
 const transactionGenerator = require('../generate_transaction_types.js');
 const createAppTest = require('./teal_tests/createAppTest.js');

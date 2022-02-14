@@ -77,10 +77,15 @@ const GenerateTransactions = {
         return txn;
     },
 
-    getCreateAppTxn : async function (client, creatorAccount, isAlgoEscrowApp = true) {
+    getCreateAppTxn : async function (client, creatorAccount, isAlgoEscrowApp = true, useBlankSource=false) {
             // define sender as creator
             let approvalProgramSource = null;
-            if (isAlgoEscrowApp) {
+
+            if (useBlankSource) {
+                approvalProgramSource = `#pragma version 4
+                                        int 1
+                                        return`;
+            } else if (isAlgoEscrowApp) {
                 approvalProgramSource = algoOrderBook.getAlgoOrderBookApprovalProgram();
             } else {
                 approvalProgramSource = asaOrderBook.getASAOrderBookApprovalProgram();

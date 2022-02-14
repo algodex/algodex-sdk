@@ -49,9 +49,9 @@ const negTests = [
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
     config.appId = await createAppTest.runTest(config, true);
+    config.fakeAppId = await createAppTest.createFakeApp(config);
     global.ALGO_ESCROW_APP_ID = config.appId;
     expect (config.appId).toBeGreaterThan(0);
-
     config.oldCreatorAccount = config.creatorAccount;
     // make a new creatorAccount that hasn't been opted into any ASA
     config.creatorAccount = testHelper.getRandomAccount();
