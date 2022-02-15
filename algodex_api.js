@@ -1231,6 +1231,7 @@ const AlgodexApi = {
     generateOrder : function (makerWalletAddr, n, d, min, assetId, includeMakerAddr) {
         return dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId, includeMakerAddr);
     },
+
     getPlaceAlgosToBuyASAOrderIntoOrderbook : async function 
         getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend, walletConnector) {
         console.debug("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
@@ -1255,13 +1256,13 @@ const AlgodexApi = {
             }
         }
 
-        let escrowAccountInfo = await this.getAccountInfo(lsig.address());
+        // let escrowAccountInfo = await this.getAccountInfo(lsig.address());
 
-        if (escrowAccountInfo != null && escrowAccountInfo['apps-local-state'] != null
-                && escrowAccountInfo['apps-local-state'].length > 0
-                && escrowAccountInfo['apps-local-state'][0].id == ALGO_ESCROW_ORDER_BOOK_ID) {
-            alreadyOptedIntoOrderbook = true;
-        }
+        // if (escrowAccountInfo != null && escrowAccountInfo['apps-local-state'] != null
+        //         && escrowAccountInfo['apps-local-state'].length > 0
+        //         && escrowAccountInfo['apps-local-state'][0].id == ALGO_ESCROW_ORDER_BOOK_ID) {
+        //     alreadyOptedIntoOrderbook = true;
+        // }
 
         console.debug({makerAlreadyOptedIntoASA});
         console.debug({alreadyOptedIntoOrderbook});
@@ -1270,7 +1271,7 @@ const AlgodexApi = {
             algoOrderSize = constants.MIN_ASA_ESCROW_BALANCE;
         }
         console.debug("alreadyOptedIn: " + alreadyOptedIntoOrderbook);
-        console.debug("acct info:" + JSON.stringify(escrowAccountInfo));
+        // console.debug("acct info:" + JSON.stringify(escrowAccountInfo));
         
         let params = await algodClient.getTransactionParams().do();
         console.debug("sending trans to: " + lsig.address());
