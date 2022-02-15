@@ -177,7 +177,7 @@ exports.executeOrderAsTaker = async function(algodClient, isSellingASA_AsTakerOr
 
 
 	if (!!walletConnector && walletConnector.connector.connected) {
-		const signedGroupTransactions = await signingApi.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		const signedGroupTransactions = await signingApi.signWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
 		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient, signedGroupTransactions);
 		return confirmedWalletConnectArr;
 	} else {
@@ -215,7 +215,7 @@ exports.executeMarketOrderAsTaker = async function(algodClient, isSellingASA_AsT
         takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 	if(!!walletConnector && walletConnector.connector.connected) {
-		const signedGroupTransactions = await signingApi.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		const signedGroupTransactions = await signingApi.signWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
 		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient,signedGroupTransactions) ;
 		return confirmedWalletConnectArr;
 	  } else {
@@ -252,7 +252,7 @@ exports.executeOrderAsMakerAndTaker = async function(algodClient, isSellingASA, 
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
 	
 	if (!!walletConnector && walletConnector.connector.connected) {
-		const signedGroupTransactions = await signingApi.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		const signedGroupTransactions = await signingApi.signWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
 		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient, signedGroupTransactions);
 		return confirmedWalletConnectArr;
 	} else {

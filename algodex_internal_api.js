@@ -1099,7 +1099,7 @@ const AlgodexInternalApi = {
                     'needsUserSig': true
                 });
 
-                const singedGroupedTransactions=  await signingApi.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                const singedGroupedTransactions=  await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
                 return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
                
             }
@@ -1249,7 +1249,7 @@ const AlgodexInternalApi = {
                     'needsUserSig': true
                 });
 
-                const singedGroupedTransactions=  await signingApi.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                const singedGroupedTransactions=  await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
              
                 return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
             } 

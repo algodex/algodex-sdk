@@ -1359,8 +1359,7 @@ const AlgodexApi = {
 
        if (signAndSend) {
         if(!!walletConnector && walletConnector.connector.connected) {
-            // this will break now because I've gotten rid of the propogating of transactions.
-            const singedGroupedTransactions=  await signingApi.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+            const singedGroupedTransactions=  await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
             return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
         } else {
             return await this.signAndSendTransactions(algodClient, outerTxns);
@@ -1451,7 +1450,7 @@ const AlgodexApi = {
                 
                 unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
                 if(!!walletConnector && walletConnector.connector.connected) {
-                    const singedGroupedTransactions= await signingApi.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                    const singedGroupedTransactions= await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
                     
                     return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
                 } else {
@@ -1545,7 +1544,7 @@ const AlgodexApi = {
          unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
          if (signAndSend) {
              if(!!walletConnector && walletConnector.connector.connected) {
-                const singedGroupedTransactions= await signingApi.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                const singedGroupedTransactions= await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
                 return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
              }
             return await this.signAndSendTransactions(algodClient, outerTxns);

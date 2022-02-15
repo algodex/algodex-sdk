@@ -144,7 +144,7 @@ const SigningApi = {
         return Promise.all(wrappedPromises);
     },
 
-    signAndSendWalletConnectTransactions:
+    signWalletConnectTransactions:
         async function (algodClient, outerTxns, params, walletConnector) {
             const groupBy = (items, key) => items.reduce(
                 (result, item) => ({
