@@ -1342,30 +1342,30 @@ const AlgodexApi = {
         }
 
         
-   let noteMetadata = { 
-       algoBalance: makerAccountInfo.amount,
-       asaBalance:(makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
-       assetId: assetId, 
-       n:n, 
-       d:d, 
-       escrowAddr: escrowAccountInfo.address,
-       orderEntry: generatedOrderEntry,
-       escrowOrderType:"buy",
-       version: constants.ESCROW_CONTRACT_VERSION
-    }
-    // look into accuracy of above object
-
-       unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "algo")
-
-       if (signAndSend) {
-        if(!!walletConnector && walletConnector.connector.connected) {
-            const singedGroupedTransactions=  await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
-            return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
-        } else {
-            return await this.signAndSendTransactions(algodClient, outerTxns);
-            // When we remove the signing of LSIGS from the other functions the signing of LSIG functionality found in this function can be moved to the new myAlgoSign function
+        let noteMetadata = {
+            algoBalance: makerAccountInfo.amount,
+            asaBalance: (makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
+            assetId: assetId,
+            n: n,
+            d: d,
+            escrowAddr: escrowAccountInfo.address,
+            orderEntry: generatedOrderEntry,
+            escrowOrderType: "buy",
+            version: constants.ESCROW_CONTRACT_VERSION
         }
-    }
+        // look into accuracy of above object
+
+        unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "algo")
+
+        if (signAndSend) {
+            if (!!walletConnector && walletConnector.connector.connected) {
+                const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+            } else {
+                return await this.signAndSendTransactions(algodClient, outerTxns);
+                // When we remove the signing of LSIGS from the other functions the signing of LSIG functionality found in this function can be moved to the new myAlgoSign function
+            }
+        }
 
         
         if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
