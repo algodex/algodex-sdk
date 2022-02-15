@@ -36,6 +36,7 @@ if (MyAlgo != null) {
 
 const constants = require('./constants.js');
 const { ESCROW_CONTRACT_VERSION } = require('./constants.js');
+const signingApi = require('./signing_api.js');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
@@ -801,7 +802,7 @@ const AlgodexApi = {
                         }
                     }
                 }
-                debugger
+               
                 let singleOrderTransList =
                     await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient,
                         queuedOrder, takerOrderBalance, params, walletConnector);
@@ -1073,84 +1074,10 @@ const AlgodexApi = {
                 outerTxns[i]['signedTxn'] = orderedRawTransactions[i];
             }
 
-            let lastGroupNum = -1
-            orderedRawTransactions = []
-            let walletConnectSentTxn = []
-            for (let i = 0; i < outerTxns.length; i++) {  // loop to end of array 
-                if (lastGroupNum != outerTxns[i]['groupNum']) {
-                    // If at beginning of new group, send last batch of transactions
-                    if (orderedRawTransactions.length > 0) {
-                        try {
-                            this.printTransactionDebug(orderedRawTransactions);
-                           
-                            let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
-                            walletConnectSentTxn.push(txn.txId);
-                            console.debug("sent: " + txn.txId);
-                        } catch (e) {
-                            console.debug(e);
-                        }
-                    }
-                    // send batch of grouped transactions
-                    orderedRawTransactions = [];
-                    lastGroupNum = outerTxns[i]['groupNum'];
-                }
-
-                orderedRawTransactions.push(outerTxns[i]['signedTxn']);
-
-
-                if (i == outerTxns.length - 1) {
-                    // If at end of list send last batch of transactions
-                    if (orderedRawTransactions.length > 0) {
-                        try {
-                            this.printTransactionDebug(orderedRawTransactions);
-                            const DO_SEND = true;
-                            if (DO_SEND) {
-
-                                let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
-                                walletConnectSentTxn.push(txn.txId);
-                                console.debug("sent: " + txn.txId);
-                            } else {
-                                console.debug("skipping sending for debugging reasons!!!");
-                            }
-                        } catch (e) {
-                            console.debug(e);
-                        }
-                    }
-                    break;
-                }
-            }
-
-            return walletConnectSentTxn;
-
+            return outerTxns;
         },
-    signAndSendProto: 
-        async function signAndSendProto(algodClient, outerTxns) {
-            const needsUserSig = outerTxns.filter(transaction => !!transaction.unsignedTxn).map(transaction => transaction.unsignedTxn)
-           
-            let signedTxnsFromUser =  await myAlgoWallet.signTransaction(needsUserSig);
-
-            if (Array.isArray(signedTxnsFromUser)) {
-                let userSigIndex = 0;
-                for (let i = 0; i < outerTxns.length; i++) {
-                    if (outerTxns[i].needsUserSig) {
-                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
-                        userSigIndex++;
-                    }
-                }
-            } else {
-                for (let i = 0; i < outerTxns.length; i++) {
-                    if (outerTxns[i].needsUserSig) {
-                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
-                        break;
-                    }
-                }
-            }
-            // You would want to return outerTxns now having been updated with the signedTXNS so Signed function can process.
-            let signed = [];
-
-            for (let i = 0; i < outerTxns.length; i++) {
-                signed.push(outerTxns[i].signedTxn);
-            }
+    propogateTransactions: 
+        async function propogateTransactions(algodClient, outerTxns) {
             let lastGroupNum = -1;
             let signedTxns= []
             let sentTxns = [];
@@ -1218,6 +1145,34 @@ const AlgodexApi = {
             console.debug(transResults);
             // await this.waitForConfirmation(algodClient, txn.txId);
             return;
+
+
+        },
+    signMyAlgo: 
+        async function signMyAlgo(algodClient, outerTxns) {
+            const needsUserSig = outerTxns.filter(transaction => !!transaction.unsignedTxn).map(transaction => transaction.unsignedTxn)
+            // myAlgo userSigning doesn't want lSIGS. This will go away when we remove the signing of LSIGS from the structure order helper functions.
+           
+            let signedTxnsFromUser =  await myAlgoWallet.signTransaction(needsUserSig);
+
+            if (Array.isArray(signedTxnsFromUser)) {
+                let userSigIndex = 0;
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
+                        userSigIndex++;
+                    }
+                }
+            } else {
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
+                        break;
+                    }
+                }
+            }
+           
+            return outerTxns  
         },
 
     signAndSendTransactions :
@@ -1232,7 +1187,7 @@ const AlgodexApi = {
                     txnsForSig.push(outerTxns[i].unsignedTxn);
                 }
             }
-            debugger
+          
 
             this.assignGroups(txns);
 
@@ -1404,9 +1359,12 @@ const AlgodexApi = {
 
        if (signAndSend) {
         if(!!walletConnector && walletConnector.connector.connected) {
-            return await this.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+            // this will break now because I've gotten rid of the propogating of transactions.
+            const singedGroupedTransactions=  await signingApi.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+            return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
         } else {
             return await this.signAndSendTransactions(algodClient, outerTxns);
+            // When we remove the signing of LSIGS from the other functions the signing of LSIG functionality found in this function can be moved to the new myAlgoSign function
         }
     }
 
@@ -1493,7 +1451,9 @@ const AlgodexApi = {
                 
                 unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
                 if(!!walletConnector && walletConnector.connector.connected) {
-                    return await this.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                    const singedGroupedTransactions= await signingApi.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                    
+                    return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
                 } else {
                     return await this.signAndSendTransactions(algodClient, outerTxns);
                 }
@@ -1585,7 +1545,8 @@ const AlgodexApi = {
          unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
          if (signAndSend) {
              if(!!walletConnector && walletConnector.connector.connected) {
-                 return await this.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                const singedGroupedTransactions= await signingApi.signAndSendWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
              }
             return await this.signAndSendTransactions(algodClient, outerTxns);
         }

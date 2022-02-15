@@ -8,6 +8,7 @@
 
 const http = require('http');
 const algosdk = require('algosdk');
+const signingApi = require('./signing_api.js')
 
 
 const BigN = require('js-big-decimal');
@@ -84,6 +85,7 @@ const AlgodexInternalApi = {
         ASA_ESCROW_ORDER_BOOK_ID = asaOrderBookId;
     },
     signAndSendWalletConnectTransactions: async function (algodClient, outerTxns, params, walletConnector) {
+        // MAYBE CAN REMOVE NOW
         const groupBy = (items, key) => items.reduce(
             (result, item) => ({
                 ...result,
@@ -1097,7 +1099,8 @@ const AlgodexInternalApi = {
                     'needsUserSig': true
                 });
 
-                return await this.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                const singedGroupedTransactions=  await signingApi.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
                
             }
 
@@ -1183,7 +1186,7 @@ const AlgodexInternalApi = {
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['assets'] != null
             && accountInfo['assets'].length > 0 && accountInfo['assets'][0] != null) {
-            await closeASAOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig);
+            await this.closeASAOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig);
             return;
         }
 
@@ -1246,7 +1249,9 @@ const AlgodexInternalApi = {
                     'needsUserSig': true
                 });
 
-                return await this.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                const singedGroupedTransactions=  await signingApi.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+             
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
             } 
             const groupID = algosdk.computeGroupID(txns)
             for (let i = 0; i < txns.length; i++) {
