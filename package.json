@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test-unit": "jest --testPathIgnorePatterns='Teal.spec.js' --coverage",
+    "test-lint": "eslint .",
     "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
     "testOrders": "npm test -- Order"
   },
@@ -38,6 +40,21 @@
     "util": "^0.12.4"
   },
   "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-plugin-jest": "^26.1.1",
     "jest": "^27.0.6"
+  },
+  "jest": {
+    "coverageThreshold": {
+      "branches": 70
+    },
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!.eslintrc.js",
+      "!test/**/*.js",
+      "!test_helper.js",
+      "!coverage/**/*.js",
+      "!scripts/**/*.js"
+    ]
   }
 }
