@@ -1360,10 +1360,11 @@ const AlgodexApi = {
 
         if (signAndSend) {
             if (!!walletConnector && walletConnector.connector.connected) {
-                const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
-                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+                const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector);
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions);
             } else {
-                return await this.signAndSendTransactions(algodClient, outerTxns);
+                const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(outerTxns);
+                return await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
                 // When we remove the signing of LSIGS from the other functions the signing of LSIG functionality found in this function can be moved to the new myAlgoSign function
             }
         }
@@ -1448,13 +1449,14 @@ const AlgodexApi = {
                     unsignedTxns.push(outerTxns[i].unsignedTxn);
                 }
                 
-                unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
+                unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa");
                 if(!!walletConnector && walletConnector.connector.connected) {
-                    const singedGroupedTransactions= await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
+                    const signedGroupedTransactions= await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector);
                     
-                    return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+                    return await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
                 } else {
-                    return await this.signAndSendTransactions(algodClient, outerTxns);
+                    const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(outerTxns);
+                    return await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
                 }
                 
             } else {

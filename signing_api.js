@@ -16,7 +16,7 @@ if (MyAlgo != null) {
 
 const SigningApi = {
     propogateTransactions:
-        async function propogateTransactions(algodClient, outerTxns) {
+        async function (algodClient, outerTxns) {
           
            let groupNumCheck = outerTxns[0]
       
@@ -41,10 +41,8 @@ const SigningApi = {
                             this.printTransactionDebug(signedTxns);
                             let txn = await algodClient.sendRawTransaction(signedTxns).do();
                             sentTxns.push(txn.txId);
-                            debugger
                             console.debug("sent: " + txn.txId);
                         } catch (e) {
-                            debugger
                             console.debug(e);
                         }
                     }
@@ -57,7 +55,6 @@ const SigningApi = {
               
 
                 if (i == outerTxns.length - 1) {
-                    debugger
                     // If at end of list send last batch of transactions
                     if (signedTxns.length > 0) {
                         try {
@@ -65,9 +62,7 @@ const SigningApi = {
                             const DO_SEND = true;
                             if (DO_SEND) {
                                 let txn = await algodClient.sendRawTransaction(signedTxns).do();
-                                debugger
                                 sentTxns.push(txn.txId);
-                                debugger
                                 console.debug("sent: " + txn.txId);
                             } else {
                                 console.debug("skipping sending for debugging reasons!!!");
@@ -84,7 +79,7 @@ const SigningApi = {
        
 
             let waitConfirmedPromises = [];
-            debugger;
+
             for (let i = 0; i < sentTxns.length; i++) {
                 console.debug("creating promise to wait for: " + sentTxns[i]);
                 const confirmPromise = this.waitForConfirmation(sentTxns[i]);
@@ -99,16 +94,63 @@ const SigningApi = {
             console.debug("going to send all ");
 
             let confirmedTransactions = await this.allSettled(waitConfirmedPromises);
-            debugger;
 
             let transResults = JSON.stringify(confirmedTransactions, null, 2);
-            debugger;
+       
             console.debug("trans results after confirmed are: ");
             console.debug(transResults);
             // await this.waitForConfirmation(algodClient, txn.txId);
             return;
 
 
+        },
+    assignGroups: function (txns) {
+        const groupID = algosdk.computeGroupID(txns)
+        for (let i = 0; i < txns.length; i++) {
+            txns[i].group = groupID;
+        }
+    },
+    signMyAlgoTransactions:
+        async function (outerTxns) {
+            console.debug("inside signAndSend transactions");
+            let txnsForSig = [];
+            let txns = [];
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                txns.push(outerTxns[i].unsignedTxn);
+                if (outerTxns[i].needsUserSig == true) {
+                    txnsForSig.push(outerTxns[i].unsignedTxn);
+                }
+            }
+
+            this.assignGroups(txns);
+
+            let signedTxnsFromUser = await myAlgoWallet.signTransaction(txnsForSig);
+
+            if (Array.isArray(signedTxnsFromUser)) {
+                let userSigIndex = 0;
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser[userSigIndex].blob;
+                        userSigIndex++;
+                    }
+                }
+            } else {
+                for (let i = 0; i < outerTxns.length; i++) {
+                    if (outerTxns[i].needsUserSig) {
+                        outerTxns[i].signedTxn = signedTxnsFromUser.blob;
+                        break;
+                    }
+                }
+            }
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                if (!outerTxns[i].needsUserSig) {
+                    let signedLsig = await algosdk.signLogicSigTransactionObject(outerTxns[i].unsignedTxn, outerTxns[i].lsig);
+                    outerTxns[i].signedTxn = signedLsig.blob;
+                }
+            }
+            return outerTxns
         },
     signMyAlgo:
         async function signMyAlgo(algodClient, outerTxns) {
