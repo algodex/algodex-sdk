@@ -2,7 +2,8 @@ const algodex = require('./algodex_api.js')
 
 
 const ExecuteOrder = {
-/*
+
+/**
  * Executes a limit order as a taker and submits it to the blockchain
  *
  * @param {Object}                algodClient: object that has been initialized via initAlgodClient()
@@ -15,13 +16,13 @@ const ExecuteOrder = {
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-    executeOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+    executeOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId,
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
-	return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
+	return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 },
-/*
+/**
  * Executes a market order as a taker and submits it to the blockchain
  *
  * @param {Object}                algodClient: object that has been initialized via initAlgodClient()
@@ -36,18 +37,17 @@ const ExecuteOrder = {
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-
-executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId,
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
-		
+
 	const worstAcceptablePrice = isSellingASA_AsTakerOrder ? currentMarketPrice * (1 - tolerance) : currentMarketPrice * (1 + tolerance);
 
-	return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
+	return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
 		takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 },
 
-/*
+/**
  * Executes a limit order as a maker and taker and submits it to the blockchain
  *
  * @param {Object}                algodClient: object that has been initialized via initAlgodClient()
@@ -61,29 +61,17 @@ executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, asse
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 
-executeOrderAsMakerAndTaker: function(algodClient, isSellingASA, assetId, 
+executeOrderAsMakerAndTaker: function(algodClient, isSellingASA, assetId,
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
-	return algodex.executeOrder(algodClient, isSellingASA, assetId, 
+	return algodex.executeOrder(algodClient, isSellingASA, assetId,
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
 
 },
 
-/*
- * Closes an existing order and refunds the escrow account to the owner
- *
- * @param {Object}       algodClient: object that has been initialized via initAlgodClient()
- * @param {String} escrowAccountAddr: public address of the escrow account
- * @param {String}       creatorAddr: public address of the owner of the escrow account
- * @param {Object}    orderBookEntry: blockchain order book string. For example "2500-625-0-15322902" (N-D-min-assetId)
- * @param {int}       version:        escrow version as an int.
- * @returns {Object} Promise for when the transaction is fully confirmed
- */
-closeOrderFromOrderBookEntry: function(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector) {
-	return algodex.closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector);
-},
+closeOrderFromOrderBookEntry: algodex.closeOrderFromOrderBookEntry,
 
-/*
+/**
  * Maker order to create a new algo-only escrow account and order book entry
  * Note: use getNumeratorAndDenominatorFromPrice() to get the n and d values.
  *
@@ -100,7 +88,7 @@ placeAlgosToBuyASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, 
 	return algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true, walletConnector);
 },
 
-/*
+/**
  * Maker order to create a new algo-only escrow account and order book entry
  * Note: use getNumeratorAndDenominatorFromPrice() to get the n and d values.
  *
