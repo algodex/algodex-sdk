@@ -3,16 +3,22 @@ const convert = require('./convert.js')
 // import { convertFromBaseUnits } from './convert'
 // import { getAlgodexEnvironment } from './environment'
 // import { truncateAddress } from './display'
-
+/*
+ * Returns walletService object with necessary methods for wallet retrieval and interaction with frontend
+ * @param {Object}         AlgodClient: instance of AlgodClient needed for order Execution
+ * @param {String}         address: address of the target wallet
+ * @returns {Object} Promise for when the wallet returns?
+ */
+// function WalletService({config}) {
+//      this.client = config.sdk || setClient(config)
+// }
 function WalletService(
   algodex_environment,
 ) {
   if (!new.target) {
     throw Error("Cannot be called without the new keyword");
   }
-  this.getMinWalletBalance = async (accountInfo) => {
-    return await algodex.getMinWalletBalance(accountInfo)
-  };
+  this.getMinWalletBalance = algodex.getMinWalletBalance;
 
   this.fetchWallets = async (addresses) => {
 
