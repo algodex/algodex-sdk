@@ -152,6 +152,7 @@ const TestHelper = {
         await this.checkPending(client, txId);
     },
 
+    // Note: this function is currently not used and has not been run before.
     getOrderLsig : async function (algodClient, makerAccount, 
         price, assetId, isASAEscrow) {
 
@@ -229,14 +230,25 @@ const TestHelper = {
         if (!negTxn) {
             if (innerNum === undefined) {
                 outerTxns[txnNum].unsignedTxn[field] = getVal();
+                if (txnKeyForVal === 'from' && field === 'from') {
+                    delete outerTxns[txnNum].lsig;
+                    delete outerTxns[txnNum].senderAcct;
+
+                    if (outerTxns[txnNumForVal].lsig !== undefined) {
+                        outerTxns[txnNum].lsig = outerTxns[txnNumForVal].lsig;
+                    }
+                    if (outerTxns[txnNumForVal].senderAcct !== undefined) {
+                        outerTxns[txnNum].senderAcct = outerTxns[txnNumForVal].senderAcct;
+                    }
+                }
             } else {
                 outerTxns[txnNum].unsignedTxn[field][innerNum] = getVal();
             }
         } else {
             outerTxns[txnNum] = negTxn;
         }
-        const t = outerTxns[0].unsignedTxn;
-        console.log({t});
+        //const t = outerTxns[0];
+        console.log({txn});
 
         let signedTxns = this.groupAndSignTransactions(outerTxns);
 

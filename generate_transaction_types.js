@@ -116,7 +116,16 @@ const GenerateTransactions = {
 
             return txn;
     },
+    getLsig : async function  (algodClient, creator, price, assetId, isAsaEscrow) {
+        let numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
+        let n = numAndDenom.n;
+        let d = numAndDenom.d;
+        let creatorAddr = creator.addr;
 
+        let escrowSource = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, creatorAddr, isAsaEscrow, constants.ESCROW_CONTRACT_VERSION);
+        let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
+        return lsig;
+    },
     getCloseAlgoEscrowOrderTxns : async function (algodClient, creator, price, assetId, appId) {
         let numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
         let n = numAndDenom.n;
