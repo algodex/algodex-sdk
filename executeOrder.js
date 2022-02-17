@@ -29,8 +29,8 @@ const ExecuteOrder = {
 		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient, signedGroupTransactions);
 		return confirmedWalletConnectArr;
 	} else {
-		const singedGroupedTransactions = await signingApi.signMyAlgo(algodClient, allTransList);
-		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, singedGroupedTransactions);
+		const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(allTransList);
+		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
 		return confirmedMyAlgoWalletArr;
 	}
 

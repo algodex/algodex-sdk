@@ -43,6 +43,7 @@ const SigningApi = {
                             sentTxns.push(txn.txId);
                             console.debug("sent: " + txn.txId);
                         } catch (e) {
+                            debugger
                             console.debug(e);
                         }
                     }
@@ -68,6 +69,7 @@ const SigningApi = {
                                 console.debug("skipping sending for debugging reasons!!!");
                             }
                         } catch (e) {
+                            debugger
                             console.debug(e);
                         }
                     }
@@ -110,20 +112,49 @@ const SigningApi = {
             txns[i].group = groupID;
         }
     },
+    groupBy:
+        function (items, key) {
+           return items.reduce(
+                (result, item) => ({
+                    ...result,
+                    [item[key]]: [
+                        ...(result[item[key]] || []),
+                        item,
+                    ],
+                }),
+                {},
+           )
+
+        },
     signMyAlgoTransactions:
         async function (outerTxns) {
-            console.debug("inside signAndSend transactions");
-            let txnsForSig = [];
-            let txns = [];
+            console.debug("inside signMyAlgoTransactions transactions");
+  
+            const groups = this.groupBy(outerTxns, "groupNum")
 
-            for (let i = 0; i < outerTxns.length; i++) {
-                txns.push(outerTxns[i].unsignedTxn);
-                if (outerTxns[i].needsUserSig == true) {
-                    txnsForSig.push(outerTxns[i].unsignedTxn);
-                }
+            let numberOfGroups = Object.keys(groups);
+
+            const groupedGroups = numberOfGroups.map(group => {
+
+                const allTxFormatted = (groups[group].map(txn => {
+                        return txn.unsignedTxn;
+                }))
+                this.assignGroups(allTxFormatted);
+                return allTxFormatted;
             }
+            )
 
-            this.assignGroups(txns);
+
+            const flattenedGroups = groupedGroups.flat();
+
+            let txnsForSig = []
+
+              for (let i = 0; i < outerTxns.length; i++) {
+                outerTxns[i].unsignedTxn = flattenedGroups[i];
+                if (outerTxns[i].needsUserSig == true) {
+                    txnsForSig.push(flattenedGroups[i]);
+                }
+            }           
 
             let signedTxnsFromUser = await myAlgoWallet.signTransaction(txnsForSig);
 

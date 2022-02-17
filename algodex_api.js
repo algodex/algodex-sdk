@@ -865,7 +865,7 @@ const AlgodexApi = {
                     userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);
             }
         }
-
+// below conditional handles output for getPlaceAlgos when signAndSend is false so returns onsigned Lsig
         if (makerTxns != null) {
             for (let k = 0; k < makerTxns.length; k++) {
                 let trans = makerTxns[k];
@@ -877,14 +877,14 @@ const AlgodexApi = {
                     transNeededUserSigList.push(trans);
                 }
 
-                if (typeof (trans.lsig) !== 'undefined') {
-                    if (!walletConnector || !walletConnector.connector.connected) {
-                        let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
-                        trans.signedTxn = signedTxn.blob;
+                // if (typeof (trans.lsig) !== 'undefined') {
+                //     if (!walletConnector || !walletConnector.connector.connected) {
+                //         let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
+                //         trans.signedTxn = signedTxn.blob;
 
-                    }
+                //     }
 
-                }
+                // }
             }
             groupNum++;
         }
@@ -902,7 +902,6 @@ const AlgodexApi = {
         if (txnsForSigning == null || txnsForSigning.length == 0) {
             return;
         }
-
       
 
         return{params, allTransList}

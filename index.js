@@ -204,7 +204,7 @@ exports.executeOrderAsTaker = async function(algodClient, isSellingASA_AsTakerOr
 		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient, signedGroupTransactions);
 		return confirmedWalletConnectArr;
 	} else {
-		const singedGroupedTransactions = await signingApi.signMyAlgo(algodClient, allTransList);
+		const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(allTransList);
 		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, singedGroupedTransactions);
 		return confirmedMyAlgoWalletArr;
 	}
