@@ -38,7 +38,7 @@ if (MyAlgo != null) {
  *
  * @todo Pass constants and configuration into API Constructor
  */
-function AlgodexApi({config}) {
+function AlgodexApi({config}={}) {
 }
 
 /**
@@ -50,7 +50,7 @@ AlgodexApi.prototype.doAlert = function doAlert() {
 };
 /**
  *
- * @returns {{LOCAL_ALGOD_SERVER, PUBLIC_TEST_INDEXER_PORT: string, TEST_ASA_ORDERBOOK_APPID: number, PROD_ALGOD_SERVER: string|string, PUBLIC_TEST_ALGOD_SERVER: string|string, PUBLIC_TEST_BACKEND_API: string, PUBLIC_TEST_INDEXER_TOKEN: string, TEST_INDEXER_PORT: string, TEST_ALGOD_TOKEN: string|string, TEST_INDEXER_TOKEN: string, PROD_ALGO_ORDERBOOK_APPID: number, PROD_INDEXER_PORT: string, TEST_ALGOD_SERVER: string|string, LOCAL_ALGOD_TOKEN, MIN_ASA_ESCROW_BALANCE: number, PUBLIC_TEST_ASA_ORDERBOOK_APPID: number, TEST_INDEXER_SERVER: string, LOCAL_ASA_ORDERBOOK_APPID: number, PROD_BACKEND_API: string, TEST_BACKEND_API: string, PUBLIC_TEST_INDEXER_SERVER: string, TEST_ALGO_ORDERBOOK_APPID: number, LOCAL_INDEXER_SERVER: string, PROD_INDEXER_TOKEN: string, LOCAL_ALGO_ORDERBOOK_APPID: number, LOCAL_BACKEND_API: string, PROD_ALGOD_TOKEN: string|string, LOCAL_ALGOD_PORT, LOCAL_INDEXER_TOKEN: string, DEBUG: number, PROD_ALGOD_PORT: string|string, MIN_ESCROW_BALANCE: number, PROD_INDEXER_SERVER: string, ESCROW_CONTRACT_VERSION: number, DEBUG_SMART_CONTRACT_SOURCE: number|number, TEST_ALGOD_PORT: string|string, PUBLIC_TEST_ALGOD_TOKEN: string|string, PROD_ASA_ORDERBOOK_APPID: number, LOCAL_INDEXER_PORT: string, PUBLIC_TEST_ALGOD_PORT: string|string, INFO_SERVER: string, PUBLIC_TEST_ALGO_ORDERBOOK_APPID: number, ORDERBOOK_CONTRACT_VERSION: number}|{DEBUG?: number, DEBUG_SMART_CONTRACT_SOURCE?: number | number, INFO_SERVER?: string, ESCROW_CONTRACT_VERSION?: number, ORDERBOOK_CONTRACT_VERSION?: number, MIN_ESCROW_BALANCE?: number, MIN_ASA_ESCROW_BALANCE?: number, LOCAL_ALGOD_SERVER?: string|string, LOCAL_ALGOD_PORT?: string|string, LOCAL_ALGOD_TOKEN?: string|string, LOCAL_BACKEND_API?: string, LOCAL_INDEXER_SERVER?: string, LOCAL_INDEXER_PORT?: string, LOCAL_INDEXER_TOKEN?: string, LOCAL_ALGO_ORDERBOOK_APPID?: number, LOCAL_ASA_ORDERBOOK_APPID?: number, TEST_ALGOD_SERVER?: string | undefined | string, TEST_ALGOD_PORT?: string | undefined | string, TEST_ALGOD_TOKEN?: string | undefined | string, TEST_BACKEND_API?: string, TEST_INDEXER_SERVER?: string, TEST_INDEXER_PORT?: string, TEST_INDEXER_TOKEN?: string, TEST_ALGO_ORDERBOOK_APPID?: number, TEST_ASA_ORDERBOOK_APPID?: number, PUBLIC_TEST_ALGOD_SERVER?: string | undefined | string, PUBLIC_TEST_ALGOD_PORT?: string | undefined | string, PUBLIC_TEST_ALGOD_TOKEN?: string | undefined | string, PUBLIC_TEST_BACKEND_API?: string, PUBLIC_TEST_INDEXER_SERVER?: string, PUBLIC_TEST_INDEXER_PORT?: string, PUBLIC_TEST_INDEXER_TOKEN?: string, PUBLIC_TEST_ALGO_ORDERBOOK_APPID?: number, PUBLIC_TEST_ASA_ORDERBOOK_APPID?: number, PROD_ALGOD_SERVER?: string | undefined | string, PROD_ALGOD_PORT?: string | undefined | string, PROD_ALGOD_TOKEN?: string | undefined | string, PROD_BACKEND_API?: string, PROD_INDEXER_SERVER?: string, PROD_INDEXER_PORT?: string, PROD_INDEXER_TOKEN?: string, PROD_ALGO_ORDERBOOK_APPID?: number, PROD_ASA_ORDERBOOK_APPID?: number}}
+ * @returns {Object}
  */
 AlgodexApi.prototype.getConstants = function getConstants() {
     return constants;
