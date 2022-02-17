@@ -1,5 +1,6 @@
 const AlgodexInternal = require('../algodex_internal_api.js');
-const AlgodexApi = require('../algodex_api.js');
+const AlgodexAPI = require('../algodex_api.js');
+const AlgodexApi = new AlgodexAPI();
 const JEST_MINUTE_TIMEOUT = 60 * 1000;
 
 
@@ -9,7 +10,7 @@ describe('Test Splitting Initial Order', () => {
         let times = getCutOrderTimes( {asaBalance: 40, isASAEscrow: true} );
         expect(times.cutOrderAmount).toBe(10);
         expect(times.splitTimes).toBe(4);
-      
+
         times = getCutOrderTimes( {asaBalance: 160, isASAEscrow: true} );
         expect(times.cutOrderAmount).toBe(40);
         expect(times.splitTimes).toBe(4);

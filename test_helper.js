@@ -16,7 +16,8 @@ const asaOrderBook = require('./asa_dex_teal.js');
 
 //require('./dex_teal.js');
 const dexInternal = require('./algodex_internal_api.js');
-const algodex = require('./algodex_api.js');
+const AlgodexApi = require('./algodex_api.js');
+const algodex = new AlgodexApi();
 const constants = require('./constants.js');
 const transactionGenerator = require('./generate_transaction_types.js');
 
@@ -150,7 +151,7 @@ const TestHelper = {
         await this.checkPending(client, txId);
     },
 
-    getOrderLsig : async function (algodClient, makerAccount, 
+    getOrderLsig : async function (algodClient, makerAccount,
         price, assetId, isASAEscrow) {
 
         const orderCreatorAddr = makerAccount.addr;
