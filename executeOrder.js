@@ -16,7 +16,7 @@ const ExecuteOrder = {
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-    executeOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+    executeOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
 
@@ -52,7 +52,7 @@ const ExecuteOrder = {
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 
-executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+executeMarketOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
 		
 	const worstAcceptablePrice = isSellingASA_AsTakerOrder ? currentMarketPrice * (1 - tolerance) : currentMarketPrice * (1 + tolerance);
@@ -86,7 +86,7 @@ executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, asse
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 
-executeOrderAsMakerAndTaker: function(algodClient, isSellingASA, assetId, 
+executeOrderAsMakerAndTaker: async function(algodClient, isSellingASA, assetId, 
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
 	const { params, allTransList } = await algodex.structureOrder(algodClient, isSellingASA, assetId,

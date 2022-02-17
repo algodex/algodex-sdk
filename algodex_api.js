@@ -1349,7 +1349,7 @@ const AlgodexApi = {
             assetId: assetId,
             n: n,
             d: d,
-            escrowAddr: escrowAccountInfo.address,
+            escrowAddr: lsig.address(),
             orderEntry: generatedOrderEntry,
             escrowOrderType: "buy",
             version: constants.ESCROW_CONTRACT_VERSION
