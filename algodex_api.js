@@ -40,9 +40,9 @@ const { ESCROW_CONTRACT_VERSION } = require('./constants.js');
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
 
-function Algodex({algod, indexer, dexd}){
-
-}
+// function Algodex({algod, indexer, dexd}){
+//
+// }
 
 /**
  *
@@ -252,8 +252,14 @@ const AlgodexApi = {
         return algodClient;
     },
 
+    // Wait for a transaction to be confirmed
+    waitForConfirmation : async function(txId) {
+        return dexInternal.waitForConfirmation(txId);
+    },
 
-    waitForConfirmation : dexInternal.waitForConfirmation,
+    dumpVar : function dumpVar(x) {
+        return dexInternal.dumpVar(x);
+    },
 
     dumpVar : dexInternal.dumpVar,
 
@@ -847,14 +853,120 @@ const AlgodexApi = {
             return [algo, asa];
         },
 
-    signAndSendWalletConnectTransactions: dexInternal.signAndSendWalletConnectTransactions,
 
-    /**
-     *
-     * @param algodClient
-     * @param outerTxns
-     * @returns {Promise<{statusMsg: string, txId: String, transaction: *, status: string}|{statusMsg: string, txId: String, transaction: *, status: string}|undefined>}
-     */
+    signAndSendWalletConnectTransactions:
+        async function (algodClient, outerTxns, params, walletConnector) {
+            const groupBy = (items, key) => items.reduce(
+                (result, item) => ({
+                    ...result,
+                    [item[key]]: [
+                        ...(result[item[key]] || []),
+                        item,
+                    ],
+                }),
+                {},
+            );
+            const groups = groupBy(outerTxns, "groupNum");
+
+            let numberOfGroups = Object.keys(groups);
+
+            const groupedGroups = numberOfGroups.map(group => {
+
+                const allTxFormatted = (groups[group].map(txn => {
+                    if (!txn.unsignedTxn.name) {
+                        if (txn.unsignedTxn.type === "pay") {return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, undefined, undefined, params)}
+                        if (txn.unsignedTxn.type === "axfer") {return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, undefined, undefined, txn.unsignedTxn.amount, undefined, txn.unsignedTxn.assetIndex, params)}
+                    } else {
+                        return txn.unsignedTxn;
+                    }
+                }))
+                algosdk.assignGroupID(allTxFormatted.map(toSign => toSign));
+                return allTxFormatted;
+            }
+            )
+
+            const txnsToSign = groupedGroups.map(group => {
+                const encodedGroup = group.map(txn => {
+                    const encodedTxn = Buffer.from(algosdk.encodeUnsignedTransaction(txn)).toString("base64");
+                    if (algosdk.encodeAddress(txn.from.publicKey) !== walletConnector.connector.accounts[0]) return { txn: encodedTxn, signers: [] };
+                    return { txn: encodedTxn };
+                })
+                return encodedGroup;
+            })
+
+            const formattedTxn = txnsToSign.flat();
+
+            const request = formatJsonRpcRequest("algo_signTxn", [formattedTxn]);
+
+            const result = await walletConnector.connector.sendCustomRequest(request);
+
+
+            let resultsFormattted = result.map((element, idx) => {
+                return element ? {
+                    txID: formattedTxn[idx].txn,
+                    blob: new Uint8Array(Buffer.from(element, "base64"))
+                } : {
+                    ...algosdk.signLogicSigTransactionObject(outerTxns[idx].unsignedTxn, outerTxns[idx].lsig)
+                };
+            });
+
+            let orderedRawTransactions = resultsFormattted.map(obj => obj.blob);
+
+            for (let i = 0; i < outerTxns.length; i++) {
+                outerTxns[i]['signedTxn'] = orderedRawTransactions[i];
+            }
+
+            let lastGroupNum = -1
+            orderedRawTransactions = []
+            let walletConnectSentTxn = []
+            for (let i = 0; i < outerTxns.length; i++) {  // loop to end of array
+                if (lastGroupNum != outerTxns[i]['groupNum']) {
+                    // If at beginning of new group, send last batch of transactions
+                    if (orderedRawTransactions.length > 0) {
+                        try {
+                            this.printTransactionDebug(orderedRawTransactions);
+
+                            let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
+                            walletConnectSentTxn.push(txn.txId);
+                            console.debug("sent: " + txn.txId);
+                        } catch (e) {
+                            console.debug(e);
+                        }
+                    }
+                    // send batch of grouped transactions
+                    orderedRawTransactions = [];
+                    lastGroupNum = outerTxns[i]['groupNum'];
+                }
+
+                orderedRawTransactions.push(outerTxns[i]['signedTxn']);
+
+
+                if (i == outerTxns.length - 1) {
+                    // If at end of list send last batch of transactions
+                    if (orderedRawTransactions.length > 0) {
+                        try {
+                            this.printTransactionDebug(orderedRawTransactions);
+                            const DO_SEND = true;
+                            if (DO_SEND) {
+
+                                let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
+                                walletConnectSentTxn.push(txn.txId);
+                                console.debug("sent: " + txn.txId);
+                            } else {
+                                console.debug("skipping sending for debugging reasons!!!");
+                            }
+                        } catch (e) {
+                            console.debug(e);
+                        }
+                    }
+                    break;
+                }
+            }
+
+            return walletConnectSentTxn;
+
+        },
+
     signAndSendTransactions :
         async function signAndSendTransactions(algodClient, outerTxns) {
             console.debug("inside signAndSend transactions");
@@ -1240,13 +1352,21 @@ const AlgodexApi = {
 // INTERNAL PASS-THRU FUNCTIONS /
 /////////////////////////////////
 
-    printTransactionDebug : dexInternal.printTransactionDebug,
+    printTransactionDebug : function printTransactionDebug(signedTxns) {
+        return dexInternal.printTransactionDebug(signedTxns);
+    },
 
-    buildDelegateTemplateFromArgs : dexInternal.buildDelegateTemplateFromArgs,
+    buildDelegateTemplateFromArgs : function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version=3) {
+        return dexInternal.buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version);
+    },
 
-    getLsigFromProgramSource : dexInternal.getLsigFromProgramSource,
+    getLsigFromProgramSource : async function getLsigFromProgramSource(algosdk, algodClient, program, logProgramSource) {
+        return await dexInternal.getLsigFromProgramSource(algosdk, algodClient, program, logProgramSource);
+    },
 
-    getAccountInfo : dexInternal.getAccountInfo,
+    getAccountInfo : async function getAccountInfo(accountAddr) {
+        return dexInternal.getAccountInfo(accountAddr);
+    },
 
 
 };
