@@ -54,24 +54,17 @@ const negTests = [
    
 ];
 
+describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
+  test('Create algo escrow order book', async () => {
+    config.appId = await createAppTest.runTest(config, true);
+    config.fakeAppId = await createAppTest.createFakeApp(config);
+    global.ALGO_ESCROW_APP_ID = config.appId;
+    expect (config.appId).toBeGreaterThan(0);
 
-describe('ASA ESCROW ORDER BOOK', () => {
-
-  test ('Create asa escrow order book', async () => {
-      config.creatorAccount = testHelper.getRandomAccount();
-      config.executorAccount = testHelper.getRandomAccount();
-      config.maliciousAccount = testHelper.getRandomAccount();
-      config.appId = await createAppTest.runTest(config, false);
-      global.ASA_ESCROW_APP_ID = config.appId;
-      expect (config.appId).toBeGreaterThan(0);
+    testHelper.transferFunds(config.client, config.openAccount, config.creatorAccount, 2000000);
+    testHelper.transferFunds(config.client, config.openAccount, config.maliciousAccount, 2000000);
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Place asa escrow order', async () => {
-      const asaAmount = 400000;
-      const price = 1.25;
-      const result = await placeASAOrderTest.runTest(config, asaAmount, price);
-      expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);
 
   negTests.map( (negTestTxnConfig) => {
     const testName = `Negative algo full execution order test: txnNum: ${negTestTxnConfig.txnNum} field: ${negTestTxnConfig.field} val: ${negTestTxnConfig.val}`;
@@ -89,14 +82,23 @@ describe('ASA ESCROW ORDER BOOK', () => {
     }, JEST_MINUTE_TIMEOUT);
   });
 
-  
-  test ('Close asa escrow order', async () => {
-      const price = 1.25;
-      const result = await closeASAOrderTest.runTest(config, price);
-      expect (result).toBeTruthy();
+  test ('Place algo escrow order', async () => {
+    let asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
+    expect (asaBalance).toBeGreaterThan(0); // already opted in and has ASA
+
+    const result = await placeOrderTest.runTest(config, 800000, 1.2);
+    expect (result).toBeTruthy();
+
+    asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
+    expect (asaBalance).toBeGreaterThan(0);
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Delete asa escrow order book', async () => {
+  test ('Close algo escrow order', async () => {
+    const result = await closeOrderTest.runTest(config, 1.2);
+    expect (result).toBeTruthy();
+  }, JEST_MINUTE_TIMEOUT);
+
+  test ('Delete algo escrow order book', async () => {
       const result = await deleteAppTest.runTest(config);
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);

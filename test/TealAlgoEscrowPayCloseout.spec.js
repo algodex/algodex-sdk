@@ -51,27 +51,7 @@ const negTests = [
             senderAcct: config.maliciousAccount
         }
     },
-   //{txnNum: 1, field: 'appOnComplete', val: 1 },
    
-   
-   
-
-   /*
-    {txnNum: 0, field: 'appIndex', val: 888},
-    {txnNum: 0, field: 'appOnComplete', val: 0},
-    {txnNum: 0, negTxn: {
-            unsignedTxnPromise: transactionGenerator.getPayTxn(config.client, 
-            config.maliciousAccount.addr, config.maliciousAccount.addr,
-                1000, false),
-            senderAcct: config.maliciousAccount
-        }
-    },
-    {txnNum: 1, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
-    {txnNum: 1, field: 'amount', val: 10},
-    {txnNum: 1, field: 'closeRemainderTo', val: algosdk.decodeAddress(config.maliciousAccount.addr)},
-    {txnNum: 2, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
-    {txnNum: 2, field: 'amount', val: 10},
-    {txnNum: 2, field: 'closeRemainderTo', val: algosdk.decodeAddress(config.maliciousAccount.addr) },*/
 ];
 
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
@@ -120,6 +100,7 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Delete algo escrow order book', async () => {
+      await testHelper.closeAccount(config.client, config.creatorAccount, config.openAccount);
       config.creatorAccount = config.oldCreatorAccount;
       const result = await deleteAppTest.runTest(config);
       expect (result).toBeTruthy();

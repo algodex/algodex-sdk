@@ -205,7 +205,7 @@ const TestHelper = {
         try {
             await client.sendRawTransaction(signedTxn).do();
         } catch (e) {
-            console.log(JSON.stringify(e));
+            console.log({e});
         }
         await this.checkPending(client, fundTxnId);
     },

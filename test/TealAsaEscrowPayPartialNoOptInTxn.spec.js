@@ -1,5 +1,3 @@
-
-
 const testHelper = require('../test_helper.js');
 const transactionGenerator = require('../generate_transaction_types.js');
 const createAppTest = require('./teal_tests/createAppTest.js');
@@ -10,6 +8,7 @@ const executeAsaOrderTest = require('./teal_tests/executeASAEscrowOrder.js');
 const placeASAOrderTest = require('./teal_tests/placeASAEscrowOrder.js');
 const closeOrderTest = require('./teal_tests/closeAlgoEscrowOrder.js');
 const closeASAOrderTest = require('./teal_tests/closeASAEscrowOrder.js');
+const algosdk = require('algosdk');
 
 
 const AlgodexApi = require('../algodex_api.js');
@@ -28,46 +27,33 @@ config = {
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
+const textEncoder = new TextEncoder();
 
-describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
-  test('Create algo escrow order book', async () => {
-    config.appId = await createAppTest.runTest(config, true);
-    global.ALGO_ESCROW_APP_ID = config.appId;
-    expect (config.appId).toBeGreaterThan(0);
+const negTests = [ 
+  /* {txnNum: 0, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
+   {txnNum: 0, field: 'appArgs', innerNum: 0, val: textEncoder.encode('execute') },
+   {txnNum: 0, field: 'appIndex', configKeyForVal: 'fakeAppId' },
+   {txnNum: 0, field: 'appOnComplete', val: 0},
+   {txnNum: 1, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
+   {txnNum: 1, field: 'closeRemainderTo', val: algosdk.decodeAddress(config.maliciousAccount.addr) }, 
+   {txnNum: 1, negTxn: {
+            unsignedTxnPromise: transactionGenerator.getAssetSendTxn(config.client, config.maliciousAccount.addr, config.maliciousAccount.addr,
+              1000, config.assetId, false),
+            senderAcct: config.maliciousAccount
+            }
+    },
+   {txnNum: 2, field: 'from', txnKeyForVal: 'from', txnNumForVal: 1}, //set to from escrow
+   {txnNum: 2, field: 'to', val: algosdk.decodeAddress(config.maliciousAccount.addr)},
+   {txnNum: 2, negTxn: {
+            unsignedTxnPromise: transactionGenerator.getPayTxn(config.client, 
+            config.maliciousAccount.addr, config.maliciousAccount.addr,
+                1000, false),
+            senderAcct: config.maliciousAccount
+        }
+    },*/
+   
+];
 
-    config.oldCreatorAccount = config.creatorAccount;
-    // make a new creatorAccount that hasn't been opted into any ASA
-    config.creatorAccount = testHelper.getRandomAccount();
-    testHelper.transferFunds(config.client, config.openAccount, config.creatorAccount, 2000000);
-  }, JEST_MINUTE_TIMEOUT);
-
-
-  test ('Place algo escrow order', async () => {
-    let asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
-    expect (asaBalance).toBeNull();
-
-    const result = await placeOrderTest.runTest(config, 800000, 1.2);
-    expect (result).toBeTruthy();
-
-    asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
-    expect (asaBalance).toEqual(0);
-  }, JEST_MINUTE_TIMEOUT);
-
-
-  test ('Close algo escrow order', async () => {
-    const result = await closeOrderTest.runTest(config, 1.2);
-    expect (result).toBeTruthy();
-    await testHelper.closeAccount(config.client, config.creatorAccount, config.openAccount);
-    config.creatorAccount = config.oldCreatorAccount;
-  }, JEST_MINUTE_TIMEOUT);
-
-  test ('Delete algo escrow order book', async () => {
-      config.creatorAccount = config.oldCreatorAccount;
-      const result = await deleteAppTest.runTest(config);
-      expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);
-
-});
 
 describe('ASA ESCROW ORDER BOOK', () => {
 
@@ -75,7 +61,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
       config.creatorAccount = testHelper.getRandomAccount();
       config.executorAccount = testHelper.getRandomAccount();
       config.maliciousAccount = testHelper.getRandomAccount();
-      config.appId = await createAppTest.runTest(config, false);
+      config.appId = await createAppTest.runTest(config, false, true);
       global.ASA_ESCROW_APP_ID = config.appId;
       expect (config.appId).toBeGreaterThan(0);
   }, JEST_MINUTE_TIMEOUT);
@@ -87,9 +73,27 @@ describe('ASA ESCROW ORDER BOOK', () => {
       expect (result).toBeTruthy();
   }, JEST_MINUTE_TIMEOUT);
 
-  test ('Partially execute asa escrow order', async () => {
+  negTests.map( (negTestTxnConfig) => {
+    const testName = `Negative algo full execution order test: txnNum: ${negTestTxnConfig.txnNum} field: ${negTestTxnConfig.field} val: ${negTestTxnConfig.val}`;
+    test (testName, async () => {
+      if (negTestTxnConfig.negTxn) {
+        negTestTxnConfig.negTxn.unsignedTxn = await negTestTxnConfig.negTxn.unsignedTxnPromise;
+      }
+      const outerTxns = await executeAlgoOrderTest.runFullExecTest(config, true);
+      outerTxns.map( (txn) => {
+        const unsignedTxn = txn.unsignedTxn;
+        //console.log({unsignedTxn});
+      });
+      const result = await testHelper.runNegativeTest(config, config.client, outerTxns, negTestTxnConfig);
+      expect (result).toBeTruthy();
+    }, JEST_MINUTE_TIMEOUT);
+  });
+
+  test ('Partially execute asa escrow order (no opt-in txn)', async () => {
     const asaAmountReceiving = 80000;
     const price = 1.25;
+    let asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
+    expect (asaBalance).toBeGreaterThan(0);
 
     const result = await executeAsaOrderTest.runPartialExecTest(config, asaAmountReceiving, price);
     expect (result).toBeTruthy();
@@ -107,3 +111,4 @@ describe('ASA ESCROW ORDER BOOK', () => {
   }, JEST_MINUTE_TIMEOUT);
 
 });
+

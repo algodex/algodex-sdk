@@ -73,6 +73,7 @@ const GenerateTransactions = {
         if (shouldClose === true) {
             closeAddr = toAcct;
         }
+        console.log({fromAcct, toAcct, amount, closeAddr, note, params});
         let txn = algosdk.makePaymentTxnWithSuggestedParams(fromAcct, toAcct, amount, closeAddr, note, params); 
         return txn;
     },

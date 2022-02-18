@@ -51,10 +51,10 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
     config.appId = await createAppTest.runTest(config, true);
     global.ALGO_ESCROW_APP_ID = config.appId;
     expect (config.appId).toBeGreaterThan(0);
-
     config.oldCreatorAccount = config.creatorAccount;
     // make a new creatorAccount that hasn't been opted into any ASA
     config.creatorAccount = testHelper.getRandomAccount();
+
     testHelper.transferFunds(config.client, config.openAccount, config.creatorAccount, 2000000);
     testHelper.transferFunds(config.client, config.openAccount, config.maliciousAccount, 2000000);
   }, JEST_MINUTE_TIMEOUT);
@@ -85,12 +85,10 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test ('Close algo escrow order', async () => {
     const result = await closeOrderTest.runTest(config, 1.2);
     expect (result).toBeTruthy();
-    await testHelper.closeAccount(config.client, config.creatorAccount, config.openAccount);
-    //await testHelper.closeAccount(config.client, config.maliciousAccount, config.openAccount);
-    config.creatorAccount = config.oldCreatorAccount;
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Delete algo escrow order book', async () => {
+      await testHelper.closeAccount(config.client, config.creatorAccount, config.openAccount);
       config.creatorAccount = config.oldCreatorAccount;
       const result = await deleteAppTest.runTest(config);
       expect (result).toBeTruthy();
