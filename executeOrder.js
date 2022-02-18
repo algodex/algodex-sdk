@@ -1,74 +1,7 @@
-/////////////////////////////
-// Alexander Trefonas      //
-// 7/9/2021                //
-// Copyright Algodev Inc   //
-// All Rights Reserved.    //
-/////////////////////////////
+const algodex = require('./algodex_api.js')
 
 
-//import algodex from './algodex_api.js';
-const algodex = require('./algodex_api.js');
-const OrderService = require('./order.js');
-const WalletService = require('./wallet.js')
-const algoOrderBook = require('./dex_teal.js');
-const asaOrderBook = require('./asa_dex_teal.js');
-const constants = require('./constants.js');
-
-/*
- * Alert function test
- */
-exports.doAlert = algodex.doAlert
-
-exports.getSmartContractVersions = function getSmartContractVersions() {
-	return {
-		'escrowContractVersion': constants.ESCROW_CONTRACT_VERSION,
-		'orderBookContractVersion': constants.ORDERBOOK_CONTRACT_VERSION
-	};
-};
-
-exports.getAsaOrderBookTeal = asaOrderBook.getASAOrderBookApprovalProgram;
-
-exports.getAlgoOrderBookTeal = algoOrderBook.getAlgoOrderBookApprovalProgram;
-
-exports.getOrderBookId = algodex.getOrderBookId;
-
-/*
- * Print console message test
- */
-exports.printMsg = function() {
-	console.log("Hello World from algodex-sdk!!!");
-	return "Hello World from algodex-sdk!!!";
-};
-
-exports.getConstants = algodex.getConstants;
-
-
-exports.initSmartContracts = algodex.initSmartContracts;
-exports.initIndexer = algodex.initIndexer;
-exports.initAlgodClient = algodex.initAlgodClient;
-
-exports.OrderService = OrderService;
-
-
-
-exports.WalletService = WalletService;
-
-
-exports.waitForConfirmation = algodex.waitForConfirmation;
-
-exports.getMinWalletBalance = algodex.getMinWalletBalance;
-
-exports.getAccountInfo = algodex.getAccountInfo;
-
-
-exports.printTransactionDebug = algodex.printTransactionDebug;
-
-
-exports.getNumeratorAndDenominatorFromPrice = algodex.getNumeratorAndDenominatorFromPrice;
-
-
-exports.createOrderBookEntryObj = algodex.createOrderBookEntryObj;
-
+const ExecuteOrder = {
 
 /**
  * Executes a limit order as a taker and submits it to the blockchain
@@ -83,13 +16,12 @@ exports.createOrderBookEntryObj = algodex.createOrderBookEntryObj;
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId,
+    executeOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId,
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 	return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
-};
-
+},
 /**
  * Executes a market order as a taker and submits it to the blockchain
  *
@@ -105,8 +37,7 @@ exports.executeOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, a
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-
-exports.executeMarketOrderAsTaker = function(algodClient, isSellingASA_AsTakerOrder, assetId,
+executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId,
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
 
 	const worstAcceptablePrice = isSellingASA_AsTakerOrder ? currentMarketPrice * (1 - tolerance) : currentMarketPrice * (1 + tolerance);
@@ -114,9 +45,7 @@ exports.executeMarketOrderAsTaker = function(algodClient, isSellingASA_AsTakerOr
 	return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
 		takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
-};
-
-
+},
 
 /**
  * Executes a limit order as a maker and taker and submits it to the blockchain
@@ -131,16 +60,16 @@ exports.executeMarketOrderAsTaker = function(algodClient, isSellingASA_AsTakerOr
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-exports.executeOrderAsMakerAndTaker = function(algodClient, isSellingASA, assetId,
+
+executeOrderAsMakerAndTaker: function(algodClient, isSellingASA, assetId,
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
 	return algodex.executeOrder(algodClient, isSellingASA, assetId,
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
 
-};
+},
 
-
-exports.closeOrderFromOrderBookEntry = algodex.closeOrderFromOrderBookEntry;
+closeOrderFromOrderBookEntry: algodex.closeOrderFromOrderBookEntry,
 
 /**
  * Maker order to create a new algo-only escrow account and order book entry
@@ -155,11 +84,11 @@ exports.closeOrderFromOrderBookEntry = algodex.closeOrderFromOrderBookEntry;
  * @returns {Object} Promise for when the transaction is fully confirmed
  */
 
-exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, walletConnector) {
+placeAlgosToBuyASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, walletConnector) {
 	return algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true, walletConnector);
-};
+},
 
-/*
+/**
  * Maker order to create a new algo-only escrow account and order book entry
  * Note: use getNumeratorAndDenominatorFromPrice() to get the n and d values.
  *
@@ -170,22 +99,11 @@ exports.placeAlgosToBuyASAOrderIntoOrderbook = function(algodClient, makerWallet
  * @param {Number}         assetId: Algorand ASA ID for the asset.
  * @returns {Object} Promise for when the transaction is fully confirmed
  */
-exports.placeASAToSellASAOrderIntoOrderbook = function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, walletConnector) {
+
+placeASAToSellASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, walletConnector) {
 	return algodex.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, true, walletConnector);
-};
+},
 
-
-////////////////////////////////////
-// DEVELOPMENT PASS-THRU FUNCTIONS /
-////////////////////////////////////
-exports.buildDelegateTemplateFromArgs = function(min, assetid, N, D, writerAddr, isASAEscrow, version) {
-	return algodex.buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version);
-};
-
-exports.getLsigFromProgramSource = function(algosdk, algodClient, program, logProgramSource) {
-	return algodex.getLsigFromProgramSource(algosdk, algodClient, program, logProgramSource);
-};
-
-exports.dumpVar = function(x) {
-	return algodex.dumpVar(x);
 }
+
+module.exports = ExecuteOrder
