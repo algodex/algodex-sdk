@@ -279,9 +279,8 @@ const AlgodexApi = {
         const origDecCount = countDecimals(limitPrice);
         let d = 10**origDecCount * limitPrice;
         let n = 10**origDecCount;
-
-        d = Math.floor(d);
-        n = Math.floor(n);
+        d = Math.round(d);
+        n = Math.round(n);
 
         return {
             n: n,

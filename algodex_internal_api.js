@@ -1573,9 +1573,12 @@ const AlgodexInternalApi = {
             }
         } else {
             if (version == 7) {
-                console.debug('isASAEscrow, using version 7');
-                delegateTemplate = asaDelegateTemplateV7.getTealTemplate();
-            } if (version == 6) {
+                // This should ideally use version 7 contracts, but due to a prior software error,
+                // version 7 contracts were incorrectly using version 3. We need to maintain that now
+                // for consistency between the client and server node.js process.
+                console.debug('isASAEscrow, using version 7 (with v3 template)');
+                delegateTemplate = asaDelegateTemplate.getTealTemplate();
+            } else if (version == 6) {
                 console.debug('isASAEscrow, using version 6');
                 delegateTemplate = asaDelegateTemplateV6.getTealTemplate();
             } else if (version == 5) {
