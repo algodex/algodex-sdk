@@ -268,4 +268,13 @@ describe('Test Order Matching', () => {
     expect(orderAmount.txnFee).toBe(2000);
   }, JEST_MINUTE_TIMEOUT);
 
+  test('Get numerator and denominator from price', async () => {
+    const price = 1.14;
+    const {n, d} = AlgodexApi.getNumeratorAndDenominatorFromPrice(price);
+    expect(d).toBe(114);
+    expect(n).toBe(100);
+    console.log({n, d});
+  }, JEST_MINUTE_TIMEOUT);
+
+
 });
