@@ -1241,7 +1241,7 @@ const AlgodexInternalApi = {
             if (version == 7) {
                 console.debug('isASAEscrow, using version 7');
                 delegateTemplate = asaDelegateTemplateV7.getTealTemplate();
-            } if (version == 6) {
+            } else if (version == 6) {
                 console.debug('isASAEscrow, using version 6');
                 delegateTemplate = asaDelegateTemplateV6.getTealTemplate();
             } else if (version == 5) {
