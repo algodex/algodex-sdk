@@ -1237,7 +1237,6 @@ const AlgodexInternalApi = {
             });
 
         }
-        debugger;
 
         return retTxns;
     } catch (e) {
@@ -1504,6 +1503,106 @@ const AlgodexInternalApi = {
         //console.debug("queued orders: ", this.dumpVar(queuedOrders));
         return queuedOrders;
     },
+    closeASAOrderV2 : async function(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId, metadata, walletConnector) {
+        console.debug("closing asa order!!!");
+
+        try {
+            // get node suggested parameters
+            let params = await algodClient.getTransactionParams().do();
+
+            // create unsigned transaction
+            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, index, appArgs)
+            let txId = txn.txID().toString();
+            // Submit the transaction
+
+            // create optin transaction
+            // sender and receiver are both the same
+            let sender = lsig.address();
+            let recipient = creatorAddr;
+            // We set revocationTarget to undefined as 
+            // This is not a clawback operation
+            let revocationTarget = undefined;
+            // CloseReaminerTo is set to undefined as
+            // we are not closing out an asset
+            let closeRemainderTo = creatorAddr;
+            // We are sending 0 assets
+            let amount = 0;
+
+            // signing and sending "txn" allows sender to begin accepting asset specified by creator and index
+            let txn2 = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo, revocationTarget,
+                amount, undefined, assetId, params);
+
+            // Make payment tx signed with lsig
+            let txn3 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr, 
+                    undefined, params);
+
+            let txn4 = {
+                    type: 'pay',
+                    from: creatorAddr,
+                    to:  creatorAddr,
+                    amount: 0,
+                    ...params
+                };
+
+            let txns = [txn, txn2, txn3, txn4];
+            
+
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance:(makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
+                assetId: assetId, 
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'asa');
+
+            
+                let retTxns = []
+                retTxns.push({
+                    'unsignedTxn': txn,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': txn2,
+                    'lsig' : lsig,   
+                });
+
+               
+                retTxns.push({
+                    'unsignedTxn': txn3,
+                    'lsig': lsig
+                });
+
+                retTxns.push({
+                    'unsignedTxn': txn4,
+                    'needsUserSig': true
+                });
+            if (!!walletConnector && walletConnector.connector.connected) {
+
+                const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+
+            } else {
+                const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(retTxns)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+
+            }
+
+        } catch (e) {
+            throw e;
+        }
+
+    },
 
     closeASAOrder : async function closeASAOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId, metadata, walletConnector) {
         console.debug("closing asa order!!!");
@@ -1671,6 +1770,90 @@ const AlgodexInternalApi = {
         }
       
     },
+    closeOrderV2 : async function(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata, walletConnector) {
+        let accountInfo = await this.getAccountInfo(lsig.address());
+        let alreadyOptedIn = false;
+        if (accountInfo != null && accountInfo['assets'] != null
+            && accountInfo['assets'].length > 0 && accountInfo['assets'][0] != null) {
+            await this.closeASAOrderV2(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata, walletConnector);
+            return;
+        }
+
+
+        try {
+            // get node suggested parameters
+            let params = await algodClient.getTransactionParams().do();
+
+            // create unsigned transaction
+            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, appIndex, appArgs)
+            let txId = txn.txID().toString();
+            // Submit the transaction
+
+            // Make payment tx signed with lsig
+            let txn2 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr, undefined, params);
+           
+            let txn3 = {
+                    type: 'pay',
+                    from: creatorAddr,
+                    to:  creatorAddr,
+                    amount: 0,
+                    ...params
+                };
+
+            myAlgoWalletUtil.setTransactionFee(txn3);
+
+            let txns = [txn, txn2, txn3];
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance: (makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                assetId:0,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'algo');
+
+            
+                let retTxns = []
+                retTxns.push({
+                    'unsignedTxn': txn,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': txn2,
+                    'lsig' : lsig,   
+                });
+
+                retTxns.push({
+                    'unsignedTxn': txn3,
+                    'needsUserSig': true
+                });
+            if (!!walletConnector && walletConnector.connector.connected) {
+
+                const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+            } else {
+                const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(retTxns)
+
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+
+            }
+    
+        } catch (e) {
+            throw e;
+        }
+    },
+    
     // close order 
     closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata, walletConnector) {
         let accountInfo = await this.getAccountInfo(lsig.address());

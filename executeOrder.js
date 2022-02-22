@@ -65,7 +65,7 @@ executeMarketOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder
 		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient,signedGroupTransactions) ;
 		return confirmedWalletConnectArr;
 	  } else {
-		  const singedGroupedTransactions = await signingApi.signMyAlgo(algodClient, allTransList );
+		  const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(allTransList );
 		  const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, singedGroupedTransactions);
 		  return confirmedMyAlgoWalletArr;
 	  }
@@ -97,8 +97,8 @@ executeOrderAsMakerAndTaker: async function(algodClient, isSellingASA, assetId,
 		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient, signedGroupTransactions);
 		return confirmedWalletConnectArr;
 	} else {
-		const singedGroupedTransactions = await signingApi.signMyAlgo(algodClient, allTransList);
-		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, singedGroupedTransactions);
+		const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(allTransList);
+		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
 		return confirmedMyAlgoWalletArr;
 	}
 		
