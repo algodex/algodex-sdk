@@ -578,22 +578,6 @@ const AlgodexInternalApi = {
 
             }
 
-            // return retTxns here to bypass signing of Lsigs
-
-
-            // const groupID = algosdk.computeGroupID(txns);
-            // for (let i = 0; i < txns.length; i++) {
-            //     txns[i].group = groupID;
-            // }
-
-            // let signedTx1 = algosdk.signLogicSigTransactionObject(transaction1, lsig);
-            // //let signedTx2 = await myAlgoWallet.signTransaction(fixedTxn2);
-            // let signedTx3 = algosdk.signLogicSigTransactionObject(transaction3, lsig);
-            // let signedTx4 = null;
-            // if (closeRemainderTo != undefined) {
-            //     signedTx4 = algosdk.signLogicSigTransactionObject(transaction4, lsig);
-            // }
-
             retTxns.push({
                     'unsignedTxn': transaction1,
                     'lsig': lsig
@@ -1201,12 +1185,8 @@ const AlgodexInternalApi = {
                     'unsignedTxn': transaction4,
                     'needsUserSig': true
                 });
-
             }
-
-
             return retTxns
-           
         }
 
         retTxns.push({
@@ -1220,7 +1200,6 @@ const AlgodexInternalApi = {
             'txType': "algo",
         });
 
-       
         retTxns.push({
             'unsignedTxn': transaction3,
             'needsUserSig': true,
@@ -1235,9 +1214,7 @@ const AlgodexInternalApi = {
                 'unsignedTxn': transaction4,
                 'needsUserSig': true
             });
-
         }
-
         return retTxns;
     } catch (e) {
         console.debug(e);
@@ -1595,13 +1572,10 @@ const AlgodexInternalApi = {
             } else {
                 const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(retTxns)
                 return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
-
             }
-
         } catch (e) {
             throw e;
         }
-
     },
 
     closeASAOrder : async function closeASAOrder(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId, metadata, walletConnector) {
@@ -1779,7 +1753,6 @@ const AlgodexInternalApi = {
             return;
         }
 
-
         try {
             // get node suggested parameters
             let params = await algodClient.getTransactionParams().do();
@@ -1863,8 +1836,6 @@ const AlgodexInternalApi = {
             await this.closeASAOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig);
             return;
         }
-
-
         try {
             // get node suggested parameters
             let params = await algodClient.getTransactionParams().do();

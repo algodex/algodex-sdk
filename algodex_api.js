@@ -876,14 +876,6 @@ const AlgodexApi = {
                     transNeededUserSigList.push(trans);
                 }
 
-                // if (typeof (trans.lsig) !== 'undefined') {
-                //     if (!walletConnector || !walletConnector.connector.connected) {
-                //         let signedTxn = algosdk.signLogicSigTransactionObject(trans.unsignedTxn, trans.lsig);
-                //         trans.signedTxn = signedTxn.blob;
-
-                //     }
-
-                // }
             }
             groupNum++;
         }
@@ -1252,13 +1244,6 @@ const AlgodexApi = {
                 }
             }
 
-            // let escrowAccountInfo = await this.getAccountInfo(lsig.address());
-
-            // if (escrowAccountInfo != null && escrowAccountInfo['apps-local-state'] != null
-            //         && escrowAccountInfo['apps-local-state'].length > 0
-            //         && escrowAccountInfo['apps-local-state'][0].id == ALGO_ESCROW_ORDER_BOOK_ID) {
-            //     alreadyOptedIntoOrderbook = true;
-            // }
 
             console.debug({ makerAlreadyOptedIntoASA });
             console.debug({ alreadyOptedIntoOrderbook });
