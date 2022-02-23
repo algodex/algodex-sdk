@@ -1673,7 +1673,8 @@ const AlgodexApi = {
                     const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, outerTxns, params, walletConnector)
                     return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
                 }
-                return await this.signAndSendTransactions(algodClient, outerTxns);
+                const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(outerTxns);
+                return await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
             }
 
             return outerTxns;
