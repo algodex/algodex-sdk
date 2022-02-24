@@ -14,7 +14,8 @@ const signingApi = require('./signing_api.js')
 const BigN = require('js-big-decimal');
 const TextEncoder = require("text-encoding").TextEncoder;
 const axios = require('axios').default;
-const {formatJsonRpcRequest} = require("@json-rpc-tools/utils")
+const {formatJsonRpcRequest} = require("@json-rpc-tools/utils");
+const helperFuncs = require('./helperFunctions.js');
 
 const LESS_THAN = -1;
 const EQUAL = 0;
@@ -85,18 +86,8 @@ const AlgodexInternalApi = {
         ASA_ESCROW_ORDER_BOOK_ID = asaOrderBookId;
     },
     signAndSendWalletConnectTransactions: async function (algodClient, outerTxns, params, walletConnector) {
-        // MAYBE CAN REMOVE NOW
-        const groupBy = (items, key) => items.reduce(
-            (result, item) => ({
-                ...result,
-                [item[key]]: [
-                    ...(result[item[key]] || []),
-                    item,
-                ],
-            }),
-            {},
-        );
-        const groups = groupBy(outerTxns, "groupNum");
+  
+        const groups = helperFuncs.groupBy(outerTxns, "groupNum");
 
         let numberOfGroups = Object.keys(groups);
 
@@ -154,7 +145,7 @@ const AlgodexInternalApi = {
                 // If at beginning of new group, send last batch of transactions
                 if (orderedRawTransactions.length > 0) {
                     try {
-                        this.printTransactionDebug(orderedRawTransactions);
+                        helperFuncs.printTransactionDebug(orderedRawTransactions);
                        
                         let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
                         walletConnectSentTxn.push(txn.txId);
@@ -175,7 +166,7 @@ const AlgodexInternalApi = {
                 // If at end of list send last batch of transactions
                 if (orderedRawTransactions.length > 0) {
                     try {
-                        this.printTransactionDebug(orderedRawTransactions);
+                        helperFuncs.printTransactionDebug(orderedRawTransactions);
                         const DO_SEND = true;
                         if (DO_SEND) {
 
@@ -1698,13 +1689,13 @@ const AlgodexInternalApi = {
             signed.push(signedTx2.blob);
             signed.push(signedTx3.blob);
             signed.push(signedTx4.blob);
-            this.printTransactionDebug(signed);
+            helperFuncs.printTransactionDebug(signed);
 
             //console.debug(Buffer.concat(signed.map(txn => Buffer.from(txn))).toString('base64'));
             let tx = await algodClient.sendRawTransaction(signed).do();
             console.debug(tx.txId);
 
-            const confirmation = await this.waitForConfirmation(tx.txId);
+            const confirmation = await helperFuncs.waitForConfirmation(tx.txId);
             // display results
             console.debug({confirmation});
             return confirmation;
@@ -1923,11 +1914,11 @@ const AlgodexInternalApi = {
             signed.push(signedTx2.blob);
             signed.push(signedTx3.blob);
            
-            this.printTransactionDebug(signed);
+            helperFuncs.printTransactionDebug(signed);
 
             //console.debug(Buffer.concat(signed.map(txn => Buffer.from(txn))).toString('base64'));
             let tx = await algodClient.sendRawTransaction(signed).do();
-            const confirmation = await this.waitForConfirmation(tx.txId);
+            const confirmation = await helperFuncs.waitForConfirmation(tx.txId);
             // display results
             console.debug({confirmation});
             return confirmation;
@@ -1937,87 +1928,87 @@ const AlgodexInternalApi = {
     },
 
     // Wait for a transaction to be confirmed
-    waitForConfirmation : async (txId) => {
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+    // waitForConfirmation : async (txId) => {
+    //     function sleep(ms) {
+    //         return new Promise(resolve => setTimeout(resolve, ms));
+    //     }
 
-        const maxLoops = 25;
-        let loopCount = 0;
+    //     const maxLoops = 25;
+    //     let loopCount = 0;
 
-        while (loopCount < maxLoops) {
-            // Check the pending transactions
-            let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
-            let response = null;
-            let isError = false;
+    //     while (loopCount < maxLoops) {
+    //         // Check the pending transactions
+    //         let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
+    //         let response = null;
+    //         let isError = false;
 
-            try {
-                response = await axios.get(ALGOD_INDEXER_SERVER + port + 
-                    "/v2/transactions/"+txId, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
+    //         try {
+    //             response = await axios.get(ALGOD_INDEXER_SERVER + port + 
+    //                 "/v2/transactions/"+txId, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
 
-            } catch (e) {
-                isError = true;
-            }
-            if (response == null || response.data == null || response.data.transaction == null) {
-                isError = true;
-            }
+    //         } catch (e) {
+    //             isError = true;
+    //         }
+    //         if (response == null || response.data == null || response.data.transaction == null) {
+    //             isError = true;
+    //         }
 
-            if (!isError) {
-                const txnInfo = response.data.transaction;
+    //         if (!isError) {
+    //             const txnInfo = response.data.transaction;
               
-                if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
-                    // Got the completed Transaction
-                    console.debug(`Transaction ${txId} confirmed in round ${txnInfo["confirmed-round"]}`);
-                    return {
-                        txId,
-                        status: "confirmed",
-                        statusMsg: `Transaction confirmed in round ${txnInfo["confirmed-round"]}`,
-                        transaction: txnInfo
-                    };
-                }
-                if (txnInfo["pool-error"] !== null && txnInfo["pool-error"].length > 0) {
-                    // transaction has been rejected
-                    return {
-                        txId,
-                        status: "rejected",
-                        statusMsg: 'Transaction rejected due to pool error',
-                        transaction: txnInfo
-                    };
-                }
+    //             if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
+    //                 // Got the completed Transaction
+    //                 console.debug(`Transaction ${txId} confirmed in round ${txnInfo["confirmed-round"]}`);
+    //                 return {
+    //                     txId,
+    //                     status: "confirmed",
+    //                     statusMsg: `Transaction confirmed in round ${txnInfo["confirmed-round"]}`,
+    //                     transaction: txnInfo
+    //                 };
+    //             }
+    //             if (txnInfo["pool-error"] !== null && txnInfo["pool-error"].length > 0) {
+    //                 // transaction has been rejected
+    //                 return {
+    //                     txId,
+    //                     status: "rejected",
+    //                     statusMsg: 'Transaction rejected due to pool error',
+    //                     transaction: txnInfo
+    //                 };
+    //             }
 
-            }
+    //         }
 
-            await sleep(1000); // sleep a second
-            loopCount++;
-        }
+    //         await sleep(1000); // sleep a second
+    //         loopCount++;
+    //     }
 
-        throw new Error(`Transaction ${txId} timed out`);
-    },
+    //     throw new Error(`Transaction ${txId} timed out`);
+    // },
 
-    printTransactionDebug : function printTransactionDebug(signedTxns) {
-        console.debug('zzTxnGroup to debug:');
-        const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
+    // printTransactionDebug : function printTransactionDebug(signedTxns) {
+    //     console.debug('zzTxnGroup to debug:');
+    //     const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
 
-        console.debug(b64_encoded);
-        //console.debug("DEBUG_SMART_CONTRACT_SOURCE: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
-        if (constants.DEBUG_SMART_CONTRACT_SOURCE == 1 && constants.INFO_SERVER != "") {
-            (async() => {
-                try {
-                    console.debug("trying to inspect");
-                    const response = await axios.post(constants.INFO_SERVER +  '/inspect/unpack', {
+    //     console.debug(b64_encoded);
+    //     //console.debug("DEBUG_SMART_CONTRACT_SOURCE: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
+    //     if (constants.DEBUG_SMART_CONTRACT_SOURCE == 1 && constants.INFO_SERVER != "") {
+    //         (async() => {
+    //             try {
+    //                 console.debug("trying to inspect");
+    //                 const response = await axios.post(constants.INFO_SERVER +  '/inspect/unpack', {
                     
-                            msgpack: b64_encoded,
-                            responseType: 'text/plain',
-                        },
-                    );
-                    console.debug(response.data);
-                    return response.data;
-                } catch (error) {
-                    console.error("Could not print out transaction details: " + error);
-                }
-            })();
-        }
-    },
+    //                         msgpack: b64_encoded,
+    //                         responseType: 'text/plain',
+    //                     },
+    //                 );
+    //                 console.debug(response.data);
+    //                 return response.data;
+    //             } catch (error) {
+    //                 console.error("Could not print out transaction details: " + error);
+    //             }
+    //         })();
+    //     }
+    // },
 
     buildDelegateTemplateFromArgs : 
       function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version=3) {

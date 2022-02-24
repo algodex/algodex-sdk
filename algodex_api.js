@@ -8,8 +8,9 @@
 
 const http = require('http');
 const algosdk = require('algosdk');
-const {formatJsonRpcRequest} = require("@json-rpc-tools/utils")
+const {formatJsonRpcRequest} = require("@json-rpc-tools/utils");
 const BigN = require('js-big-decimal');
+const helperFuncs = require('./helperFunctions.js');
 
 const LESS_THAN = -1;
 const EQUAL = 0;
@@ -51,12 +52,8 @@ const AlgodexApi = {
 			return constants;
 	},
 	
-    allSettled : function(promises) {
-        let wrappedPromises = promises.map(p => Promise.resolve(p)
-            .then(
-                val => ({ status: 'promiseFulfilled', value: val }),
-                err => ({ status: 'promiseRejected', reason: err })));
-        return Promise.all(wrappedPromises);
+    allSettled: function (promises) {
+        return helperFuncs.allSettled(promises)
     },
 
     initSmartContracts : function(environment) {
@@ -206,7 +203,7 @@ const AlgodexApi = {
 
     // Wait for a transaction to be confirmed
     waitForConfirmation : async function(txId) {
-        return dexInternal.waitForConfirmation(txId);
+        return helperFuncs.waitForConfirmation(txId);
     },
 
     dumpVar : function dumpVar(x) {
@@ -631,10 +628,10 @@ const AlgodexApi = {
         return;
     },
 
-    structureOrder: async function structureOrder(algodClient, isSellingASA, assetId,
+    structureOrder: async function (algodClient, isSellingASA, assetId,
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
 
-        console.debug("in structueOrder");
+        console.debug("in structureOrder");
 
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
@@ -864,7 +861,7 @@ const AlgodexApi = {
                     userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);
             }
         }
-// below conditional handles output for getPlaceAlgos when signAndSend is false so returns onsigned Lsig
+// below conditional handles output for getPlaceAlgos when signAndSend is false so returns unsigned Lsig
         if (makerTxns != null) {
             for (let k = 0; k < makerTxns.length; k++) {
                 let trans = makerTxns[k];
@@ -1860,7 +1857,7 @@ const AlgodexApi = {
 /////////////////////////////////
 
     printTransactionDebug : function printTransactionDebug(signedTxns) {
-        return dexInternal.printTransactionDebug(signedTxns);
+        return helperFuncs.printTransactionDebug(signedTxns);
     },
 
     buildDelegateTemplateFromArgs : function buildDelegateTemplateFromArgs(min, assetid, N, D, writerAddr, isASAEscrow, version=3) {

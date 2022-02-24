@@ -1,6 +1,7 @@
 const algosdk = require('algosdk');
 const { formatJsonRpcRequest } = require("@json-rpc-tools/utils");
 const constants = require('./constants.js');
+const helperFuncs = require('./helperFunctions.js')
 let MyAlgo = null;
 let myAlgoWalletUtil = null;
 if (typeof window != 'undefined') {
@@ -38,7 +39,7 @@ const SigningApi = {
                     // If at beginning of new group, send last batch of transactions
                     if (signedTxns.length > 0) {
                         try {
-                            this.printTransactionDebug(signedTxns);
+                            helperFuncs.printTransactionDebug(signedTxns);
                             let txn = await algodClient.sendRawTransaction(signedTxns).do();
                             sentTxns.push(txn.txId);
                             console.debug("sent: " + txn.txId);
@@ -59,7 +60,7 @@ const SigningApi = {
                     // If at end of list send last batch of transactions
                     if (signedTxns.length > 0) {
                         try {
-                            this.printTransactionDebug(signedTxns);
+                            helperFuncs.printTransactionDebug(signedTxns);
                             const DO_SEND = true;
                             if (DO_SEND) {
                                 let txn = await algodClient.sendRawTransaction(signedTxns).do();
@@ -84,53 +85,30 @@ const SigningApi = {
 
             for (let i = 0; i < sentTxns.length; i++) {
                 console.debug("creating promise to wait for: " + sentTxns[i]);
-                const confirmPromise = this.waitForConfirmation(sentTxns[i]);
+                const confirmPromise = helperFuncs.waitForConfirmation(sentTxns[i]);
                 waitConfirmedPromises.push(confirmPromise);
             }
 
             console.debug("final9 trans are: ");
            
-            // console.debug(alTransList);
-            // console.debug(transNeededUserSigList);
-
             console.debug("going to send all ");
 
-            let confirmedTransactions = await this.allSettled(waitConfirmedPromises);
+            let confirmedTransactions = await helperFuncs.allSettled(waitConfirmedPromises);
 
             let transResults = JSON.stringify(confirmedTransactions, null, 2);
        
             console.debug("trans results after confirmed are: ");
             console.debug(transResults);
-            // await this.waitForConfirmation(algodClient, txn.txId);
             return;
 
 
         },
-    assignGroups: function (txns) {
-        const groupID = algosdk.computeGroupID(txns)
-        for (let i = 0; i < txns.length; i++) {
-            txns[i].group = groupID;
-        }
-    },
-    groupBy:
-        function (items, key) {
-           return items.reduce(
-                (result, item) => ({
-                    ...result,
-                    [item[key]]: [
-                        ...(result[item[key]] || []),
-                        item,
-                    ],
-                }),
-                {},
-           )
-
-        },
+   
     signMyAlgoTransactions:
         async function (outerTxns) {
             console.debug("inside signMyAlgoTransactions transactions");
   
-            const groups = this.groupBy(outerTxns, "groupNum")
+            const groups = helperFuncs.groupBy(outerTxns, "groupNum")
 
             let numberOfGroups = Object.keys(groups);
 
@@ -139,7 +117,7 @@ const SigningApi = {
                 const allTxFormatted = (groups[group].map(txn => {
                         return txn.unsignedTxn;
                 }))
-                this.assignGroups(allTxFormatted);
+                helperFuncs.assignGroups(allTxFormatted);
                 return allTxFormatted;
             }
             )
@@ -184,7 +162,7 @@ const SigningApi = {
             return outerTxns
         },
     signMyAlgo:
-        async function signMyAlgo(algodClient, outerTxns) {
+        async function(algodClient, outerTxns) {
             const needsUserSig = outerTxns.filter(transaction => !!transaction.unsignedTxn).map(transaction => transaction.unsignedTxn)
             // myAlgo userSigning doesn't want lSIGS. This will go away when we remove the signing of LSIGS from the structure order helper functions.
 
@@ -209,13 +187,6 @@ const SigningApi = {
 
             return outerTxns
         },
-    allSettled: function (promises) {
-        let wrappedPromises = promises.map(p => Promise.resolve(p)
-            .then(
-                val => ({ status: 'promiseFulfilled', value: val }),
-                err => ({ status: 'promiseRejected', reason: err })));
-        return Promise.all(wrappedPromises);
-    },
 
     signWalletConnectTransactions:
         async function (algodClient, outerTxns, params, walletConnector) {
@@ -238,8 +209,12 @@ const SigningApi = {
 
                 const allTxFormatted = (groups[group].map(txn => {
                     if (!txn.unsignedTxn.name) {
-                        if (txn.unsignedTxn.type === "pay") { return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, undefined, undefined, params) }
-                        if (txn.unsignedTxn.type === "axfer") { return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, undefined, undefined, txn.unsignedTxn.amount, undefined, txn.unsignedTxn.assetIndex, params) }
+                        if (txn.unsignedTxn.type === "pay") { 
+                            return algosdk.makePaymentTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, txn.unsignedTxn.amount, undefined, undefined, params) 
+                        }
+                        if (txn.unsignedTxn.type === "axfer") { 
+                            return algosdk.makeAssetTransferTxnWithSuggestedParams(txn.unsignedTxn.from, txn.unsignedTxn.to, undefined, undefined, txn.unsignedTxn.amount, undefined, txn.unsignedTxn.assetIndex, params) 
+                        }
                     } else {
                         return txn.unsignedTxn;
                     }
@@ -282,91 +257,6 @@ const SigningApi = {
 
             return outerTxns;
         },
-
-    printTransactionDebug: function printTransactionDebug(signedTxns) {
-        console.debug('zzTxnGroup to debug:');
-        const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
-
-        console.debug(b64_encoded);
-        //console.debug("DEBUG_SMART_CONTRACT_SOURCE: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
-        if (constants.DEBUG_SMART_CONTRACT_SOURCE == 1 && constants.INFO_SERVER != "") {
-            (async() => {
-                try {
-                    console.debug("trying to inspect");
-                    const response = await axios.post(constants.INFO_SERVER +  '/inspect/unpack', {
-                    
-                            msgpack: b64_encoded,
-                            responseType: 'text/plain',
-                        },
-                    );
-                    console.debug(response.data);
-                    return response.data;
-                } catch (error) {
-                    console.error("Could not print out transaction details: " + error);
-                }
-            })();
-        }
-    },
-
-    waitForConfirmation: async function (txId) {
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        const maxLoops = 25;
-        let loopCount = 0;
-
-        while (loopCount < maxLoops) {
-            // Check the pending transactions
-            let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
-            let response = null;
-            let isError = false;
-
-            try {
-                response = await axios.get(ALGOD_INDEXER_SERVER + port + 
-                    "/v2/transactions/"+txId, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
-
-            } catch (e) {
-                isError = true;
-            }
-            if (response == null || response.data == null || response.data.transaction == null) {
-                isError = true;
-            }
-
-            if (!isError) {
-                const txnInfo = response.data.transaction;
-              
-                if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
-                    // Got the completed Transaction
-                    console.debug(`Transaction ${txId} confirmed in round ${txnInfo["confirmed-round"]}`);
-                    return {
-                        txId,
-                        status: "confirmed",
-                        statusMsg: `Transaction confirmed in round ${txnInfo["confirmed-round"]}`,
-                        transaction: txnInfo
-                    };
-                }
-                if (txnInfo["pool-error"] !== null && txnInfo["pool-error"].length > 0) {
-                    // transaction has been rejected
-                    return {
-                        txId,
-                        status: "rejected",
-                        statusMsg: 'Transaction rejected due to pool error',
-                        transaction: txnInfo
-                    };
-                }
-
-            }
-
-            await sleep(1000); // sleep a second
-            loopCount++;
-        }
-
-        throw new Error(`Transaction ${txId} timed out`);
-    },
-
-
-
 }
 
 module.exports = SigningApi;
