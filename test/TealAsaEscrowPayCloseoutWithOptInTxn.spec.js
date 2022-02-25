@@ -29,6 +29,8 @@ console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_
 
 const textEncoder = new TextEncoder();
 
+// TODO: The negative tests need to be implemented. The commented ones out are examples but will not work with 
+// this transaction type.
 const negTests = [ 
   /* {txnNum: 0, field: 'from', val: algosdk.decodeAddress(config.maliciousAccount.addr) },
    {txnNum: 0, field: 'appArgs', innerNum: 0, val: textEncoder.encode('execute') },
