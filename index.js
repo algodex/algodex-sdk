@@ -8,8 +8,8 @@
 
 //import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');
-const orderService = require('./order.js');
-const walletService = require('./wallet.js')
+const OrderService = require('./order.js');
+const WalletService = require('./wallet.js')
 const algoOrderBook = require('./dex_teal.js');
 const asaOrderBook = require('./asa_dex_teal.js');
 const constants = require('./constants.js');
@@ -18,168 +18,60 @@ const signingApi = require('./signing_api.js');
 /*
  * Alert function test
  */
-exports.doAlert = function() {
-	algodex.doAlert();
-};
+exports.doAlert = algodex.doAlert
 
-exports.getSmartContractVersions = function() {
+exports.getSmartContractVersions = function getSmartContractVersions() {
 	return {
 		'escrowContractVersion': constants.ESCROW_CONTRACT_VERSION,
 		'orderBookContractVersion': constants.ORDERBOOK_CONTRACT_VERSION
 	};
 };
 
-exports.getAsaOrderBookTeal = function() {
-	return asaOrderBook.getASAOrderBookApprovalProgram();
-};
+exports.getAsaOrderBookTeal = asaOrderBook.getASAOrderBookApprovalProgram;
 
-exports.getAlgoOrderBookTeal = function() {
-	return algoOrderBook.getAlgoOrderBookApprovalProgram();
-};
+exports.getAlgoOrderBookTeal = algoOrderBook.getAlgoOrderBookApprovalProgram;
 
-exports.getOrderBookId = function(isAlgoEscrowApp) {
-	return algodex.getOrderBookId(isAlgoEscrowApp);
-}
+exports.getOrderBookId = algodex.getOrderBookId;
+
 /*
  * Print console message test
- */ 
+ */
 exports.printMsg = function() {
 	console.log("Hello World from algodex-sdk!!!");
 	return "Hello World from algodex-sdk!!!";
 };
 
-exports.getConstants = function() {
-	return algodex.getConstants();
-}
+exports.getConstants = algodex.getConstants;
 
 
-/*
- * Initialize smart contract environments. This is also called from within
- * initIndexer() and initAlgodClient
- *
- * @param {String} environment Must be "local", "test", or "production".
- */
-exports.initSmartContracts = function(environment) {
-	return algodex.initSmartContracts(environment);
-};
+exports.initSmartContracts = algodex.initSmartContracts;
+exports.initIndexer = algodex.initIndexer;
+exports.initAlgodClient = algodex.initAlgodClient;
 
-/*
- * Initialize and return indexer client.
- *
- * @param {String} environment Must be "local", "test", or "production".
- */
-exports.initIndexer = function(environment) {
-	return algodex.initIndexer(environment);
-};
-
-/*
- * Initialize and return indexer client.
- *
- * @param {String} environment: Must be "local", "test", or "production".
- */
-exports.initAlgodClient = function(environment) {
-	return algodex.initAlgodClient(environment);
-};
-
-/*
- * Returns orderService object with necessary methods for order execution
- * @param {Object}         AlgodClient: instance of AlgodClient needed for order Execution
- * @param {Object}         order: the order that the user placed
- * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
- * @returns {Object} Promise for when the order succeeds or fails?
- */
-
-exports.OrderService = function() {
-	return orderService
-};
-
-/*
- * Returns walletService object with necessary methods for wallet retrieval and interaction with frontend 
- * @param {Object}         AlgodClient: instance of AlgodClient needed for order Execution
- * @param {String}         address: address of the target wallet
- * @returns {Object} Promise for when the wallet returns?
- */
-
-exports.WalletService = function(algodexEnvironment) {
-	return new walletService(algodexEnvironment)
-};
-
-/*
- * Wait for a transaction to be confirmed into the blockchain
- * @param   {String} txId: transaction ID
- * @returns {Object} Promise for when the transaction is complete
- */
-exports.waitForConfirmation = function(txId) {
-	return algodex.waitForConfirmation(txId);
-};
-
-/*
- * Wait for a transaction to be confirmed into the blockchain
- * @param   {Object}  accountInfo: account information object
- * @returns {int} Min balance is returned.
- */
-exports.getMinWalletBalance = function(accountInfo) {
-	return algodex.getMinWalletBalance(accountInfo);
-};
+exports.OrderService = OrderService;
 
 
 
-/*
- * @param   {String} accountAddr: Account Address to get account info from.
- * @returns {Object} account information
- */
-exports.getAccountInfo = function(accountAddr) {
-	return algodex.getAccountInfo(accountAddr);
-};
-
-/*
- * Prints out base64 for transactions for use in debugging with algod and tealdbg
- *
- * @param   {Uint8Array[]} signedTxns: array of Uint8Array structures that contain signed transactions
- * @returns {String} base64 encoded transactions
- */
-exports.printTransactionDebug = function(signedTxns) {
-	return algodex.printTransactionDebug(signedTxns);
-};
-
-/*
- * Converts a limitPrice to N and D values which are used to store the price in the 
- * blockchain, since decimals can't be used for calculations in smart contracts.
- *
- * @param   {Number} limitPrice: price of the base unit ASA in terms of microALGO
- * @returns {Object} contains N and D number values for usage in the smart contracts
- */
-exports.getNumeratorAndDenominatorFromPrice = function(limitPrice) {
-	return algodex.getNumeratorAndDenominatorFromPrice(limitPrice);
-};
+exports.WalletService = WalletService;
 
 
-/*
- * Creates an order entry from parameters, which represents an existing entry in the order book
- * The data should mirror what's already on the blockchain. 
- *
- * @param {String} blockChainOrderVal: order entry that matches what's on the blockchain. For example "2500-625-0-15322902" (N-D-min-assetId)
- * @param {Number} price             : Decimal value. Calculated using d/n.
- * @param {Number} n                 : numerator of the price ratio. Must be an integer.
- * @param {Number} d                 : denominator of the price ratio. Must be an integer. 
- * @param {Number} min               : minimum order size
- * @param {String} escrowAddr        : address of escrow account. Needed for closing orders
- * @param {Number} algoBalance       : amount of algos stored inside of the escrow
- * @param {Number} asaBalance        : amount of ASAs stored inside of the escrow
- * @param {String} escrowOrderType   : "buy" or "sell"
- * @param {Boolean} isASAEscrow      : true or false. True if the escrow account is set up to hold (and sell) ASAs
- * @param {String} orderCreatorAddr  : address of the owner of the escrow, i.e. the wallet that created the order. Not the escrow address
- * @param {Number} assetId           : id of the asset
- * @param {Number} version           : version of the escrow contract
- */
-exports.createOrderBookEntryObj = function(blockChainOrderVal, price, n, d, min, escrowAddr, algoAmount, asaAmount,
-                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId, version) {
-	return algodex.createOrderBookEntryObj(blockChainOrderVal, price, n, d, min, escrowAddr, algoAmount, asaAmount,
-                                           escrowOrderType, isASAEscrow, orderCreatorAddr, assetId, version);
-};
+exports.waitForConfirmation = algodex.waitForConfirmation;
+
+exports.getMinWalletBalance = algodex.getMinWalletBalance;
+
+exports.getAccountInfo = algodex.getAccountInfo;
 
 
-/*
+exports.printTransactionDebug = algodex.printTransactionDebug;
+
+
+exports.getNumeratorAndDenominatorFromPrice = algodex.getNumeratorAndDenominatorFromPrice;
+
+
+exports.createOrderBookEntryObj = algodex.createOrderBookEntryObj;
+
+
+/**
  * Executes a limit order as a taker and submits it to the blockchain
  *
  * @param {Object}                algodClient: object that has been initialized via initAlgodClient()
@@ -213,7 +105,7 @@ exports.executeOrderAsTaker = async function(algodClient, isSellingASA_AsTakerOr
 
 };
 
-/*
+/**
  * Executes a market order as a taker and submits it to the blockchain
  *
  * @param {Object}                algodClient: object that has been initialized via initAlgodClient()
@@ -231,7 +123,7 @@ exports.executeOrderAsTaker = async function(algodClient, isSellingASA_AsTakerOr
 
 exports.executeMarketOrderAsTaker = async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
-		
+
 	const worstAcceptablePrice = isSellingASA_AsTakerOrder ? currentMarketPrice * (1 - tolerance) : currentMarketPrice * (1 + tolerance);
 
 	const {params, allTransList} = await algodex.structureOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
@@ -255,7 +147,7 @@ exports.executeMarketOrderAsTaker = async function(algodClient, isSellingASA_AsT
 
 
 
-/*
+/**
  * Executes a limit order as a maker and taker and submits it to the blockchain
  *
  * @param {Object}                algodClient: object that has been initialized via initAlgodClient()
@@ -290,21 +182,10 @@ exports.executeOrderAsMakerAndTaker = async function(algodClient, isSellingASA, 
 
 };
 
-/*
- * Closes an existing order and refunds the escrow account to the owner
- *
- * @param {Object}       algodClient: object that has been initialized via initAlgodClient()
- * @param {String} escrowAccountAddr: public address of the escrow account
- * @param {String}       creatorAddr: public address of the owner of the escrow account
- * @param {Object}    orderBookEntry: blockchain order book string. For example "2500-625-0-15322902" (N-D-min-assetId)
- * @param {int}       version:        escrow version as an int.
- * @returns {Object} Promise for when the transaction is fully confirmed
- */
-exports.closeOrderFromOrderBookEntry = function(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector) {
-	return algodex.closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector);
-};
 
-/*
+exports.closeOrderFromOrderBookEntry = algodex.closeOrderFromOrderBookEntry;
+
+/**
  * Maker order to create a new algo-only escrow account and order book entry
  * Note: use getNumeratorAndDenominatorFromPrice() to get the n and d values.
  *
@@ -351,4 +232,3 @@ exports.getLsigFromProgramSource = function(algosdk, algodClient, program, logPr
 exports.dumpVar = function(x) {
 	return algodex.dumpVar(x);
 }
-

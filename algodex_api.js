@@ -42,20 +42,47 @@ const signingApi = require('./signing_api.js');
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
 
+// function Algodex({algod, indexer, dexd}){
+//
+// }
+
+/**
+ *
+ * @todo Pass constants and configuration into API Constructor
+ */
 const AlgodexApi = {
 
+    /**
+     *
+     */
     doAlert : function doAlert() {
         alert(1);
         console.debug("api call!!!");
     },
+    /**
+     *
+     * @returns {{LOCAL_ALGOD_SERVER, PUBLIC_TEST_INDEXER_PORT: string, TEST_ASA_ORDERBOOK_APPID: number, PROD_ALGOD_SERVER: string|string, PUBLIC_TEST_ALGOD_SERVER: string|string, PUBLIC_TEST_BACKEND_API: string, PUBLIC_TEST_INDEXER_TOKEN: string, TEST_INDEXER_PORT: string, TEST_ALGOD_TOKEN: string|string, TEST_INDEXER_TOKEN: string, PROD_ALGO_ORDERBOOK_APPID: number, PROD_INDEXER_PORT: string, TEST_ALGOD_SERVER: string|string, LOCAL_ALGOD_TOKEN, MIN_ASA_ESCROW_BALANCE: number, PUBLIC_TEST_ASA_ORDERBOOK_APPID: number, TEST_INDEXER_SERVER: string, LOCAL_ASA_ORDERBOOK_APPID: number, PROD_BACKEND_API: string, TEST_BACKEND_API: string, PUBLIC_TEST_INDEXER_SERVER: string, TEST_ALGO_ORDERBOOK_APPID: number, LOCAL_INDEXER_SERVER: string, PROD_INDEXER_TOKEN: string, LOCAL_ALGO_ORDERBOOK_APPID: number, LOCAL_BACKEND_API: string, PROD_ALGOD_TOKEN: string|string, LOCAL_ALGOD_PORT, LOCAL_INDEXER_TOKEN: string, DEBUG: number, PROD_ALGOD_PORT: string|string, MIN_ESCROW_BALANCE: number, PROD_INDEXER_SERVER: string, ESCROW_CONTRACT_VERSION: number, DEBUG_SMART_CONTRACT_SOURCE: number|number, TEST_ALGOD_PORT: string|string, PUBLIC_TEST_ALGOD_TOKEN: string|string, PROD_ASA_ORDERBOOK_APPID: number, LOCAL_INDEXER_PORT: string, PUBLIC_TEST_ALGOD_PORT: string|string, INFO_SERVER: string, PUBLIC_TEST_ALGO_ORDERBOOK_APPID: number, ORDERBOOK_CONTRACT_VERSION: number}|{DEBUG?: number, DEBUG_SMART_CONTRACT_SOURCE?: number | number, INFO_SERVER?: string, ESCROW_CONTRACT_VERSION?: number, ORDERBOOK_CONTRACT_VERSION?: number, MIN_ESCROW_BALANCE?: number, MIN_ASA_ESCROW_BALANCE?: number, LOCAL_ALGOD_SERVER?: string|string, LOCAL_ALGOD_PORT?: string|string, LOCAL_ALGOD_TOKEN?: string|string, LOCAL_BACKEND_API?: string, LOCAL_INDEXER_SERVER?: string, LOCAL_INDEXER_PORT?: string, LOCAL_INDEXER_TOKEN?: string, LOCAL_ALGO_ORDERBOOK_APPID?: number, LOCAL_ASA_ORDERBOOK_APPID?: number, TEST_ALGOD_SERVER?: string | undefined | string, TEST_ALGOD_PORT?: string | undefined | string, TEST_ALGOD_TOKEN?: string | undefined | string, TEST_BACKEND_API?: string, TEST_INDEXER_SERVER?: string, TEST_INDEXER_PORT?: string, TEST_INDEXER_TOKEN?: string, TEST_ALGO_ORDERBOOK_APPID?: number, TEST_ASA_ORDERBOOK_APPID?: number, PUBLIC_TEST_ALGOD_SERVER?: string | undefined | string, PUBLIC_TEST_ALGOD_PORT?: string | undefined | string, PUBLIC_TEST_ALGOD_TOKEN?: string | undefined | string, PUBLIC_TEST_BACKEND_API?: string, PUBLIC_TEST_INDEXER_SERVER?: string, PUBLIC_TEST_INDEXER_PORT?: string, PUBLIC_TEST_INDEXER_TOKEN?: string, PUBLIC_TEST_ALGO_ORDERBOOK_APPID?: number, PUBLIC_TEST_ASA_ORDERBOOK_APPID?: number, PROD_ALGOD_SERVER?: string | undefined | string, PROD_ALGOD_PORT?: string | undefined | string, PROD_ALGOD_TOKEN?: string | undefined | string, PROD_BACKEND_API?: string, PROD_INDEXER_SERVER?: string, PROD_INDEXER_PORT?: string, PROD_INDEXER_TOKEN?: string, PROD_ALGO_ORDERBOOK_APPID?: number, PROD_ASA_ORDERBOOK_APPID?: number}}
+     */
 	getConstants : () => {
 			return constants;
 	},
 	
+    /**
+     *
+     * @param promises
+     * @returns {Promise<unknown[]>}
+     */
     allSettled: function (promises) {
         return helperFuncs.allSettled(promises)
     },
 
+    /**
+     * Initialize smart contract environments. This is also called from within
+     * initIndexer() and initAlgodClient
+     *
+     * @param {String} environment Must be "local", "test", or "production".
+     * @todo: Pass constants into API Constructor and use this.config.app.algo, this.app.asa
+     */
     initSmartContracts : function(environment) {
         if (environment == "local") {
             ALGO_ESCROW_ORDER_BOOK_ID = constants.LOCAL_ALGO_ORDERBOOK_APPID;
@@ -85,13 +112,25 @@ const AlgodexApi = {
         //console.debug({ALGO_ESCROW_ORDER_BOOK_ID, ASA_ESCROW_ORDER_BOOK_ID});
     },
 
+    /**
+     *
+     * @param isAlgoEscrowApp
+     * @returns {number}
+     */
     getOrderBookId : function(isAlgoEscrowApp) {
         if (isAlgoEscrowApp) {
             return ALGO_ESCROW_ORDER_BOOK_ID;
         }
         return ASA_ESCROW_ORDER_BOOK_ID
     },
-    
+
+
+    /**
+     *
+     * @param accountInfo
+     * @param includesFullAccountInfo
+     * @returns {Promise<number>}
+     */
     getMinWalletBalance : async function(accountInfo, includesFullAccountInfo = false) {
         if (!includesFullAccountInfo) {
             try {
@@ -105,7 +144,7 @@ const AlgodexApi = {
         }
         console.debug("in getMinWalletBalance. Checking: " + accountInfo.address);
         console.debug({accountInfo});
-        
+
         let minBalance = 0;
 
         if (accountInfo['created-apps']) {
@@ -125,7 +164,12 @@ const AlgodexApi = {
         return minBalance;
     },
 
-    //Options are: local, test, production
+    /**
+     * Initialize and return indexer client.
+     *
+     * @param {String} environment Must be "local", "test", or "production".
+     * @todo: Pass constants into API Constructor and use this.indexer.server, this.indexer.port, this.indexer.token
+     */
     initIndexer : function(environment) {
         let server = null;
         let port = null;
@@ -155,18 +199,23 @@ const AlgodexApi = {
 
         const indexerClient = new algosdk.Indexer(token, server, port);
         console.debug({server, port, token});
-        
+
         dexInternal.setAlgodIndexer(server, port, token);
 
         return indexerClient;
     },
 
-    //local, test, production
+    /**
+     * Initialize and return indexer client.
+     *
+     * @param {String} environment Must be "local", "test", or "production".
+     * @todo: Pass constants into API Constructor and use this.algod.url, this.algod.port, this.algod.token
+     */
     initAlgodClient : function(environment) {
         let algodServer = null;
         let port = null;
         let token = null;
-       
+
 
         this.initSmartContracts(environment);
 
@@ -197,7 +246,7 @@ const AlgodexApi = {
         dexInternal.setAlgodServer(algodServer);
         dexInternal.setAlgodPort(port);
         dexInternal.setAlgodToken(token);
-        
+
         return algodClient;
     },
 
@@ -210,27 +259,54 @@ const AlgodexApi = {
         return dexInternal.dumpVar(x);
     },
 
+    dumpVar : dexInternal.dumpVar,
+
+    /**
+     * Converts a limitPrice to N and D values which are used to store the price in the
+     * blockchain, since decimals can't be used for calculations in smart contracts.
+     *
+     * @param   {Number} limitPrice price of the base unit ASA in terms of microALGO
+     * @returns {Object} contains N and D number values for usage in the smart contracts
+     */
     getNumeratorAndDenominatorFromPrice : function getNumeratorAndDenominatorFromPrice(limitPrice) {
         let countDecimals = function (limitPrice) {
             if(Math.floor(limitPrice) === limitPrice) return 0;
-            return limitPrice.toString().split(".")[1].length || 0; 
+            return limitPrice.toString().split(".")[1].length || 0;
         }
 
         const origDecCount = countDecimals(limitPrice);
         let d = 10**origDecCount * limitPrice;
         let n = 10**origDecCount;
-
-        d = Math.floor(d);
-        n = Math.floor(n);
+        d = Math.round(d);
+        n = Math.round(n);
 
         return {
             n: n,
             d: d
         }
     },
-    createOrderBookEntryObj : function createOrderBookEntryObj (blockChainOrderVal, price, n, d, min, escrowAddr, 
+
+    /**
+     * Creates an order entry from parameters, which represents an existing entry in the order book
+     * The data should mirror what's already on the blockchain.
+     *
+     * @param {String} blockChainOrderVal: order entry that matches what's on the blockchain. For example "2500-625-0-15322902" (N-D-min-assetId)
+     * @param {Number} price             : Decimal value. Calculated using d/n.
+     * @param {Number} n                 : numerator of the price ratio. Must be an integer.
+     * @param {Number} d                 : denominator of the price ratio. Must be an integer.
+     * @param {Number} min               : minimum order size
+     * @param {String} escrowAddr        : address of escrow account. Needed for closing orders
+     * @param {Number} algoBalance       : amount of algos stored inside of the escrow
+     * @param {Number} asaBalance        : amount of ASAs stored inside of the escrow
+     * @param {String} escrowOrderType   : "buy" or "sell"
+     * @param {Boolean} isASAEscrow      : true or false. True if the escrow account is set up to hold (and sell) ASAs
+     * @param {String} orderCreatorAddr  : address of the owner of the escrow, i.e. the wallet that created the order. Not the escrow address
+     * @param {Number} assetId           : id of the asset
+     * @param {Number} version           : version of the escrow contract
+     */
+    createOrderBookEntryObj : function createOrderBookEntryObj (blockChainOrderVal, price, n, d, min, escrowAddr,
                                             algoBalance, asaBalance, escrowOrderType, isASAEscrow, orderCreatorAddr, assetId, version=3) {
-        const orderEntry = 
+        const orderEntry =
             {
                 orderEntry: blockChainOrderVal, // this should match what's in the blockchain
                 price: price, // d/n
@@ -249,6 +325,11 @@ const AlgodexApi = {
         return orderEntry;
     },
 
+    /**
+     *
+     * @param queuedOrder
+     * @returns {{cutOrderAmount: number, splitTimes: number}}
+     */
     getCutOrderTimes : (queuedOrder) => {
             console.debug('in getCutOrderTimes: ', JSON.stringify(queuedOrder) );
             let cutOrderAmount = null, splitTimes = null;
@@ -272,11 +353,24 @@ const AlgodexApi = {
             };
     },
 
-    executeOrder : async function executeOrder (algodClient, isSellingASA, assetId, 
+    /**
+     * Executes a limit order as a taker and submits it to the blockchain
+     *
+     * @param {Object}    algodClient         object that has been initialized via initAlgodClient()
+     * @param {Boolean}   isSellingASA        boolean true if the taker is selling the ASA to an ALGO-only escrow buy order
+     * @param {Number}    assetId             Algorand ASA ID for the asset.
+     * @param {String}    userWalletAddr      wallet address
+     * @param {Number}    limitPrice          price of the base unit ASA in terms of microALGO
+     * @param {Number}    orderAssetAmount    Must be integer. max amount of the asset to buy or sell in base units
+     * @param {Number}    orderAlgoAmount     Must be integer. max amount of algo to buy or sell in microAlgos
+     * @param {Object[]}  allOrderBookOrders  Array of objects each created via createOrderBookEntryObj
+     * @returns {Object}                      Promise for when the batched transaction(s) are fully confirmed
+     */
+    executeOrder : async function executeOrder (algodClient, isSellingASA, assetId,
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector) {
 
         console.debug("in executeOrder");
-      
+
         let queuedOrders = dexInternal.getQueuedTakerOrders(userWalletAddr, isSellingASA, allOrderBookOrders);
         let allTransList = [];
         let transNeededUserSigList = [];
@@ -409,7 +503,7 @@ const AlgodexApi = {
             const {cutOrder, splitTimes} = getSplitTimesByIter(i);
 
             console.debug('cutOrder, splitTimes: ', {cutOrder, splitTimes});
-            let runningBalance = queuedOrders[i].isASAEscrow ? queuedOrders[i].asaBalance : 
+            let runningBalance = queuedOrders[i].isASAEscrow ? queuedOrders[i].asaBalance :
                             queuedOrders[i].algoBalance;
 
             let outerBreak = false;
@@ -419,7 +513,7 @@ const AlgodexApi = {
                 }
                 console.debug("running balance: " + runningBalance + " isASAEscrow: " + queuedOrders[i].isASAEscrow);
                 const queuedOrder = Object.assign({}, queuedOrders[i]);
-                
+
                 if (cutOrder != null) {
                     const shouldClose =  (jj < cutOrder.splitTimes - 1) ? false : null;
                     const useForceShouldCloseOrNot = (jj < cutOrder.splitTimes - 1);
@@ -442,24 +536,24 @@ const AlgodexApi = {
                         }
                     }
                 }
-                let singleOrderTransList = 
-                    await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient, 
+                let singleOrderTransList =
+                    await dexInternal.getExecuteOrderTransactionsAsTakerFromOrderEntry(algodClient,
                         queuedOrder, takerOrderBalance, params, walletConnector);
-                        
+
 
                 if (singleOrderTransList == null) {
                     // Overspending issue
                     outerBreak = true;
                     break;
-              
+
                 }
                 const [algo, asa] = this.getAlgoandAsaAmounts(singleOrderTransList);
-            
-          
+
+
 
                 this.finalPriceCheck(algo ,asa , limitPrice, isSellingASA)
-        
-            
+
+
                 lastExecutedPrice = queuedOrder['price'];
 
                 for (let k = 0; k < singleOrderTransList.length; k++) {
@@ -480,14 +574,14 @@ const AlgodexApi = {
                 break;
             }
         }
-  
-   
-       
-    
+
+
+
+
         let makerTxns = null;
         console.debug('here55999a ', {lastExecutedPrice, limitPrice} );
         if (includeMaker) {
-            const numAndDenom = lastExecutedPrice != -1 ? this.getNumeratorAndDenominatorFromPrice(lastExecutedPrice) : 
+            const numAndDenom = lastExecutedPrice != -1 ? this.getNumeratorAndDenominatorFromPrice(lastExecutedPrice) :
                                                           this.getNumeratorAndDenominatorFromPrice(limitPrice);
             let leftoverASABalance = Math.floor(takerOrderBalance['asaBalance']);
             let leftoverAlgoBalance = Math.floor(takerOrderBalance['algoBalance']);
@@ -495,13 +589,13 @@ const AlgodexApi = {
             if (isSellingASA && leftoverASABalance > 0) {
                 console.debug("leftover ASA balance is: " + leftoverASABalance);
 
-                makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, 
+                makerTxns = await this.getPlaceASAToSellASAOrderIntoOrderbook(algodClient,
                     userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverASABalance, false, walletConnector );
             } else if (!isSellingASA && leftoverAlgoBalance > 0) {
                 console.debug("leftover Algo balance is: " + leftoverASABalance);
 
                 makerTxns = await this.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient,
-                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);            
+                    userWalletAddr, numAndDenom.n, numAndDenom.d, 0, assetId, leftoverAlgoBalance, false, walletConnector);
             }
         }
 
@@ -522,8 +616,8 @@ const AlgodexApi = {
                         trans.signedTxn = signedTxn.blob;
 
                     }
-                 
-                } 
+
+                }
             }
             groupNum++;
         }
@@ -545,11 +639,11 @@ const AlgodexApi = {
         if(!!walletConnector && walletConnector.connector.connected) {
             const confirmedWalletConnectArr = await this.signAndSendWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
             return confirmedWalletConnectArr;
-           
+
           }
 
         let signedTxns =  await myAlgoWallet.signTransaction(txnsForSigning);
-        
+
         if (!Array.isArray(signedTxns)) {
             signedTxns = [signedTxns];
         }
@@ -561,14 +655,14 @@ const AlgodexApi = {
         let sentTxns = [];
 
         let lastGroupNum = -1;
-        for (let i = 0; i < allTransList.length; i++) {  // loop to end of array 
+        for (let i = 0; i < allTransList.length; i++) {  // loop to end of array
             if (lastGroupNum != allTransList[i]['groupNum']) {
                 // If at beginning of new group, send last batch of transactions
                 if (signedTxns.length > 0) {
                     try {
                         this.printTransactionDebug(signedTxns);
                         let txn = await algodClient.sendRawTransaction(signedTxns).do();
-                        sentTxns.push(txn.txId);   
+                        sentTxns.push(txn.txId);
                         console.debug("sent: " + txn.txId);
                     }  catch (e) {
                         console.debug(e);
@@ -580,7 +674,7 @@ const AlgodexApi = {
             }
 
             signedTxns.push(allTransList[i]['signedTxn']);
-            
+
             if (i == allTransList.length - 1) {
                 // If at end of list send last batch of transactions
                 if (signedTxns.length > 0) {
@@ -616,12 +710,12 @@ const AlgodexApi = {
         console.debug("final9 trans are: " );
         // console.debug(alTransList);
         // console.debug(transNeededUserSigList);
-        
+
         console.debug("going to send all ");
-        
+
         let confirmedTransactions = await this.allSettled(waitConfirmedPromises);
 
-        let transResults = JSON.stringify(confirmedTransactions, null, 2); 
+        let transResults = JSON.stringify(confirmedTransactions, null, 2);
         console.debug("trans results after confirmed are: " );
         console.debug(transResults);
        // await this.waitForConfirmation(algodClient, txn.txId);
@@ -894,10 +988,20 @@ const AlgodexApi = {
         return{params, allTransList}
     },
 
+    /**
+     * Closes an existing order and refunds the escrow account to the owner
+     *
+     * @param {Object}       algodClient: object that has been initialized via initAlgodClient()
+     * @param {String} escrowAccountAddr: public address of the escrow account
+     * @param {String}       creatorAddr: public address of the owner of the escrow account
+     * @param {Object}    orderBookEntry: blockchain order book string. For example "2500-625-0-15322902" (N-D-min-assetId)
+     * @param {int}       version:        escrow version as an int.
+     * @returns {Object} Promise for when the transaction is fully confirmed
+     */
     closeOrderFromOrderBookEntry : async function closeOrderFromOrderBookEntry(algodClient, escrowAccountAddr, creatorAddr, orderBookEntry, version, walletConnector) {
             let valSplit = orderBookEntry.split("-");
             console.debug("closing order from order book entry!");
-            console.debug("escrowAccountAddr, creatorAddr, orderBookEntry, version", 
+            console.debug("escrowAccountAddr, creatorAddr, orderBookEntry, version",
                 escrowAccountAddr, creatorAddr, orderBookEntry, version);
 
             let n = valSplit[0];
@@ -916,15 +1020,15 @@ const AlgodexApi = {
             if (accountInfo != null && accountInfo['assets'] != null
                 && accountInfo['assets'].length > 0 && accountInfo['assets'][0] != null) {
                 // check if escrow has an assetId in the blockchain
-                assetId = accountInfo['assets'][0]['asset-id']; 
+                assetId = accountInfo['assets'][0]['asset-id'];
             }
             const isAsaOrder = (assetId != null);
 
 
             let escrowSource = this.buildDelegateTemplateFromArgs(min,assetid,n,d,creatorAddr, isAsaOrder, version);
-           
+
             let lsig = await dexInternal.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
-            console.debug("lsig is: " + lsig.address());   
+            console.debug("lsig is: " + lsig.address());
 
             if (lsig.address() != escrowAccountAddr) {
                 throw 'Lsig address does not equal input address! ' + lsig.address() + ' vs ' + escrowAccountAddr;
@@ -939,6 +1043,10 @@ const AlgodexApi = {
             }
     },
 
+    /**
+     *
+     * @param txns
+     */
     assignGroups: function assignGroups (txns) {
         const groupID = algosdk.computeGroupID(txns)
         for (let i = 0; i < txns.length; i++) {
@@ -946,6 +1054,13 @@ const AlgodexApi = {
         }
     },
 
+    /**
+     *
+     * @param algoAmount
+     * @param asaAmount
+     * @param limitPrice
+     * @param isSellingASA
+     */
     finalPriceCheck: function finalPriceCheck(algoAmount,asaAmount, limitPrice, isSellingASA) {
         function LimitPriceException(message) {
             this.message = message;
@@ -954,27 +1069,32 @@ const AlgodexApi = {
           LimitPriceException.prototype = Error.prototype;
           const buyLimit = new BigN(limitPrice).multiply(new BigN(1.002));
           const sellLimit = new BigN(limitPrice).multiply(new BigN(0.998));
-    
-          if (!isSellingASA 
+
+          if (!isSellingASA
               && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(buyLimit) === GREATER_THAN) {
               // Throw an exception if price is 0.2% higher than limit price set by user
               throw new LimitPriceException("Attempting to buy at a price higher than limit price");
           }
-              
-          if (isSellingASA 
+
+          if (isSellingASA
               && new BigN(algoAmount).divide(new BigN(asaAmount)).compareTo(sellLimit) === LESS_THAN) {
               // Throw an exception if price is 0.2% lower than limit price set by user
               throw new LimitPriceException("Attempting to sell at a price lower than limit price");
           }
 
         console.debug({algoAmount, asaAmount, limitPrice});
-        
+
         return
-       
+
 
     },
 
-    getAlgoandAsaAmounts: 
+    /**
+     *
+     * @param txnList
+     * @returns {[*,*]}
+     */
+    getAlgoandAsaAmounts:
          function (txnList) {
             const algo = txnList
             .filter(
@@ -992,7 +1112,7 @@ const AlgodexApi = {
             )
             .map((txObj) => txObj.amount)[0];
 
-       
+
 
             return [algo, asa];
         },
@@ -1041,9 +1161,9 @@ const AlgodexApi = {
             const formattedTxn = txnsToSign.flat();
 
             const request = formatJsonRpcRequest("algo_signTxn", [formattedTxn]);
-           
+
             const result = await walletConnector.connector.sendCustomRequest(request);
-           
+
 
             let resultsFormattted = result.map((element, idx) => {
                 return element ? {
@@ -1195,7 +1315,7 @@ const AlgodexApi = {
                     }
                 }
             }
-            
+
             for (let i = 0; i < outerTxns.length; i++) {
                 if (!outerTxns[i].needsUserSig) {
                     let signedLsig = await algosdk.signLogicSigTransactionObject(outerTxns[i].unsignedTxn, outerTxns[i].lsig);
@@ -1353,7 +1473,7 @@ const AlgodexApi = {
             return outerTxns;
         },
 
-    getPlaceAlgosToBuyASAOrderIntoOrderbook : async function 
+    getPlaceAlgosToBuyASAOrderIntoOrderbook : async function
         getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, signAndSend, walletConnector) {
         console.debug("placeAlgosToBuyASAOrderIntoOrderbook makerWalletAddr, n, d, min, assetId",
             makerWalletAddr, n, d, min, assetId);
@@ -1393,7 +1513,7 @@ const AlgodexApi = {
         }
         console.debug("alreadyOptedIn: " + alreadyOptedIntoOrderbook);
         // console.debug("acct info:" + JSON.stringify(escrowAccountInfo));
-        
+
         let params = await algodClient.getTransactionParams().do();
         console.debug("sending trans to: " + lsig.address());
         let txn = {
@@ -1403,7 +1523,7 @@ const AlgodexApi = {
             to:  lsig.address(),
             amount: parseInt(algoOrderSize), // the order size that gets stored into the contract account
         };
-  
+
         let outerTxns = [];
 
         outerTxns.push({
@@ -1412,7 +1532,7 @@ const AlgodexApi = {
         });
 
         myAlgoWalletUtil.setTransactionFee(txn);
-    
+
         console.debug("here3 calling app from logic sig to open order");
         let appArgs = [];
         var enc = new TextEncoder();
@@ -1432,7 +1552,7 @@ const AlgodexApi = {
         let logSigTrans = null;
 
         if (!alreadyOptedIntoOrderbook) {
-            logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, 
+            logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig,
                     ALGO_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn", params);
             outerTxns.push({
                 unsignedTxn: logSigTrans,
@@ -1457,13 +1577,13 @@ const AlgodexApi = {
                 needsUserSig: true
             });
         }
-    
+
         unsignedTxns = [];
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
 
-        
+
         let noteMetadata = {
             algoBalance: makerAccountInfo.amount,
             asaBalance: (makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
@@ -1490,9 +1610,9 @@ const AlgodexApi = {
             }
         }
 
-        
+
         if(!walletConnector || !walletConnector.connector.connected){this.assignGroups(unsignedTxns)};
-       
+
         return outerTxns;
     },
     executeMarketOrder : 
@@ -1502,6 +1622,20 @@ const AlgodexApi = {
            return this.executeOrder(algodClient, isSellingASA, assetId, 
             userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, includeMaker, walletConnector)
         },
+
+    /**
+     *
+     * @param algodClient
+     * @param makerWalletAddr
+     * @param n
+     * @param d
+     * @param min
+     * @param assetId
+     * @param assetAmount
+     * @param signAndSend
+     * @param walletConnector
+     * @returns {Promise<*[]|*>}
+     */
 
     getPlaceASAToSellASAOrderIntoOrderbookV2:
         async function (algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend, walletConnector) {
@@ -1677,7 +1811,20 @@ const AlgodexApi = {
             return outerTxns;
         },
 
-    getPlaceASAToSellASAOrderIntoOrderbook : 
+    /**
+     *
+     * @param algodClient
+     * @param makerWalletAddr
+     * @param n
+     * @param d
+     * @param min
+     * @param assetId
+     * @param assetAmount
+     * @param signAndSend
+     * @param walletConnector
+     * @returns {Promise<*[]|*>}
+     */
+    getPlaceASAToSellASAOrderIntoOrderbook :
         async function getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, signAndSend, walletConnector) {
         console.debug("checking assetId type");
         assetId = parseInt(assetId+"");
@@ -1689,7 +1836,7 @@ const AlgodexApi = {
         let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, program, constants.DEBUG_SMART_CONTRACT_SOURCE);
         let generatedOrderEntry = dexInternal.generateOrder(makerWalletAddr, n, d, min, assetId);
         console.debug("address is: " + lsig.address());
-        
+
         let makerAccountInfo = await this.getAccountInfo(makerWalletAddr);
         // check if the lsig has already opted in
         let accountInfo = await this.getAccountInfo(lsig.address());
@@ -1715,12 +1862,12 @@ const AlgodexApi = {
             to:  lsig.address(),
             amount: assetAmount
         };
-        let noteMetadata = { 
+        let noteMetadata = {
             algoBalance: makerAccountInfo.amount,
             asaBalance:(makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
-            assetId: assetId, 
-            n:n, 
-            d:d, 
+            assetId: assetId,
+            n:n,
+            d:d,
             escrowAddr: accountInfo.address,
             orderEntry: generatedOrderEntry,
             escrowOrderType:"sell",
@@ -1728,7 +1875,7 @@ const AlgodexApi = {
          }
 
         console.debug("herez88888 ", this.dumpVar(assetSendTrans));
-        
+
 
 
         if (alreadyOptedIn) {
@@ -1753,7 +1900,7 @@ const AlgodexApi = {
                     const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(outerTxns);
                     return await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
                 }
-                
+
             } else {
                 return outerTxns;
             }
@@ -1791,14 +1938,14 @@ const AlgodexApi = {
         //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
         console.debug(appArgs.length);
 
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, 
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig,
                     ASA_ESCROW_ORDER_BOOK_ID, appArgs, "appOptIn", params);
 
         // create optin transaction
         // sender and receiver are both the same
         let sender = lsig.address();
         let recipient = sender;
-        // We set revocationTarget to undefined as 
+        // We set revocationTarget to undefined as
         // This is not a clawback operation
         let revocationTarget = undefined;
         // CloseReaminerTo is set to undefined as
@@ -1808,7 +1955,7 @@ const AlgodexApi = {
         let amount = 0;
 
         // signing and sending "txn" allows sender to begin accepting asset specified by creator and index
-        let logSigAssetOptInTrans = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo, 
+        let logSigAssetOptInTrans = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo,
             revocationTarget,
             amount, undefined, assetId, params);
 
@@ -1830,14 +1977,14 @@ const AlgodexApi = {
             unsignedTxn: assetSendTrans,
             needsUserSig: true
         });
-   
+
         unsignedTxns = [];
         for (let i = 0; i < outerTxns.length; i++) {
             unsignedTxns.push(outerTxns[i].unsignedTxn);
         }
         // Check if just coincidence that asa balance in question is Always at the top of the asset array, if it is then make function to filter relevant balance via assetId
         // Also look into modifying internal methods to have more consistent naming ex. (getAlgotoBuy and getAsaToSell would have same naming scheme of makerAccountInfo and EscrowAccountInfo)
-     
+
          unsignedTxns = dexInternal.formatTransactionsWithMetadata(unsignedTxns, makerWalletAddr, noteMetadata, "open", "asa")
          if (signAndSend) {
              if(!!walletConnector && walletConnector.connector.connected) {

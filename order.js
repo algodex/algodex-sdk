@@ -1,10 +1,115 @@
 const algodex = require('./index.js')
 const executeOrder = require('./executeOrder.js')
-const Big = require('big.js')
 const converter = require('./convert.js')
+const isUndefined = require('lodash').isUndefined
+/**
+ * Order Service
+ *
+ * Interface for placing Orders in Algodex
+ * Returns orderService object with necessary methods for order execution
+ *
+ * @param {Object}         AlgodClient: instance of AlgodClient needed for order Execution
+ * @param {Object}         order: the order that the user placed
+ * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
+ * @returns {Object}       Promise for when the order succeeds or fails?
+ */
+// function OrderService({sdk, config}) {
+//   if(typeof sdk !== 'undefined' && sdk instanceof AlgodexAPI){
+//     this.sdk = sdk
+//     if(typeof config !== 'undefined') this.sdk.setConfig(config)
+//   } else {
+//      this.sdk = new AlgodexAPI(config)
+//   }
+//   if(typeof this.sdk.wallets !== 'undefined' && !(this.sdk.wallets instanceof WalletService))
+//     throw new Error('Invalid Wallet Configuration')
+//   else if (typeof this.sdk.wallets !== 'undefined' && this.sdk.wallets instanceof WalletService)
+//     this.wallets = this.sdk.wallets
+//   else
+//     this.wallets = new WalletService(config)
+// }
 
 const OrderService = {
-  placeOrder: (AlgodClient, order, orderBook, walletConnection=undefined ) => {
+  constructor({config}){
+    if (!new.target) {
+      throw Error("Cannot be called without the new keyword");
+    }
+    // TODO: Check configuration
+    this.setClient(config)
+    this.emit = this.client.emit
+    this.on = this.client.on
+  },
+
+  setClient({client, ...config}){
+    const hasClient = !isUndefined(client)
+    if(hasClient && !(client instanceof algodex))
+      throw new Error('Invalid Client')
+    // TODO: Validate
+    this.client = hasClient ? client : new algodex(config)
+  },
+  /**
+   * Execute Wrapper
+   *
+   * Execute on an Order against the OrderBook
+   *
+   * Example Abstraction
+   * @param {Object} properties               Service Properties
+   * @param {Object} properties.order         The standard Order Object
+   * @param {Object} [properties.orders]      Optional list of Buy/Sell Orders
+   * @param {Object} [properties.config]      Configuration for SDK
+   * @returns {Promise<undefined|*[]>}
+   */
+  async placeOrder({order, orders: _orders, config}){
+    // Check we have a valid Order
+    if(typeof order === 'undefined')
+      throw new Error('Must have valid order')
+
+    // Configure SDK
+    if (typeof config !== 'undefined')
+      this.setClient(config)
+
+    // Ensure we have a wallet service
+    if(isUndefined(this.client.wallets) || !(this.client.wallets instanceof WalletService))
+      throw new Error('Invalid Wallet')
+
+    // Fetch Orders
+    let orders
+    if(typeof _orders === 'undefined'){
+      orders = await this.getOrders(order)
+    } else {
+      orders = _orders
+    }
+
+    const asaAmount = converter.convertToBaseUnits(order.amount, order.asset.decimals)
+    const algoAmount = converter.convertToBaseUnits(order.total)
+
+    const price = converter.convertToAsaUnits(order.price, order.asset.decimals)
+    const { n: numerator, d: denominator } = algodex.getNumeratorAndDenominatorFromPrice(price)
+
+    // Execute the Order
+    return this.client.executeOrder(
+        undefined,
+        order.type === 'sell',
+        order.assetId,
+        order.address,
+        price,
+        asaAmount,
+        algoAmount,
+        orders,
+        order.execute === 'maker',
+    )
+  },
+  getOrders(){
+
+  },
+  /**
+   *
+   * @param AlgodClient
+   * @param order
+   * @param orderBook
+   * @param walletConnection
+   * @returns {Promise<*>|Promise<undefined|*>|Promise<*[]|*>|Promise<*>}
+   */
+  placeOrderOriginal(AlgodClient, order, orderBook, walletConnection=undefined ){
 
     console.log('OrderService.placeOrder', { order })
     const assetId = order.asset.id
@@ -41,7 +146,7 @@ const OrderService = {
           price,
           assetId,
           asaAmount,
-          
+
         })
         return executeOrder.placeASAToSellASAOrderIntoOrderbook(
           AlgodClient,
@@ -58,7 +163,7 @@ const OrderService = {
 
     const isSellOrder = order.type === 'sell'
     const limitPrice = converter.convertToAsaUnits(order.price, order.asset.decimals)
- 
+
     const allOrderBookOrders = (Array.isArray(orderBook) || !orderBook) ? orderBook : OrderService.getAllEscrowOrders(orderBook)  //if orderbook is array then no need to concatenate. (experimental-next has dif orderbook structure)
     if (order.execution === 'taker') {
       console.log(`Taker ${order.type} order`, {
