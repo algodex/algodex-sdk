@@ -13,6 +13,7 @@ const Test = {
         console.log("creator account is: " + creatorAccount.addr);
         
         let outerTxns = await transactionGenerator.getCloseAlgoEscrowOrderTxns(client, creatorAccount, price, assetId, appId);
+
         if (returnOuterTransactions) {
             return outerTxns;
         }
@@ -22,7 +23,7 @@ const Test = {
         
         return true;
     },
-
+    
     getOuterTransactions: async function(config) {
         const outerTxns = await this.runTest(config, 1.2, true);
         return outerTxns;

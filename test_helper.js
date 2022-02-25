@@ -66,13 +66,15 @@ const TestHelper = {
     checkFailureType : function (error) {
         let hasKnownError = false;
 
-        if (error != null && error.response.body.message != null) {
+        if (error != null && error.response && error.response.body && error.response.body.message != null) {
             const msg = error.response.body.message;
             if (msg.includes("rejected by logic err=assert failed")) {
                 hasKnownError = true;
             } else if (msg.includes("TEAL runtime encountered err opcode")) {
                 hasKnownError = true;
             } else if (msg.includes("rejected by logic err=gtxn lookup TxnGroup") && msg.includes("but it only has") ) {
+                hasKnownError = true;
+            } else if (msg.includes("logic eval error: assert failed")) {
                 hasKnownError = true;
             } else {
                 throw("Unknown error type: " + msg);
@@ -150,6 +152,7 @@ const TestHelper = {
         await this.checkPending(client, txId);
     },
 
+    // Note: this function is currently not used and has not been run before.
     getOrderLsig : async function (algodClient, makerAccount, 
         price, assetId, isASAEscrow) {
 
@@ -202,11 +205,62 @@ const TestHelper = {
         try {
             await client.sendRawTransaction(signedTxn).do();
         } catch (e) {
-            console.log(JSON.stringify(e));
+            console.log({e});
         }
         await this.checkPending(client, fundTxnId);
     },
+    runNegativeTest : async function (config, client, outerTxns, negTestTxnConfig) {
+        console.log("STARTING runNegativeTest");
+        console.log({negTestTxnConfig});
 
+        const {txnNum, field, val, negTxn, innerNum, configKeyForVal, txnKeyForVal, txnNumForVal} = negTestTxnConfig;
+        const txn = outerTxns[txnNum];
+
+        const getVal = () => {
+            if (configKeyForVal !== undefined) {
+                console.log({configKeyForVal, config});
+                return config[configKeyForVal];
+            }
+            if (txnKeyForVal !== undefined) {
+                return outerTxns[txnNumForVal].unsignedTxn[txnKeyForVal];
+            }
+            return val;
+        }
+
+        if (!negTxn) {
+            if (innerNum === undefined) {
+                outerTxns[txnNum].unsignedTxn[field] = getVal();
+                if (txnKeyForVal === 'from' && field === 'from') {
+                    delete outerTxns[txnNum].lsig;
+                    delete outerTxns[txnNum].senderAcct;
+
+                    if (outerTxns[txnNumForVal].lsig !== undefined) {
+                        outerTxns[txnNum].lsig = outerTxns[txnNumForVal].lsig;
+                    }
+                    if (outerTxns[txnNumForVal].senderAcct !== undefined) {
+                        outerTxns[txnNum].senderAcct = outerTxns[txnNumForVal].senderAcct;
+                    }
+                }
+            } else {
+                outerTxns[txnNum].unsignedTxn[field][innerNum] = getVal();
+            }
+        } else {
+            outerTxns[txnNum] = negTxn;
+        }
+        //const t = outerTxns[0];
+        console.log({txn});
+
+        let signedTxns = this.groupAndSignTransactions(outerTxns);
+
+        try {
+            await this.sendAndCheckConfirmed(client, signedTxns);
+        } catch (e) {
+            // An exception is expected. Return true for success
+            return this.checkFailureType(e);
+        }
+        
+        return false;
+    },
     deleteApplication : async function deleteApplication (client, sender, appId) {
         // create unsigned transaction
         let params = await client.getTransactionParams().do();
@@ -221,7 +275,7 @@ const TestHelper = {
         try {
             await client.sendRawTransaction(signedTxn).do();
         } catch (e) {
-            console.log(JSON.stringify(e));
+            console.log({e});
         }
         // display results
         let transactionResponse = await client.pendingTransactionInformation(txId).do();
