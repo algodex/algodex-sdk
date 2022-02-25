@@ -165,7 +165,6 @@ const OrderService = {
     const limitPrice = converter.convertToAsaUnits(order.price, order.asset.decimals)
 
     const allOrderBookOrders = (Array.isArray(orderBook) || !orderBook) ? orderBook : OrderService.getAllEscrowOrders(orderBook)  //if orderbook is array then no need to concatenate. (experimental-next has dif orderbook structure)
-
     if (order.execution === 'taker') {
       console.log(`Taker ${order.type} order`, {
         isSellOrder,

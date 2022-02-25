@@ -1,4 +1,5 @@
 const algodex = require('./algodex_api.js')
+const signingApi = require('./signing_api.js');
 
 
 const ExecuteOrder = {
@@ -16,10 +17,24 @@ const ExecuteOrder = {
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-    executeOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId,
+    executeOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
-	return algodex.executeOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
-        takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+
+
+	const { params, allTransList } = await algodex.structureOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
+		takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+
+
+	if (!!walletConnector && walletConnector.connector.connected) {
+		const signedGroupTransactions = await signingApi.signWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient, signedGroupTransactions);
+		return confirmedWalletConnectArr;
+	} else {
+		const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(allTransList);
+		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
+		return confirmedMyAlgoWalletArr;
+	}
+
 
 },
 /**
@@ -37,13 +52,24 @@ const ExecuteOrder = {
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
-executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, assetId,
+
+executeMarketOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
 
 	const worstAcceptablePrice = isSellingASA_AsTakerOrder ? currentMarketPrice * (1 - tolerance) : currentMarketPrice * (1 + tolerance);
 
-	return algodex.executeMarketOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
-		takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+	const {params, allTransList} = await algodex.structureOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
+        takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
+
+	if(!!walletConnector && walletConnector.connector.connected) {
+		const signedGroupTransactions = await signingApi.signWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient,signedGroupTransactions) ;
+		return confirmedWalletConnectArr;
+	  } else {
+		  const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(allTransList );
+		  const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, singedGroupedTransactions);
+		  return confirmedMyAlgoWalletArr;
+	  }
 
 },
 
@@ -61,11 +87,22 @@ executeMarketOrderAsTaker: function(algodClient, isSellingASA_AsTakerOrder, asse
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
  */
 
-executeOrderAsMakerAndTaker: function(algodClient, isSellingASA, assetId,
+executeOrderAsMakerAndTaker: async function(algodClient, isSellingASA, assetId, 
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
-	return algodex.executeOrder(algodClient, isSellingASA, assetId,
-        userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
+	const { params, allTransList } = await algodex.structureOrder(algodClient, isSellingASA, assetId,
+		userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, true, walletConnector);
+
+	if (!!walletConnector && walletConnector.connector.connected) {
+		const signedGroupTransactions = await signingApi.signWalletConnectTransactions(algodClient, allTransList, params, walletConnector);
+		const confirmedWalletConnectArr = await signingApi.propogateTransactions(algodClient, signedGroupTransactions);
+		return confirmedWalletConnectArr;
+	} else {
+		const signedGroupedTransactions = await signingApi.signMyAlgoTransactions(allTransList);
+		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
+		return confirmedMyAlgoWalletArr;
+	}
+		
 
 },
 
@@ -85,7 +122,7 @@ closeOrderFromOrderBookEntry: algodex.closeOrderFromOrderBookEntry,
  */
 
 placeAlgosToBuyASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, walletConnector) {
-	return algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true, walletConnector);
+	return algodex.getPlaceAlgosToBuyASAOrderIntoOrderbookV2(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, true, walletConnector);
 },
 
 /**
@@ -101,7 +138,7 @@ placeAlgosToBuyASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, 
  */
 
 placeASAToSellASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, walletConnector) {
-	return algodex.getPlaceASAToSellASAOrderIntoOrderbook(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, true, walletConnector);
+	return algodex.getPlaceASAToSellASAOrderIntoOrderbookV2(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, true, walletConnector);
 },
 
 }

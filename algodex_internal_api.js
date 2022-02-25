@@ -8,12 +8,14 @@
 
 const http = require('http');
 const algosdk = require('algosdk');
+const signingApi = require('./signing_api.js')
 
 
 const BigN = require('js-big-decimal');
 const TextEncoder = require("text-encoding").TextEncoder;
 const axios = require('axios').default;
-const {formatJsonRpcRequest} = require("@json-rpc-tools/utils")
+const {formatJsonRpcRequest} = require("@json-rpc-tools/utils");
+const helperFuncs = require('./helperFunctions.js');
 
 const LESS_THAN = -1;
 const EQUAL = 0;
@@ -122,17 +124,8 @@ const AlgodexInternalApi = {
      * @returns {Promise<*[]>}
      */
     signAndSendWalletConnectTransactions: async function (algodClient, outerTxns, params, walletConnector) {
-        const groupBy = (items, key) => items.reduce(
-            (result, item) => ({
-                ...result,
-                [item[key]]: [
-                    ...(result[item[key]] || []),
-                    item,
-                ],
-            }),
-            {},
-        );
-        const groups = groupBy(outerTxns, "groupNum");
+  
+        const groups = helperFuncs.groupBy(outerTxns, "groupNum");
 
         let numberOfGroups = Object.keys(groups);
 
@@ -190,8 +183,8 @@ const AlgodexInternalApi = {
                 // If at beginning of new group, send last batch of transactions
                 if (orderedRawTransactions.length > 0) {
                     try {
-                        this.printTransactionDebug(orderedRawTransactions);
-
+                        helperFuncs.printTransactionDebug(orderedRawTransactions);
+                       
                         let txn = await algodClient.sendRawTransaction(orderedRawTransactions).do();
                         walletConnectSentTxn.push(txn.txId);
                         console.debug("sent: " + txn.txId);
@@ -211,7 +204,7 @@ const AlgodexInternalApi = {
                 // If at end of list send last batch of transactions
                 if (orderedRawTransactions.length > 0) {
                     try {
-                        this.printTransactionDebug(orderedRawTransactions);
+                        helperFuncs.printTransactionDebug(orderedRawTransactions);
                         const DO_SEND = true;
                         if (DO_SEND) {
 
@@ -326,11 +319,12 @@ const AlgodexInternalApi = {
             let lsig = await this.getLsigFromProgramSource(algosdk, algodClient, escrowSource,enableLsigLogging);
             if (!isASAEscrow) {
                 console.debug("NOT asa escrow");
-                return await this.getExecuteAlgoOrderTxnsAsTaker(orderBookEscrowEntry, algodClient
+                return await this.getExecuteAlgoOrderTxnsAsTakerV2(orderBookEscrowEntry, algodClient
                     ,lsig, takerCombOrderBalance, params, walletConnector);
             } else {
                 console.debug("asa escrow");
-                return await this.getExecuteASAOrderTxns(orderBookEscrowEntry, algodClient,
+               
+                return await this.getExecuteASAOrderTxnsV2(orderBookEscrowEntry, algodClient, 
                     lsig, takerCombOrderBalance, params, walletConnector);
             }
     },
@@ -438,6 +432,270 @@ const AlgodexInternalApi = {
             'closeoutFromASABalance': closeoutFromASABalance
         }
     },
+    getExecuteASAOrderTxnsV2: async function (orderBookEscrowEntry, algodClient,
+        lsig, takerCombOrderBalance, params, walletConnector) {
+        console.debug("inside executeASAOrder!", this.dumpVar(takerCombOrderBalance));
+        console.debug("orderBookEscrowEntry ", this.dumpVar(orderBookEscrowEntry));
+        try {
+            let retTxns = [];
+            let appAccts = [];
+
+            const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
+            const orderBookEntry = orderBookEscrowEntry['orderEntry'];
+            const appId = ASA_ESCROW_ORDER_BOOK_ID;
+            const takerAddr = takerCombOrderBalance['takerAddr'];
+
+            const assetId = orderBookEscrowEntry['assetId'];
+
+            appAccts.push(orderCreatorAddr);
+            appAccts.push(takerAddr);
+
+            let closeRemainderTo = undefined;
+
+            const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
+
+            const { algoTradeAmount, escrowAsaTradeAmount, executionFees,
+                closeoutFromASABalance: initialCloseoutFromASABalance } =
+                this.getExecuteASAOrderTakerTxnAmounts(takerCombOrderBalance, orderBookEscrowEntry);
+
+            if (algoTradeAmount == 0) {
+                console.debug("nothing to do, returning early");
+                return null;
+            }
+
+            let closeoutFromASABalance = initialCloseoutFromASABalance;
+            console.debug('closeoutFromASABalance here111: ' + closeoutFromASABalance);
+            if (orderBookEscrowEntry.useForceShouldCloseOrNot) {
+                closeoutFromASABalance = orderBookEscrowEntry.forceShouldClose;
+                console.debug('closeoutFromASABalance here222: ' + closeoutFromASABalance);
+            }
+
+            takerCombOrderBalance['algoBalance'] -= executionFees;
+            takerCombOrderBalance['algoBalance'] -= algoTradeAmount;
+            takerCombOrderBalance['walletAlgoBalance'] -= executionFees;
+            takerCombOrderBalance['walletAlgoBalance'] -= algoTradeAmount;
+
+            takerCombOrderBalance['asaBalance'] += escrowAsaTradeAmount;
+            takerCombOrderBalance['walletASABalance'] += escrowAsaTradeAmount;
+            console.debug("ASA here110 algoAmount asaAmount txnFee takerOrderBalance: ", algoTradeAmount,
+                escrowAsaTradeAmount, executionFees, this.dumpVar(takerCombOrderBalance));
+
+            console.debug("receiving ASA " + escrowAsaTradeAmount + " from  " + lsig.address());
+            console.debug("sending ALGO amount " + algoTradeAmount + " to " + orderCreatorAddr);
+
+            if (closeoutFromASABalance == true) {
+                // only closeout if there are no more ASA in the account
+                console.debug('closeoutFromASABalance here333: ' + closeoutFromASABalance);
+                closeRemainderTo = orderCreatorAddr;
+            }
+            let transaction1 = null;
+            let appCallType = null;
+
+            if (closeRemainderTo == undefined) {
+                appCallType = "execute";
+            } else {
+                appCallType = "execute_with_closeout";
+            }
+
+            let appArgs = [];
+            var enc = new TextEncoder();
+            appArgs.push(enc.encode(appCallType));
+            appArgs.push(enc.encode(orderBookEntry));
+
+            if (orderBookEscrowEntry.txnNum != null) {
+                //uniquify this transaction even if this arg isn't used
+                appArgs.push(enc.encode(orderBookEscrowEntry.txnNum));
+            }
+
+            // appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+            //appArgs.push(enc.encode(assetId));
+
+            console.debug(appArgs.length);
+
+
+            if (closeRemainderTo == undefined) {
+                transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
+
+            } else {
+                transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts, [0], [assetId]);
+
+            }
+
+
+            console.debug("app call type is: " + appCallType);
+
+            let fixedTxn2 = {
+                type: 'pay',
+                from: takerAddr,
+                to: orderCreatorAddr,
+                amount: algoTradeAmount,
+                ...params
+            };
+            // ***      
+            const takerAlreadyOptedIntoASA = takerCombOrderBalance.takerIsOptedIn;
+            console.debug({ takerAlreadyOptedIntoASA });
+
+            // asset opt-in transfer
+            let transaction2b = null;
+
+            if (!takerAlreadyOptedIntoASA) {
+                transaction2b = {
+                    type: "axfer",
+                    from: takerAddr,
+                    to: takerAddr,
+                    amount: 0,
+                    assetIndex: assetId,
+                    ...params
+                };
+            }
+
+            // Make asset xfer
+
+            // Asset transfer from escrow account to order executor
+            let transaction3 = algosdk.makeAssetTransferTxnWithSuggestedParams(lsig.address(), takerAddr, closeRemainderTo, undefined,
+                escrowAsaTradeAmount, undefined, assetId, params);
+
+
+
+            let transaction4 = null;
+            if (closeRemainderTo != undefined) {
+                // Make payment tx signed with lsig back to owner creator
+                console.debug("making transaction4 due to closeRemainderTo");
+                transaction4 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), orderCreatorAddr, 0, orderCreatorAddr,
+                    undefined, params);
+            } else {
+                // Make fee refund transaction
+                transaction4 = {
+                    type: 'pay',
+                    from: takerAddr,
+                    to: lsig.address(),
+                    amount: refundFees,
+                    ...params
+                };
+            }
+
+            myAlgoWalletUtil.setTransactionFee(fixedTxn2);
+
+            if (transaction2b != null) {
+                myAlgoWalletUtil.setTransactionFee(transaction2b);
+            }
+
+
+            let txns = [];
+            txns.push(transaction1);
+            txns.push(fixedTxn2);
+            if (transaction2b != null) {
+                console.debug("adding transaction2b due to asset not being opted in");
+                txns.push(transaction2b);
+            } else {
+                console.debug("NOT adding transaction2b because already opted");
+            }
+            txns.push(transaction3);
+            txns.push(transaction4);
+
+            if (closeRemainderTo != undefined) {
+                txns = this.formatTransactionsWithMetadata(txns, takerAddr, orderBookEscrowEntry, 'execute_full', 'asa')
+            } else {
+                txns = this.formatTransactionsWithMetadata(txns, takerAddr, orderBookEscrowEntry, 'execute_partial', 'asa')
+
+            }
+
+
+
+            // it goes by reference so modifying array affects individual objects and vice versa 
+
+            if (!!walletConnector && walletConnector.connector.connected) {
+                retTxns.push({
+                    'unsignedTxn': transaction1,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': fixedTxn2,
+                    'needsUserSig': true,
+                    amount: fixedTxn2.amount,
+                    txType: "algo",
+                });
+
+                if (transaction2b != null) {
+                    retTxns.push({
+                        'unsignedTxn': transaction2b,
+                        'needsUserSig': true
+                    });
+                }
+                retTxns.push({
+                    'unsignedTxn': transaction3,
+                    amount: escrowAsaTradeAmount,
+                    txType: "asa",
+                    'lsig': lsig
+                });
+
+                if (closeRemainderTo != undefined) {
+
+                    retTxns.push({
+                        'unsignedTxn': transaction4,
+                        'lsig': lsig
+                    })
+                } else {
+                    retTxns.push({
+                        'unsignedTxn': transaction4,
+                        'needsUserSig': true
+                    });
+
+                }
+
+                return retTxns
+
+            }
+
+            retTxns.push({
+                    'unsignedTxn': transaction1,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': fixedTxn2,
+                    'needsUserSig': true,
+                    amount: fixedTxn2.amount,
+                    txType: "algo",
+                });
+
+                if (transaction2b != null) {
+                    retTxns.push({
+                        'unsignedTxn': transaction2b,
+                        'needsUserSig': true
+                    });
+                }
+                retTxns.push({
+                    'unsignedTxn': transaction3,
+                    amount: escrowAsaTradeAmount,
+                    txType: "asa",
+                    'lsig': lsig
+                });
+
+                if (closeRemainderTo != undefined) {
+
+                    retTxns.push({
+                        'unsignedTxn': transaction4,
+                        'lsig': lsig
+                    })
+                } else {
+                    retTxns.push({
+                        'unsignedTxn': transaction4,
+                        'needsUserSig': true
+                    });
+
+                }
+
+            return retTxns;
+        } catch (e) {
+            console.debug(e);
+            if (e.text != undefined) {
+                alert(e.text);
+            } else {
+                alert(e);
+            }
+        }
+    },
+    
 
     /**
      *
@@ -838,7 +1096,7 @@ const AlgodexInternalApi = {
             }
 
             console.debug("almost final ASA amount: " + asaAmount.getValue());
-
+            
             // These are expected to be integers now
             algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
             asaAmount = parseInt(asaAmount.getValue());
@@ -851,6 +1109,210 @@ const AlgodexInternalApi = {
                 'txnFee': txnFee
             }
     },
+
+    getExecuteAlgoOrderTxnsAsTakerV2 : 
+    async function (orderBookEscrowEntry, algodClient, lsig,
+                takerCombOrderBalance, params, walletConnector) {
+    try {
+        console.debug("in getExecuteAlgoOrderTxnsAsTaker");
+        console.debug("orderBookEscrowEntry, algodClient, takerCombOrderBalance",
+        this.dumpVar(orderBookEscrowEntry), algodClient,
+                    takerCombOrderBalance);
+
+        const orderCreatorAddr = orderBookEscrowEntry['orderCreatorAddr'];
+        const orderBookEntry = orderBookEscrowEntry['orderEntry'];
+        const appId = ALGO_ESCROW_ORDER_BOOK_ID;
+        const currentEscrowAlgoBalance = orderBookEscrowEntry['algoBalance'];
+        const assetId = orderBookEscrowEntry['assetId'];
+        const takerAddr = takerCombOrderBalance['takerAddr'];
+
+        console.debug("assetid: " + assetId);
+
+        let retTxns = [];
+        let appArgs = [];
+        var enc = new TextEncoder();
+
+        let appAccts = [];
+        appAccts.push(orderCreatorAddr);
+        appAccts.push(takerAddr);
+        // Call stateful contract
+
+        let closeRemainderTo = undefined;
+        const refundFees = 0.002 * 1000000; // fees refunded to escrow in case of partial execution
+
+        const {algoAmountReceiving, asaAmountSending, txnFee} = 
+                this.getExecuteAlgoOrderTakerTxnAmounts(orderBookEscrowEntry, takerCombOrderBalance);
+
+        if (algoAmountReceiving == 0) {
+            console.debug("algoAmountReceiving is 0, nothing to do, returning early");
+            return null;
+        }
+
+        takerCombOrderBalance['algoBalance'] -= txnFee;
+        takerCombOrderBalance['algoBalance'] += algoAmountReceiving;
+        takerCombOrderBalance['asaBalance'] -= asaAmountSending;
+        console.debug("here11 algoAmount asaAmount txnFee takerOrderBalance: ", algoAmountReceiving,
+                    asaAmountSending, txnFee, this.dumpVar(takerCombOrderBalance));
+
+        console.debug("receiving " + algoAmountReceiving + " from  " + lsig.address());
+        console.debug("sending ASA amount " + asaAmountSending + " to " + orderCreatorAddr);
+        if (currentEscrowAlgoBalance - algoAmountReceiving < constants.MIN_ESCROW_BALANCE) {
+            closeRemainderTo = orderCreatorAddr;
+        }
+        if (orderBookEscrowEntry.useForceShouldCloseOrNot) {
+            if (orderBookEscrowEntry.forceShouldClose === true) {
+                closeRemainderTo = orderCreatorAddr;
+            } else {
+                closeRemainderTo = undefined;
+            }
+        }
+        let appCallType = null;
+        if (closeRemainderTo == undefined) {
+            appCallType = "execute";
+        } else {
+            appCallType = "execute_with_closeout";
+        }
+        console.debug("arg1: " + appCallType);
+        console.debug("arg2: " + orderBookEntry);
+        
+        appArgs.push(enc.encode(appCallType));
+        appArgs.push(enc.encode(orderBookEntry));
+        if (orderBookEscrowEntry.txnNum != null) {
+            //uniquify this transaction even if this arg isn't used
+            appArgs.push(enc.encode(orderBookEscrowEntry.txnNum));
+        }
+        // appArgs.push(algosdk.decodeAddress(orderCreatorAddr).publicKey);
+        console.debug(appArgs.length);
+
+        let transaction1 = null;
+
+        if (closeRemainderTo == undefined) {
+            transaction1 = algosdk.makeApplicationNoOpTxn(lsig.address(), params, appId, appArgs, appAccts);
+        } else {
+            transaction1 = algosdk.makeApplicationCloseOutTxn(lsig.address(), params, appId, appArgs, appAccts);
+        }
+
+        // Make payment tx signed with lsig
+        let transaction2 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), takerAddr, algoAmountReceiving, closeRemainderTo, undefined, params);
+        // Make asset xfer
+
+        const transaction3 = {
+            type: "axfer",
+            from: takerAddr,
+            to: orderCreatorAddr,
+            amount: asaAmountSending,
+            assetIndex: assetId,
+            ...params
+        };
+
+        let transaction4 = null;
+
+        if (closeRemainderTo == undefined) {
+            // create refund transaction for fees
+            transaction4 = {
+                    type: 'pay',
+                    from: takerAddr,
+                    to:  lsig.address(),
+                    amount: refundFees,
+                    ...params
+            };
+        }
+
+      //  delete fixedTxn1.note;
+        delete transaction3.note;
+        //delete fixedTxn1.lease;
+        delete transaction3.lease;
+        delete transaction3.appArgs;
+        
+        //myAlgoWalletUtil.setTransactionFee(fixedTxn1);
+        myAlgoWalletUtil.setTransactionFee(transaction3);
+
+        let txns = [transaction1, transaction2, transaction3];
+        if (transaction4 != null) {
+            txns.push(transaction4);
+        }
+
+        if (closeRemainderTo ==undefined) {
+            txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_partial', 'algo')
+
+        } else {
+            txns = this.formatTransactionsWithMetadata(txns,  takerAddr, orderBookEscrowEntry, 'execute_full', 'algo')
+        }
+       
+        //algosdk.assignGroupID(txns);
+
+        if (!!walletConnector && walletConnector.connector.connected) {
+            retTxns.push({
+                'unsignedTxn': transaction1,
+                'lsig': lsig
+            });
+            retTxns.push({
+                'unsignedTxn': transaction2,
+                'amount': transaction2.amount,
+                'lsig': lsig,
+                'txType': "algo",
+            });
+
+           
+            retTxns.push({
+                'unsignedTxn': transaction3,
+                'needsUserSig': true,
+                'amount': transaction3.amount,
+                'txType': "asa",
+                'lsig': lsig
+            });
+
+            if (transaction4) {
+
+                retTxns.push({
+                    'unsignedTxn': transaction4,
+                    'needsUserSig': true
+                });
+            }
+            return retTxns
+        }
+
+        retTxns.push({
+            'unsignedTxn': transaction1,
+            'lsig': lsig
+        });
+        retTxns.push({
+            'unsignedTxn': transaction2,
+            'amount': transaction2.amount,
+            'lsig': lsig,
+            'txType': "algo",
+        });
+            console.debug("almost final ASA amount: " + asaAmount.getValue());
+
+            // These are expected to be integers now
+            algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
+            asaAmount = parseInt(asaAmount.getValue());
+
+        retTxns.push({
+            'unsignedTxn': transaction3,
+            'needsUserSig': true,
+            'amount': transaction3.amount,
+            'txType': "asa",
+            'lsig': lsig
+        });
+
+        if (transaction4) {
+
+            retTxns.push({
+                'unsignedTxn': transaction4,
+                'needsUserSig': true
+            });
+        }
+        return retTxns;
+    } catch (e) {
+        console.debug(e);
+        if (e.text != undefined) {
+            alert(e.text);
+        } else {
+            alert(e);
+        }
+    }
+},
 
     /**
      * Get Execute Algo Order TXN as Taker
@@ -1029,6 +1491,7 @@ const AlgodexInternalApi = {
                 return retTxns
 
             }
+            // have it return retTxns here to avoid signing of Lsigs
 
             const groupID = algosdk.computeGroupID(txns);
             for (let i = 0; i < txns.length; i++) {
@@ -1121,6 +1584,103 @@ const AlgodexInternalApi = {
 
         //console.debug("queued orders: ", this.dumpVar(queuedOrders));
         return queuedOrders;
+    },
+    closeASAOrderV2 : async function(algodClient, escrowAddr, creatorAddr, index, appArgs, lsig, assetId, metadata, walletConnector) {
+        console.debug("closing asa order!!!");
+
+        try {
+            // get node suggested parameters
+            let params = await algodClient.getTransactionParams().do();
+
+            // create unsigned transaction
+            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, index, appArgs)
+            let txId = txn.txID().toString();
+            // Submit the transaction
+
+            // create optin transaction
+            // sender and receiver are both the same
+            let sender = lsig.address();
+            let recipient = creatorAddr;
+            // We set revocationTarget to undefined as 
+            // This is not a clawback operation
+            let revocationTarget = undefined;
+            // CloseReaminerTo is set to undefined as
+            // we are not closing out an asset
+            let closeRemainderTo = creatorAddr;
+            // We are sending 0 assets
+            let amount = 0;
+
+            // signing and sending "txn" allows sender to begin accepting asset specified by creator and index
+            let txn2 = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo, revocationTarget,
+                amount, undefined, assetId, params);
+
+            // Make payment tx signed with lsig
+            let txn3 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr, 
+                    undefined, params);
+
+            let txn4 = {
+                    type: 'pay',
+                    from: creatorAddr,
+                    to:  creatorAddr,
+                    amount: 0,
+                    ...params
+                };
+
+            let txns = [txn, txn2, txn3, txn4];
+            
+
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance:(makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
+                assetId: assetId, 
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'asa');
+
+            
+                let retTxns = []
+                retTxns.push({
+                    'unsignedTxn': txn,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': txn2,
+                    'lsig' : lsig,   
+                });
+
+               
+                retTxns.push({
+                    'unsignedTxn': txn3,
+                    'lsig': lsig
+                });
+
+                retTxns.push({
+                    'unsignedTxn': txn4,
+                    'needsUserSig': true
+                });
+            if (!!walletConnector && walletConnector.connector.connected) {
+
+                const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+
+            } else {
+                const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(retTxns)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+            }
+        } catch (e) {
+            throw e;
+        }
     },
 
     /**
@@ -1221,8 +1781,9 @@ const AlgodexInternalApi = {
                     'needsUserSig': true
                 });
 
-                return await this.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
-
+                const singedGroupedTransactions=  await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+               
             }
 
             const groupID = algosdk.computeGroupID(txns);
@@ -1255,13 +1816,13 @@ const AlgodexInternalApi = {
             signed.push(signedTx2.blob);
             signed.push(signedTx3.blob);
             signed.push(signedTx4.blob);
-            this.printTransactionDebug(signed);
+            helperFuncs.printTransactionDebug(signed);
 
             //console.debug(Buffer.concat(signed.map(txn => Buffer.from(txn))).toString('base64'));
             let tx = await algodClient.sendRawTransaction(signed).do();
             console.debug(tx.txId);
 
-            const confirmation = await this.waitForConfirmation(tx.txId);
+            const confirmation = await helperFuncs.waitForConfirmation(tx.txId);
             // display results
             console.debug({confirmation});
             return confirmation;
@@ -1308,28 +1869,110 @@ const AlgodexInternalApi = {
         }
 
     },
-    /**
-     *
-     * @param algodClient
-     * @param escrowAddr
-     * @param creatorAddr
-     * @param appIndex
-     * @param appArgs
-     * @param lsig
-     * @param metadata
-     * @param walletConnector
-     * @returns {Promise<{statusMsg: string, txId: String, transaction: *, status: string}|{statusMsg: string, txId: String, transaction: *, status: string}|*[]>}
-     */
+   /**
+    *
+    * @param algodClient
+    * @param escrowAddr
+    * @param creatorAddr
+    * @param appIndex
+    * @param appArgs
+    * @param lsig
+    * @param metadata
+    * @param walletConnector
+    * @returns {Promise<{statusMsg: string, txId: String, transaction: *, status: string}|{statusMsg: string, txId: String, transaction: *, status: string}|*[]>}
+    */ 
+    closeOrderV2 : async function(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata, walletConnector) {
+        let accountInfo = await this.getAccountInfo(lsig.address());
+        let alreadyOptedIn = false;
+        if (accountInfo != null && accountInfo['assets'] != null
+            && accountInfo['assets'].length > 0 && accountInfo['assets'][0] != null) {
+            await this.closeASAOrderV2(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata, walletConnector);
+            return;
+        }
+
+        try {
+            // get node suggested parameters
+            let params = await algodClient.getTransactionParams().do();
+
+            // create unsigned transaction
+            let txn = algosdk.makeApplicationClearStateTxn(lsig.address(), params, appIndex, appArgs)
+            let txId = txn.txID().toString();
+            // Submit the transaction
+
+            // Make payment tx signed with lsig
+            let txn2 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr, undefined, params);
+           
+            let txn3 = {
+                    type: 'pay',
+                    from: creatorAddr,
+                    to:  creatorAddr,
+                    amount: 0,
+                    ...params
+                };
+
+            myAlgoWalletUtil.setTransactionFee(txn3);
+
+            let txns = [txn, txn2, txn3];
+            let makerAccountInfo = await this.getAccountInfo(creatorAddr)
+            let escrowAccountInfo = await this.getAccountInfo(escrowAddr)
+
+            let noteMetadata = { 
+                algoBalance: makerAccountInfo.amount,
+                asaBalance: (makerAccountInfo.assets && makerAccountInfo.assets.length > 0) ? makerAccountInfo.assets[0].amount : 0,
+                n: metadata.n, 
+                d: metadata.d, 
+                orderEntry: metadata.orderBookEntry,
+                assetId:0,
+                version: metadata.version,
+                escrowAddr: escrowAccountInfo.address,
+                escrowOrderType:"close",
+                txType: "close",
+                isASAescrow: true,
+             }
+            
+            txns = this.formatTransactionsWithMetadata(txns,  creatorAddr, noteMetadata, 'close', 'algo');
+
+            
+                let retTxns = []
+                retTxns.push({
+                    'unsignedTxn': txn,
+                    'lsig': lsig
+                });
+                retTxns.push({
+                    'unsignedTxn': txn2,
+                    'lsig' : lsig,   
+                });
+
+                retTxns.push({
+                    'unsignedTxn': txn3,
+                    'needsUserSig': true
+                });
+            if (!!walletConnector && walletConnector.connector.connected) {
+
+                const singedGroupedTransactions = await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+            } else {
+                const singedGroupedTransactions = await signingApi.signMyAlgoTransactions(retTxns)
+
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+
+            }
+    
+        } catch (e) {
+            throw e;
+        }
+    },
+    
+    // close order 
     closeOrder : async function closeOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig, metadata, walletConnector) {
         let accountInfo = await this.getAccountInfo(lsig.address());
         let alreadyOptedIn = false;
         if (accountInfo != null && accountInfo['assets'] != null
             && accountInfo['assets'].length > 0 && accountInfo['assets'][0] != null) {
-            await closeASAOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig);
+            await this.closeASAOrder(algodClient, escrowAddr, creatorAddr, appIndex, appArgs, lsig);
             return;
         }
-
-
         try {
             // get node suggested parameters
             let params = await algodClient.getTransactionParams().do();
@@ -1388,8 +2031,10 @@ const AlgodexInternalApi = {
                     'needsUserSig': true
                 });
 
-                return await this.signAndSendWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
-            }
+                const singedGroupedTransactions=  await signingApi.signWalletConnectTransactions(algodClient, retTxns, params, walletConnector)
+             
+                return await signingApi.propogateTransactions(algodClient, singedGroupedTransactions)
+            } 
             const groupID = algosdk.computeGroupID(txns)
             for (let i = 0; i < txns.length; i++) {
                 txns[i].group = groupID;
@@ -1414,12 +2059,12 @@ const AlgodexInternalApi = {
             signed.push(signedTx.blob);
             signed.push(signedTx2.blob);
             signed.push(signedTx3.blob);
-
-            this.printTransactionDebug(signed);
+           
+            helperFuncs.printTransactionDebug(signed);
 
             //console.debug(Buffer.concat(signed.map(txn => Buffer.from(txn))).toString('base64'));
             let tx = await algodClient.sendRawTransaction(signed).do();
-            const confirmation = await this.waitForConfirmation(tx.txId);
+            const confirmation = await helperFuncs.waitForConfirmation(tx.txId);
             // display results
             console.debug({confirmation});
             return confirmation;
@@ -1428,97 +2073,88 @@ const AlgodexInternalApi = {
         }
     },
 
-    /**
-     * Wait for a transaction to be confirmed into the blockchain
-     * @param   {String} txId transaction ID
-     * @returns {Object} Promise for when the transaction is complete
-     */
-    waitForConfirmation : async (txId) => {
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+    // Wait for a transaction to be confirmed
+    // waitForConfirmation : async (txId) => {
+    //     function sleep(ms) {
+    //         return new Promise(resolve => setTimeout(resolve, ms));
+    //     }
 
-        const maxLoops = 25;
-        let loopCount = 0;
+    //     const maxLoops = 25;
+    //     let loopCount = 0;
 
-        while (loopCount < maxLoops) {
-            // Check the pending transactions
-            let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
-            let response = null;
-            let isError = false;
+    //     while (loopCount < maxLoops) {
+    //         // Check the pending transactions
+    //         let port = (!!ALGOD_INDEXER_PORT) ? ':' + ALGOD_INDEXER_PORT : '';
+    //         let response = null;
+    //         let isError = false;
 
-            try {
-                response = await axios.get(ALGOD_INDEXER_SERVER + port +
-                    "/v2/transactions/"+txId, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
+    //         try {
+    //             response = await axios.get(ALGOD_INDEXER_SERVER + port + 
+    //                 "/v2/transactions/"+txId, {headers: {'X-Algo-API-Token': ALGOD_INDEXER_TOKEN}});
 
-            } catch (e) {
-                isError = true;
-            }
-            if (response == null || response.data == null || response.data.transaction == null) {
-                isError = true;
-            }
+    //         } catch (e) {
+    //             isError = true;
+    //         }
+    //         if (response == null || response.data == null || response.data.transaction == null) {
+    //             isError = true;
+    //         }
 
-            if (!isError) {
-                const txnInfo = response.data.transaction;
+    //         if (!isError) {
+    //             const txnInfo = response.data.transaction;
+              
+    //             if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
+    //                 // Got the completed Transaction
+    //                 console.debug(`Transaction ${txId} confirmed in round ${txnInfo["confirmed-round"]}`);
+    //                 return {
+    //                     txId,
+    //                     status: "confirmed",
+    //                     statusMsg: `Transaction confirmed in round ${txnInfo["confirmed-round"]}`,
+    //                     transaction: txnInfo
+    //                 };
+    //             }
+    //             if (txnInfo["pool-error"] !== null && txnInfo["pool-error"].length > 0) {
+    //                 // transaction has been rejected
+    //                 return {
+    //                     txId,
+    //                     status: "rejected",
+    //                     statusMsg: 'Transaction rejected due to pool error',
+    //                     transaction: txnInfo
+    //                 };
+    //             }
 
-                if (txnInfo["confirmed-round"] !== null && txnInfo["confirmed-round"] > 0) {
-                    // Got the completed Transaction
-                    console.debug(`Transaction ${txId} confirmed in round ${txnInfo["confirmed-round"]}`);
-                    return {
-                        txId,
-                        status: "confirmed",
-                        statusMsg: `Transaction confirmed in round ${txnInfo["confirmed-round"]}`,
-                        transaction: txnInfo
-                    };
-                }
-                if (txnInfo["pool-error"] !== null && txnInfo["pool-error"].length > 0) {
-                    // transaction has been rejected
-                    return {
-                        txId,
-                        status: "rejected",
-                        statusMsg: 'Transaction rejected due to pool error',
-                        transaction: txnInfo
-                    };
-                }
+    //         }
 
-            }
+    //         await sleep(1000); // sleep a second
+    //         loopCount++;
+    //     }
 
-            await sleep(1000); // sleep a second
-            loopCount++;
-        }
+    //     throw new Error(`Transaction ${txId} timed out`);
+    // },
 
-        throw new Error(`Transaction ${txId} timed out`);
-    },
-    /**
-     * Prints out base64 for transactions for use in debugging with algod and tealdbg
-     *
-     * @param   {Uint8Array[]} signedTxns array of Uint8Array structures that contain signed transactions
-     * @returns {String} base64 encoded transactions
-     */
-    printTransactionDebug : function printTransactionDebug(signedTxns) {
-        console.debug('zzTxnGroup to debug:');
-        const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
+    // printTransactionDebug : function printTransactionDebug(signedTxns) {
+    //     console.debug('zzTxnGroup to debug:');
+    //     const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
 
-        console.debug(b64_encoded);
-        //console.debug("DEBUG_SMART_CONTRACT_SOURCE: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
-        if (constants.DEBUG_SMART_CONTRACT_SOURCE == 1 && constants.INFO_SERVER != "") {
-            (async() => {
-                try {
-                    console.debug("trying to inspect");
-                    const response = await axios.post(constants.INFO_SERVER +  '/inspect/unpack', {
-
-                            msgpack: b64_encoded,
-                            responseType: 'text/plain',
-                        },
-                    );
-                    console.debug(response.data);
-                    return response.data;
-                } catch (error) {
-                    console.error("Could not print out transaction details: " + error);
-                }
-            })();
-        }
-    },
+    //     console.debug(b64_encoded);
+    //     //console.debug("DEBUG_SMART_CONTRACT_SOURCE: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
+    //     if (constants.DEBUG_SMART_CONTRACT_SOURCE == 1 && constants.INFO_SERVER != "") {
+    //         (async() => {
+    //             try {
+    //                 console.debug("trying to inspect");
+    //                 const response = await axios.post(constants.INFO_SERVER +  '/inspect/unpack', {
+                    
+    //                         msgpack: b64_encoded,
+    //                         responseType: 'text/plain',
+    //                     },
+    //                 );
+    //                 console.debug(response.data);
+    //                 return response.data;
+    //             } catch (error) {
+    //                 console.error("Could not print out transaction details: " + error);
+    //             }
+    //         })();
+    //     }
+    // },
 
     /**
      *
