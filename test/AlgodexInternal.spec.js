@@ -14,7 +14,7 @@ let token = CONSTANTS.TEST_ALGOD_TOKEN;
 let emptyWallet = 'KDGKRDPA7KQBBJWF2JPQGKAM6JDO43JWZAK3SJOW25DAXNQBLRB3SKRULA'
 const JEST_MINUTE_TIMEOUT = 60 * 1000
 
-const internalHelpers = require('./integration_tests/AlgodexInternal.js')
+const internalTests = require('./integration_tests/AlgodexInternal.js')
 
 
 const ALGO_ESCROW_ORDER_BOOK_ID = 18988007;
@@ -30,19 +30,12 @@ const config = {
    assetId: 66711302,
  };
 
- 
- 
-
-//  beforeEach(async () => {
-//    const lsig = await internalHelpers.lsig(config, 2000, false)
-//  });
 
 test('imported algodex is an object', () => {
    expect(typeof algodex).toBe('object');
 });
 
 test('setAlgodServer properly sets', () => {
-
    let response = algodex.setAlgodServer('test')
 
 });
@@ -106,10 +99,10 @@ test('getQueuedTakerOrders function', async () => {
    
 })
 
-test('initSmartContract', () => {
-   jest.spyOn(algodexApi, "initSmartContracts").mockReturnValue('d')
-   expect(algodexApi.initSmartContracts(-1, -1)).toBe('d')
-});
+// test('initSmartContract', () => {
+//    jest.spyOn(algodexApi, "initSmartContracts").mockReturnValue('d')
+//    expect(algodexApi.initSmartContracts(-1, -1)).toBe('d')
+// });
 
 test('initAlgodClient properly sets', () => {
    let algodServer = CONSTANTS.LOCAL_ALGOD_SERVER;
@@ -120,90 +113,22 @@ test('initAlgodClient properly sets', () => {
 });
 
 test('createTransactionFromLsig', async () => {
-   let client= config.client
-   const lsig = await internalHelpers.lsig(config, 2000, false)
+   let response = await internalTests.createTransactionFromLsig(config, 2000, false)
+   expect(response).toBeTruthy()
 
-
-   let generatedOrderEntry= algodexApi.generateOrder(config.creatorAccount.addr , 1, 2000, 0, config.assetId, true)
-   let appArgs = [];
-   var enc = new TextEncoder();
-   appArgs.push(enc.encode("open"));
-
-   appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
-   appArgs.push(new Uint8Array([CONSTANTS.ESCROW_CONTRACT_VERSION]));
-   // let lsig = await testHelper.getOrderLsig(client, config.creatorAccount, 2000, config.assetId, false )
-   expect(lsig.address()).toBe('')
-   
-   // let txnFromLsig = await algodex.createTransactionFromLogicSig(config.client, lsig, config.appId, appArgs, 'appOptIn')
-   // console.log(txnFromLsig)
-   
-
-})
+}, JEST_MINUTE_TIMEOUT)
 
 // test(' getLsigFromProgramSource', async () => {
 
 // })
 
-// test(' formatTransactionWithMetaData', async () => {
+test(' formatTransactionWithMetaData', async () => {
 
-//    let accountInfo = await algodex.getAccountInfo(testWallet);
-//    let noteMetadata = { 
-//       algoBalance: accountInfo.amount,
-//       asaBalance: (accountInfo.assets && accountInfo.assets.length > 0) ? accountInfo.assets[0].amount : 0,
-//       n: 1, 
-//       d: 2, 
-//       orderEntry: {assetId: 15322902 },
-//       assetId:15322902,
-//       version: 2,
-//       escrowAddr: 'DKGKRDPA7KQBBJWF2JPQGKAM6JDO43JWZAK3SJOW25DAXNQBLRB3SKRULA',
-//       escrowOrderType:"close",
-//       txType: "close",
-//       isASAescrow: true,
-//    }
-  
-
-//    let algodClient = new algosdk.Algodv2(token, algodServer, port)
-//    let payTxn = await transactionGenerator.getPlaceASAEscrowOrderTxns(algodClient, testWallet, 1, 2, 15322902, 10, true)
-//    // maybe mock getLsigFromProgramSource since its imported from AlgodexApi
-//    console.debug(payTxn)
-//    let formattedTxn = algodex.formatTransactionsWithMetadata(payTxn, testWallet, noteMetadata, 'close', 'asa');
-//    console.debug(formattedTxn)
-//    expect(payTxn).toBe(false)
+  let result = await internalTests.formatMetaData(config)
+  expect(result).toBeTruthy()
 
 
 
 
-// })
+})
 
-
-
-// test('getTransactionFromLsig function', async () => {
-//    jest.spyOn(algodexApi, "initAlgodClient").mockReturnValue(new algosdk.Algodv2(token, algodServer, port))
-//    let algodClient = algodexApi.initAlgodClient('test')
-
-//    // this.initSmartContracts = jest.spyOn(algodexApi, "initSmartContracts")
-//    // let initAlgodMock= jest.spyOn(algodexApi, "initAlgodClient")
-
-//    let params = await algodClient.getTransactionParams().do()
-//    expect(typeof algodClient).toBe('object')
-//    let lsigSourceMock = jest.spyOn(algodexApi, "getLsigFromProgramSource")
-
-//    let templateMock = jest.spyOn(algodexApi, "buildDelegateTemplateFromArgs")
-//    let escrowSource = await templateMock(0, 15322902, 60, 1000, testWallet, false, 6)
-//    expect(typeof escrowSource).toBe('string')
-
-//    let lsig = await lsigSourceMock(algosdk, algodClient, escrowSource) //this is failing because program is not found in cache then calls internal method and breaks
-//    // You need to mock this.compileProgram
-//    // reuire.requireActual()
-   
-//    // let encoder = new TextEncoder();
-//    // let programBytes = encoder.encode(programSource);
-//    // let compileResponse = await client.compile(programBytes).do();
-//    // return compileResponse;
-//    expect(lsig.address()).toEqual('jgj')
-
-//    // let lsigTx = await algodex.createTransactionFromLogicSig(algodClient, lsig, -1, [], "appOptIn", params );
-
-
-
-// });
