@@ -27,8 +27,9 @@ const config = {
    openAccount: testHelper.getOpenAccount(),
    maliciousAccount: testHelper.getRandomAccount(),
    client: testHelper.getLocalClient(),
-   assetId: 66711302,
- };
+   assetId: 15322902,
+};
+
 
 
 test('imported algodex is an object', () => {
@@ -52,7 +53,7 @@ test('generateOrder function', () => {
 });
 
 test('getAccountInfo function', async () => {
- 
+
    let emptyAccountVal = {
       "address": emptyWallet,
       "amount": 0, "amount-without-pending-rewards": 0, "apps-local-state": [],
@@ -67,18 +68,18 @@ test('getAccountInfo function', async () => {
    expect(emptyAccount).toStrictEqual(emptyAccountVal)
    let nullAccount = await algodex.getAccountInfo(emptyWallet, false)
    expect(nullAccount).toBe(null)
-  });
+});
 
 test('getQueuedTakerOrders function', async () => {
    let allOrderBookOrders = [
-      {escrowOrderType : 'sell', price:2.33},
-      {escrowOrderType : 'buy', price:2.03},
-      {escrowOrderType : 'sell', price:2.80},
-      {escrowOrderType : 'sell', price:2.64},
-      {escrowOrderType : 'buy', price:1.97},
-      {escrowOrderType : 'sell', price:2.63},
-      {escrowOrderType : 'sell', price:2.22},
-      {escrowOrderType : 'buy', price:1.89}
+      { escrowOrderType: 'sell', price: 2.33 },
+      { escrowOrderType: 'buy', price: 2.03 },
+      { escrowOrderType: 'sell', price: 2.80 },
+      { escrowOrderType: 'sell', price: 2.64 },
+      { escrowOrderType: 'buy', price: 1.97 },
+      { escrowOrderType: 'sell', price: 2.63 },
+      { escrowOrderType: 'sell', price: 2.22 },
+      { escrowOrderType: 'buy', price: 1.89 }
    ]
    let undefinedTakerOrders = algodex.getQueuedTakerOrders(testWallet, true, null)
    expect(undefinedTakerOrders).toEqual(undefined)
@@ -93,10 +94,10 @@ test('getQueuedTakerOrders function', async () => {
    expect(queuedSellOrders[0].escrowOrderType).toEqual('buy')
 
    expect(queuedSellOrders[0].price).toEqual(2.03)
-   
 
 
-   
+
+
 })
 
 // test('initSmartContract', () => {
@@ -124,10 +125,40 @@ test('createTransactionFromLsig', async () => {
 
 test(' formatTransactionWithMetaData', async () => {
 
-  let result = await internalTests.formatMetaData(config)
-  expect(result).toBeTruthy()
+   let result = await internalTests.formatMetaData(config, 'close', 'asa')
+   expect(result).toBeTruthy()
+   console.log(result)
+   // console.log(await internalTests.formatMetaData(config, 'error', 'asa'))
+   expect(result[0]["note"]).toBeTruthy()
+   
+
+   // let incorrectOrderType = await internalTests.formatMetaData(config, 'error', 'asa')
+   // console.log(incorrectOrderType)
+
+  
+   
+ 
+   // expect(async () => {
+   //    try {
+   //       return await internalTests.formatMetaData(config, 'close', 'error')
+
+   //    } catch(error){
+   //       throw  error
+   //    }
+      
+   // }).toThrowError();
+
+})
+
+test( 'getExecuteOrderTransactionsAsTakerFromOrderEntry', async ()=> {
 
 
+   let asaResult = await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, true)
+
+   expect(asaResult).toBeTruthy()
+   let algoResult = await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, false)
+
+   expect(algoResult).toBeTruthy()
 
 
 })

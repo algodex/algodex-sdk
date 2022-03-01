@@ -19,9 +19,13 @@ const GREATER_THAN = 1;
 
 let MyAlgo = null;
 let myAlgoWalletUtil = null;
-if (typeof window != 'undefined') {
+if (typeof window != 'undefined' ) {
     MyAlgo = require('@randlabs/myalgo-connect');
     myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
+}
+if(process.env.NODE_ENV === 'test') {
+    myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
+
 }
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
