@@ -8,13 +8,13 @@ const algodexApi = require('../algodex_api.js');
 const testHelper = require('../test_helper.js')
 const algosdk = require('algosdk');
 const CONSTANTS = require('../constants.js')
-let algodServer = CONSTANTS.TEST_ALGOD_SERVER;
-let port = CONSTANTS.TEST_ALGOD_PORT;
-let token = CONSTANTS.TEST_ALGOD_TOKEN;
+const orderBookEntry = require('./fixtures/allOrderBooks.js')
 let emptyWallet = 'KDGKRDPA7KQBBJWF2JPQGKAM6JDO43JWZAK3SJOW25DAXNQBLRB3SKRULA'
 const JEST_MINUTE_TIMEOUT = 60 * 1000
 
 const internalTests = require('./integration_tests/AlgodexInternal.js')
+const axios = require('axios').default;
+
 
 
 const ALGO_ESCROW_ORDER_BOOK_ID = 18988007;
@@ -32,14 +32,7 @@ const config = {
 
 
 
-test('imported algodex is an object', () => {
-   expect(typeof algodex).toBe('object');
-});
 
-test('setAlgodServer properly sets', () => {
-   let response = algodex.setAlgodServer('test')
-
-});
 
 
 test('generateOrder function', () => {
@@ -114,14 +107,102 @@ test('initAlgodClient properly sets', () => {
 });
 
 test('createTransactionFromLsig', async () => {
-   let response = await internalTests.createTransactionFromLsig(config, 2000, false)
-   expect(response).toBeTruthy()
+   let optIn = await internalTests.createTransactionFromLsig(config, 2000, false, true)
+   expect(optIn).toBeTruthy()
+   let noOptIn = await internalTests.createTransactionFromLsig(config, 2000, false, false)
+   expect(noOptIn).toBeTruthy()
 
 }, JEST_MINUTE_TIMEOUT)
 
 // test(' getLsigFromProgramSource', async () => {
 
 // })
+
+test('waitForConfirmation', async() => {
+   algodexApi.initSmartContracts('test')
+   const successCase = jest.spyOn(axios, 'get').mockImplementation((url ) => {
+      if (url) {
+         return Promise.resolve({
+            data: {
+               txId: 'fakeId',
+               status: "confirmed",
+               statusMsg: `Transaction confirmed in round  fakeRound`,
+               transaction: { "amount": 'fake', "wallet": 'fake', "confirmed-round": 2  }
+            }
+         });
+      } else {
+         throw new Error("Url was not passed into Axios request in waitForConfirmation fn()")
+      }
+   })
+
+    expect(await algodex.waitForConfirmation('fakeTxId')).toBeTruthy()
+    successCase.mockRestore();
+    const poolErrorCase = jest.spyOn(axios, 'get').mockImplementation((url ) => {
+      if (url) {
+         return Promise.resolve({
+            data: {
+               txId: 'fakeId',
+               status: "confirmed",
+               statusMsg: `Transaction confirmed in round  fakeRound`,
+               transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1,2] }
+            }
+         });
+      }else {
+         throw new Error("Url was not passed into Axios request in waitForConfirmation fn()")
+      } 
+   })
+   expect(await algodex.waitForConfirmation('fakeTxId')).toBeTruthy()
+   poolErrorCase.mockRestore()
+       
+     
+}, JEST_MINUTE_TIMEOUT)
+
+test('printTransactionDebug', async() => {
+   algodexApi.initSmartContracts('test')
+
+   const mockedBuffer = jest.spyOn(Buffer, 'concat').mockImplementation((signedTxns ) => {
+      if(signedTxns) {
+         
+         return "fakeBufferCalled"
+      } else {
+         throw new Error("Url was not passed into Axios request in printTransactionDebug fn()")
+      }
+   })
+
+    
+    
+    const mockedAxios = jest.spyOn(axios, 'post').mockImplementation((url ) => {
+      if (url) {
+         return Promise.resolve({
+            data: {
+               name: 'fakedPost response for transaction debug',
+               transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1,2] }
+            }
+         });
+      }else {
+         throw new Error("Url was not passed into Axios post request in printTransactionDebug fn()")
+      } 
+   })
+
+   process.env.NEXT_PUBLIC_DEBUG_SMART_CONTRACT_SOURCE = '1'
+   process.env.ALGODEX_INFO_HOST = "notempty"
+
+   // const constantDebugMock = jest.spyOn(CONSTANTS, "DEBUG_SMART_CONTRACT_SOURCE").mockImplementation(() => 1)
+
+   expect(algodex.printTransactionDebug(['signedTxns', 'faked'])).toBe(undefined)
+
+   process.env.DEBUG_SMART_CONTRACT_SOURCE = undefined
+   process.env.ALGODEX_INFO_HOST = undefined
+
+   // above mock isn't working. I may have to mock entire constants module.
+
+
+   mockedBuffer.mockRestore();
+   mockedAxios.mockRestore();
+   // constantDebugMock.mockRestore();
+     
+}, JEST_MINUTE_TIMEOUT)
+
 
 test(' formatTransactionWithMetaData', async () => {
 
@@ -130,27 +211,9 @@ test(' formatTransactionWithMetaData', async () => {
    console.log(result)
    // console.log(await internalTests.formatMetaData(config, 'error', 'asa'))
    expect(result[0]["note"]).toBeTruthy()
-   
-
-   // let incorrectOrderType = await internalTests.formatMetaData(config, 'error', 'asa')
-   // console.log(incorrectOrderType)
-
-  
-   
- 
-   // expect(async () => {
-   //    try {
-   //       return await internalTests.formatMetaData(config, 'close', 'error')
-
-   //    } catch(error){
-   //       throw  error
-   //    }
-      
-   // }).toThrowError();
-
 })
 
-test( 'getExecuteOrderTransactionsAsTakerFromOrderEntry', async ()=> {
+test('getExecuteOrderTransactionsAsTakerFromOrderEntry', async () => {
 
 
    let asaResult = await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, true)
@@ -160,6 +223,147 @@ test( 'getExecuteOrderTransactionsAsTakerFromOrderEntry', async ()=> {
 
    expect(algoResult).toBeTruthy()
 
+   let walletConnector={connector: {connected: true}}
 
+   let walletConnectorAsaResult = await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, true, false, walletConnector )
+   expect(walletConnectorAsaResult).toBeTruthy()
+
+   let walletConnectorAlgoResult = await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, false, false, walletConnector )
+   expect(walletConnectorAlgoResult).toBeTruthy()
+
+   try {
+      await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, false, true)
+      // error for algoOrders
+
+   } catch (e) {
+      expect(e.message).toBe("client.compile is not a function");
+   }
+
+
+   try {
+      await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, true, true)
+      // error for AsaOrders
+
+   } catch (e) {
+      expect(e.message).toBe("client.compile is not a function");
+   }
+
+}, JEST_MINUTE_TIMEOUT);
+   // expect(await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, true, true)).toThrow("client.compile is not a function")
+
+
+
+
+test('doAlertInternal', () => {
+   const jsdomAlert = global.alert;  
+   global.alert = () => { };
+   expect(algodex.doAlertInternal()).toBe(undefined)
+   global.alert = jsdomAlert;
 })
 
+test('getExecuteASAOrderTakerTxnAmounts',  () => {
+
+   let takerOrderBalance = {
+      "asaBalance": 995.9999999999999,
+      "algoBalance": 11030,
+      "walletAlgoBalance": 11030,
+      "walletASABalance": 8755,
+      "limitPrice": 2000,
+      "takerAddr": "4Z5ZYJXBT5OJH3HKHLBD3O7QNKG5T5YQL7CXIEN6XHDJPXYJMTHBKRU6EE",
+      "walletMinBalance": 1500000,
+      "takerIsOptedIn": true
+  }
+  let asaAmountLargerResult = algodex.getExecuteASAOrderTakerTxnAmounts(takerOrderBalance, orderBookEntry[0])
+   expect(asaAmountLargerResult).toBeTruthy()
+   let orderBookEntryWithZero= {...orderBookEntry[0], asaBalance:.001}
+
+   let escrowAsaAmountZero = algodex.getExecuteASAOrderTakerTxnAmounts(takerOrderBalance, orderBookEntryWithZero)
+   expect(escrowAsaAmountZero).toBeTruthy()
+})
+
+
+
+test('buildDelegateTemplateFromArgs', () => {
+   let {n, d, isAsaEscrow, orderCreatorAddr, assetId } = orderBookEntry[0]
+
+  
+
+   let asaV6= algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, true, 6)
+   expect(asaV6).toBeTruthy();
+   let asaV5 = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, true, 5)
+   expect(asaV5).toBeTruthy();
+   let asaV4 = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, true, 4)
+   expect(asaV4).toBeTruthy();
+   let asaV3 = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, true, 3)
+   expect(asaV3).toBeTruthy();
+
+   let algoV6= algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, false, 6)
+   expect(algoV6).toBeTruthy();
+   let algoV5 = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, false, 5)
+   expect(algoV5).toBeTruthy();
+   let algoV4 = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, false, 4)
+   expect(algoV4).toBeTruthy();
+   let algoV3 = algodex.buildDelegateTemplateFromArgs(0, assetId, n, d, orderCreatorAddr, false, 3)
+   expect(algoV3).toBeTruthy();
+
+   try {
+      expect(algodex.buildDelegateTemplateFromArgs('error', assetId, n, d, orderCreatorAddr, isAsaEscrow, 2)).toBe(null)
+       // error for AsaOrders
+ 
+    } catch (e) {
+       expect(e).toBe("one or more null arguments in buildDelegateTemplateFromArgs!");
+    }
+
+});
+
+test('closeOrder', async () => {
+
+   let client = config.client
+   let mockRawTransactions= new function(signed) {
+      this.do = () => {return {txId :signed}}
+      
+   }()
+   client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+
+   algodex.waitForConfirmation= jest.fn((txId) => true)
+   algodex.printTransactionDebug = jest.fn(() => console.debug('mockedTransactionDebug'))
+   expect(await internalTests.closeOrder(client, config)).toBeTruthy()
+
+}, JEST_MINUTE_TIMEOUT)
+
+
+test('closeASAOrder', async () => {
+
+   let client = config.client
+   let mockRawTransactions= new function(signed) {
+      this.do = () => {return {txId :signed}}
+      
+   }()
+   client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+
+   algodex.waitForConfirmation= jest.fn((txId) => true)
+   algodex.printTransactionDebug = jest.fn(() => console.debug('mockedTransactionDebug'))
+   expect(await internalTests.closeASAOrder(client, config)).toBeTruthy()
+
+}, JEST_MINUTE_TIMEOUT)
+
+test('imported algodex is an object', () => {
+   expect(typeof algodex).toBe('object');
+});
+
+test('setAlgodServer properly sets', () => {
+   let response = algodex.setAlgodServer('test')
+
+});
+test('setAlgodToken properly sets', () => {
+   let response = algodex.setAlgodToken('test')
+
+});
+test('setAlgodIndexer properly sets', () => {
+   let response = algodex.setAlgodIndexer('test')
+
+});
+test('setAlgodPort properly sets', () => {
+   let response = algodex.setAlgodPort('test')
+
+});

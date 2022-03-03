@@ -25,7 +25,12 @@ if (typeof window != 'undefined' ) {
 }
 if(process.env.NODE_ENV === 'test') {
     myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
-
+    MyAlgo = function TestMyAlgo() {
+        if (!new.target) {
+          throw Error("Cannot be called without the new keyword");
+        }
+        this.signTransaction = () => true
+      }
 }
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');
@@ -1303,9 +1308,7 @@ const AlgodexInternalApi = {
             console.debug("got compilation results from hash! " + hashedProgram);
         } else {
             console.debug("program not found in cache, fetching");
-            console.debug("nnncn")
             compilation = await this.compileProgram(algodClient, program);
-            console.debug('ddd')
             compilationResult = compilation.result;
             if (Object.keys(compilationResults).length > 200) {
                 console.debug("size is too large! resetting keys");
@@ -1323,7 +1326,6 @@ const AlgodexInternalApi = {
 
     // compile stateless delegate contract
     compileProgram : async function compileProgram(client, programSource) {
-        console.debug(programSource)
         let encoder = new TextEncoder();
         let programBytes = encoder.encode(programSource);
         let compileResponse = await client.compile(programBytes).do();
