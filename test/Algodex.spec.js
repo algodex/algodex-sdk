@@ -1,141 +1,143 @@
-const algodex = require('../index.js')
+const algodex = require('../algodex_api.js')
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
 const indexerHost = 'algoindexer.testnet.algoexplorerapi.io';
 const algodHost = 'node.testnet.algoexplorerapi.io';
 const protocol = 'https:';
+const transactionGenerator = require('../generate_transaction_types.js');
+const algodexApi = require('../algodex_api.js');
+const testHelper = require('../test_helper.js')
+const algosdk = require('algosdk');
+const CONSTANTS = require('../constants.js')
+const orderBookEntry = require('./fixtures/allOrderBooks.js')
+let emptyWallet = 'KDGKRDPA7KQBBJWF2JPQGKAM6JDO43JWZAK3SJOW25DAXNQBLRB3SKRULA'
+const JEST_MINUTE_TIMEOUT = 60 * 1000
+const algodexTests = require('./integration_tests/Algodex.js')
+
+
 
 const ALGO_ESCROW_ORDER_BOOK_ID = 18988007;
 const ASA_ESCROW_ORDER_BOOK_ID = 18988134;
 
-test('imported algodex is an object', () => {
-  expect(typeof algodex).toBe('object');
-});
+const config = {
+    appId: -1,
+    creatorAccount: testHelper.getRandomAccount(),
+    executorAccount: testHelper.getRandomAccount(),
+    openAccount: testHelper.getOpenAccount(),
+    maliciousAccount: testHelper.getRandomAccount(),
+    client: testHelper.getLocalClient(),
+    assetId: 15322902,
+};
 
-test('getSmartContractVersions is a function', () => {
-  expect(typeof algodex.getSmartContractVersions).toBe('function');
-});
 
-test('getSmartContractVersions returns an object with properties that are numbers', () => {
-  const response = algodex.getSmartContractVersions();
-  expect(typeof response.escrowContractVersion).toBe('number');
-  expect(typeof response.orderBookContractVersion).toBe('number');
-});
+test('allSettled', async () => {
+    let resolvedPromise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve('always resolves');
+        }, 300)
+    })
 
-test('getAsaOrderbookTeal is a function', () => {
-  expect(typeof algodex.getAsaOrderBookTeal).toBe('function');
-});
+    let rejectedPromise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject('always rejects');
+        }, 300)
+    })
 
-test('getAsaOrderbookTeal returns a string', () => {
-  const response = algodex.getAsaOrderBookTeal();
-  expect(typeof response).toBe('string');
-});
+    let promisesArr = [resolvedPromise, rejectedPromise]
+    expect(await algodex.allSettled(promisesArr)).toBeTruthy();
 
-test('getAlgoOrderbookTeal is a function', () => {
-  expect(typeof algodex.getAlgoOrderBookTeal).toBe('function');
-});
+})
 
-test('getAlgoOrderbookTeal returns a string', () => {
-  const response = algodex.getAlgoOrderBookTeal();
-  expect(typeof response).toBe('string');
-});
+test('initSmartContracts', () => {
 
-test('getOrderBookId is a function', () => {
-  expect(typeof algodex.getOrderBookId).toBe('function');
-});
+    expect(algodex.initSmartContracts('local')).toBe(undefined)
+    expect(algodex.initSmartContracts('test')).toBe(undefined)
+    expect(algodex.initSmartContracts('public_test')).toBe(undefined)
+    expect(algodex.initSmartContracts('production')).toBe(undefined)
+    // expect(algodex.initSmartContracts('Error')).toThrow("environment must be local, test, or production")
+})
 
-test('getOrderBookId returns the properId', () => {
-  expect(algodex.getOrderBookId(true)).toEqual(-1);
-  expect(algodex.getOrderBookId(false)).toEqual(-1);
-});
+test('initIndexer', () => {
+    expect(algodex.initIndexer('local')).toBeTruthy()
+    expect(algodex.initIndexer('test')).toBeTruthy()
+    expect(algodex.initIndexer('public_test')).toBeTruthy()
+    expect(algodex.initIndexer('production')).toBeTruthy()
 
-test('printMsg is a function', () => {
-  expect(typeof algodex.printMsg).toBe('function');
-});
 
-test('printMsg returns a string', () => {
-  let response = algodex.printMsg();
-  expect(typeof response).toBe('string');
-});
+})
 
-test('getConstants is a function', () => {
-  expect(typeof algodex.getConstants).toBe('function');
-});
+test('initAlgodClient', () => {
+    expect(algodex.initAlgodClient('local')).toBeTruthy()
+    expect(algodex.initAlgodClient('test')).toBeTruthy()
+    expect(algodex.initAlgodClient('public_test')).toBeTruthy()
+    expect(algodex.initAlgodClient('production')).toBeTruthy()
 
-test('initSmartContract is a function', () => {
-  expect(typeof algodex.initSmartContracts).toBe('function');
-});
+})
 
-test('initIndexer is a function', () => {
-  expect(typeof algodex.initIndexer).toBe('function');
-});
+test('getMinWalletBalance', () => {
+    const accountInfoMock = jest.spyOn(algodex, "getAccountInfo").mockImplementation((addr) => {
+        return {
+            'address': 'FAKEADDR',
+            'created-apps': [true, 'many', 'apps'],
+            'assets': ['there', 'are', 'many', 'assets'],
+            'apps-total-schema': {
+                'num-uint': 4,
+                'num-byte-slice': 3
+            }
+        }
+    })
+expect(algodex.getMinWalletBalance('fakeaddress')).toBeTruthy()
 
-test('initIndexer outputs object with correct properties', () => {
-  const response = algodex.initIndexer('local');
-  expect(typeof response).toBe('object');
-  expect(typeof response.c).toBe('object');
-  expect(typeof response.c.baseURL).toBe('object');
-  expect(response.c.baseURL.host).toBe(indexerHost);
-  expect(response.c.baseURL.protocol).toBe(protocol);
-  expect(typeof response.c.defaultHeaders).toBe('object');
-  expect(response.intDecoding).toBe('default');
-  expect(typeof response.c.tokenHeader).toBe('object');
-});
+accountInfoMock.mockRestore()
+})
 
-test('initAlgodClient is a function', () => {
-  expect(typeof algodex.initAlgodClient).toBe('function');
-});
 
-test('initAlgodClient outputs object with correct properties', () => {
-  const response = algodex.initAlgodClient('local');
-  expect(typeof response).toBe('object');
-  expect(typeof response.c).toBe('object');
-  expect(typeof response.c.baseURL).toBe('object');
-  expect(response.c.baseURL.host).toBe(algodHost);
-  expect(response.c.baseURL.protocol).toBe(protocol);
-  expect(typeof response.c.defaultHeaders).toBe('object');
-  expect(response.intDecoding).toBe('default');
-  expect(typeof response.c.tokenHeader).toBe('object');
-});
+test('createOrderBookEntryObject', () => {
+    
+    order = orderBookEntry[0]
+    let args = []
+    for(key in order) {
+        args.push(order[key])
+    }
 
-test('waitForConfirmation is a function', () => {
-  expect(typeof algodex.waitForConfirmation).toBe('function');
-});
+    expect(algodex.createOrderBookEntryObj(...args)).toBeTruthy()
+    // order.orderBookEntry, 15, 1, 15, 0, order.escrowAddr, order.algoBalance, order.asaBalance, 'sell', true, order.orderCreatorAddr, order.assetId, order.version
+})
 
-test('getMinWalletBalance is a function', () => {
-  expect(typeof algodex.getMinWalletBalance).toBe('function');
-});
+test('executeOrder', async () => {
+    // config, client, isSellingAsa, price, algoAmount, asaAmount, incluedMaker, walletConnector, shouldErr
 
-test('getminWalletBalance outputs number', async () => {
-  const response = await algodex.getMinWalletBalance(testWallet);
-  expect(typeof response).toBe('number');
-});
+    let client = config.client
+    let mockRawTransactions = new function (signed) {
+        this.do = () => { return { txId: signed } }
 
-test('getAccountInfo is a function', () => {
-  expect(typeof algodex.getAccountInfo).toBe('function');
-});
+    }()
 
-test('getAccountInfo returns and object with the correct properties', async () => {
-  const response = await algodex.getAccountInfo(testWallet);
-  expect(typeof response).toBe('object');
-  expect(typeof response.address).toBe('string');
-  expect(typeof response.amount).toBe('number');
-  expect(typeof response['amount-without-pending-rewards']).toBe('number');
-  expect(Array.isArray(response.assets)).toBe(true);
-  expect(typeof response['pending-rewards']).toBe('number');
-  expect(typeof response['reward-base']).toBe('number');
-  expect(typeof response.rewards).toBe('number');
-  expect(typeof response.round).toBe('number');
-  expect(typeof response.status).toBe('string');
-});
+    const waitForConfirmationMock = jest.spyOn(algodex, "waitForConfirmation").mockImplementation((txn) => {
+       return new Promise((resolve, reject) => {
+            resolve({
+                data: {
+                    txId: 'fakeId',
+                    status: "confirmed",
+                    statusMsg: `Transaction confirmed in round  fakeRound`,
+                    transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
+                }
+            })
+        })
 
-test('getNumeratorAndDenominatorFromPrice is a function', () => {
-  expect(typeof algodex.getNumeratorAndDenominatorFromPrice).toBe('function');
-});
 
-test('getNumeratorAndDenominatorFromPrice returns the correct numerator and denominator', () => {
-  const response = algodex.getNumeratorAndDenominatorFromPrice(1.6);
-  expect(typeof response).toBe('object');
-  expect(typeof response.n).toBe('number');
-  expect(typeof response.d).toBe('number');
-  expect(response.d / response.n).toBe(1.6);
-});
+    })
+
+    client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+
+    let buyLimitPrice = 2000
+    let buyOrderAssetAmount = 1000
+    let buyOrderAlgoAmount = 2000000
+ 
+    let sellLimitPrice = 1700
+    let sellOrderAssetAmount = 1000
+    let sellOrderAlgoAmount = 1700000
+
+    expect(await algodexTests.executeOrder(config, client, false, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, false)).toBe(undefined)
+    waitForConfirmationMock.mockRestore()
+
+}, JEST_MINUTE_TIMEOUT)

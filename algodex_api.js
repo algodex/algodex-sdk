@@ -21,7 +21,20 @@ if (typeof window != 'undefined') {
     MyAlgo = require('@randlabs/myalgo-connect');
     myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
 }
+if (process.env.NODE_ENV === 'test') {
+    myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
+    MyAlgo = function TestMyAlgo() {
+        if (!new.target) {
+            throw Error("Cannot be called without the new keyword");
+        }
+        this.signTransaction = (txns) => {
+            return txns.map(txn => {
+                return { txn: txn, blob: "fakeBlob" }
+            })
 
+        }
+    }
+}
 require('./algo_delegate_template_teal.js');
 require('./ASA_delegate_template_teal.js');
 //require('./dex_teal.js');
