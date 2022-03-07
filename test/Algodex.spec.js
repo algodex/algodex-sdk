@@ -4,14 +4,15 @@ const indexerHost = 'algoindexer.testnet.algoexplorerapi.io';
 const algodHost = 'node.testnet.algoexplorerapi.io';
 const protocol = 'https:';
 const transactionGenerator = require('../generate_transaction_types.js');
-const algodexApi = require('../algodex_api.js');
 const testHelper = require('../test_helper.js')
 const algosdk = require('algosdk');
 const CONSTANTS = require('../constants.js')
 const orderBookEntry = require('./fixtures/allOrderBooks.js')
 let emptyWallet = 'KDGKRDPA7KQBBJWF2JPQGKAM6JDO43JWZAK3SJOW25DAXNQBLRB3SKRULA'
 const JEST_MINUTE_TIMEOUT = 60 * 1000
-const algodexTests = require('./integration_tests/Algodex.js')
+const algodexTests = require('./integration_tests/Algodex.js');
+
+const allOrderBookOrders = require('./fixtures/allOrderBooks.js')
 
 
 
@@ -28,7 +29,51 @@ const config = {
     assetId: 15322902,
 };
 
+test('executeOrder& marketOrder', async () => {
+    // config, client, isSellingAsa, price, algoAmount, asaAmount, incluedMaker, walletConnector, shouldErr
+    algodex.initSmartContracts('test')
+    let client = config.client
+    let mockRawTransactions = new function (signed) {
+        this.do = () => { return { txId: signed } }
 
+    }()
+
+     client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+
+    const waitForConfirmationMock = jest.spyOn(algodex, "waitForConfirmation").mockImplementation((txn) => {
+       return new Promise((resolve, reject) => {
+            resolve({
+                data: {
+                    txId: 'fakeId',
+                    status: "confirmed",
+                    statusMsg: `Transaction confirmed in round  fakeRound`,
+                    transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
+                }
+            })
+        })
+
+
+    })
+
+   
+
+    let buyLimitPrice = 2000
+    let buyOrderAssetAmount = 1000
+    let buyOrderAlgoAmount = 2000000
+ 
+    let sellLimitPrice = 1700
+    let sellOrderAssetAmount = 1000
+    let sellOrderAlgoAmount = 1700000
+
+    
+     expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, allOrderBookOrders, false )).toBe(undefined)
+     expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, null, false )).toBe(undefined)
+
+     expect(await algodex.executeMarketOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, allOrderBookOrders, false )).toBe(undefined)
+
+    waitForConfirmationMock.mockRestore()
+
+}, JEST_MINUTE_TIMEOUT)
 test('allSettled', async () => {
     let resolvedPromise = new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -46,7 +91,39 @@ test('allSettled', async () => {
     expect(await algodex.allSettled(promisesArr)).toBeTruthy();
 
 })
+test("signAndSendTransactions", async () => {
+    algodex.initSmartContracts('test')
+    let client = config.client
+    let mockRawTransactions = new function (signed) {
+        this.do = () => { return { txId: true } }
 
+    }()
+
+    const waitForConfirmationMock = jest.spyOn(algodex, "waitForConfirmation").mockImplementation((txn) => {
+       return new Promise((resolve, reject) => {
+            resolve({
+                data: {
+                    txId: 'fakeId',
+                    status: "confirmed",
+                    statusMsg: `Transaction confirmed in round  fakeRound`,
+                    transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
+                }
+            })
+        })
+
+
+    })
+
+    client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+    let transactions = await transactionGenerator.getPlaceASAEscrowOrderTxns(config.client, config.creatorAccount, 1, 2, config.assetId, 10, true )
+    transactions[0]["needsUserSig"] = true
+    transactions[3]["needsUserSig"] = true
+
+    expect(await algodex.signAndSendTransactions(client, transactions)).toBeTruthy()
+
+    waitForConfirmationMock.mockRestore()
+
+})
 test('initSmartContracts', () => {
 
     expect(algodex.initSmartContracts('local')).toBe(undefined)
@@ -103,41 +180,91 @@ test('createOrderBookEntryObject', () => {
     // order.orderBookEntry, 15, 1, 15, 0, order.escrowAddr, order.algoBalance, order.asaBalance, 'sell', true, order.orderCreatorAddr, order.assetId, order.version
 })
 
-test('executeOrder', async () => {
-    // config, client, isSellingAsa, price, algoAmount, asaAmount, incluedMaker, walletConnector, shouldErr
 
+
+
+test("finalPriceCheck", () => {
+   
+
+        try{
+            algodex.finalPriceCheck(100, 50, .5, false)
+
+        } catch(e){
+            expect(e.message).toBe("Attempting to buy at a price higher than limit price")
+
+        }
+
+        try{
+            algodex.finalPriceCheck(50, 1000, .5, true)
+
+        } catch(e){
+            expect(e.message).toBe("Attempting to sell at a price lower than limit price")
+
+        }
+
+        expect( algodex.finalPriceCheck(100, 50, .5, true)).toBe(undefined)
+    }
+)
+
+test("getAlgoandAsaAmounts", async () => {
+    algodex.initSmartContracts('test')
+    let transactions = await transactionGenerator.getPlaceASAEscrowOrderTxns(config.client, config.creatorAccount, 1, 2, config.assetId, 10, true )
+    expect(algodex.getAlgoandAsaAmounts(transactions)).toBeTruthy()
+})
+
+test("getPlaceAlgosToBuyASAOrderIntoOrderbook", async () => {
+
+    expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+
+    // wallet that isn't empty
+    expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(config.client, testWallet, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+    
+})
+
+test("getPlaceASAToSellASAOrderIntoOrderbook", async () => {
+    expect(await algodex.getPlaceASAToSellASAOrderIntoOrderbook(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+
+})
+
+
+
+test("closeOrderFromOrderBookEntry", async () => {
+    algodex.initSmartContracts('test')
     let client = config.client
-    let mockRawTransactions = new function (signed) {
-        this.do = () => { return { txId: signed } }
 
-    }()
 
-    const waitForConfirmationMock = jest.spyOn(algodex, "waitForConfirmation").mockImplementation((txn) => {
-       return new Promise((resolve, reject) => {
+    const getAccountInfoMock = jest.spyOn(algodex, "getAccountInfo").mockImplementation((addr) => {
+        return new Promise((resolve, reject) => {
             resolve({
-                data: {
+                 
                     txId: 'fakeId',
                     status: "confirmed",
-                    statusMsg: `Transaction confirmed in round  fakeRound`,
+                    assets: [{"asset-id": config.assetId}],
                     transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
                 }
-            })
+            )
         })
-
-
+        // assetId = accountInfo['assets'][0]['asset-id']; 
     })
+    let mockRawTransactions = new function (signed) {
+        this.do = () => { return { txId: true } }
 
+    }()
     client.sendRawTransaction = jest.fn(() => mockRawTransactions)
 
-    let buyLimitPrice = 2000
-    let buyOrderAssetAmount = 1000
-    let buyOrderAlgoAmount = 2000000
- 
-    let sellLimitPrice = 1700
-    let sellOrderAssetAmount = 1000
-    let sellOrderAlgoAmount = 1700000
+    const generatedOrderBookEntry = algodex.generateOrder(config.creatorAccount.addr, 2, 1, 0, config.assetId, false);
 
-    expect(await algodexTests.executeOrder(config, client, false, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, false)).toBe(undefined)
-    waitForConfirmationMock.mockRestore()
+// 
+    try{
+        await algodex.closeOrderFromOrderBookEntry(client, config.executorAccount.addr, config.creatorAccount.addr, generatedOrderBookEntry, 6)
 
-}, JEST_MINUTE_TIMEOUT)
+    } catch(e) {
+        expect(typeof e).toBe("string")
+
+    }
+
+   getAccountInfoMock.mockRestore()
+//    assetId returning null because you need to populate the test wallet to account for conditional on  665-668
+// alternativeely mock this.getAccountInfo
+})
+
