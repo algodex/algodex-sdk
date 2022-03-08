@@ -1,23 +1,11 @@
 const algodex = require('../algodex_api.js')
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
-const indexerHost = 'algoindexer.testnet.algoexplorerapi.io';
-const algodHost = 'node.testnet.algoexplorerapi.io';
-const protocol = 'https:';
 const transactionGenerator = require('../generate_transaction_types.js');
 const testHelper = require('../test_helper.js')
-const algosdk = require('algosdk');
-const CONSTANTS = require('../constants.js')
 const orderBookEntry = require('./fixtures/allOrderBooks.js')
-let emptyWallet = 'KDGKRDPA7KQBBJWF2JPQGKAM6JDO43JWZAK3SJOW25DAXNQBLRB3SKRULA'
 const JEST_MINUTE_TIMEOUT = 60 * 1000
-const algodexTests = require('./integration_tests/Algodex.js');
+const allOrderBookOrders = require('./fixtures/allOrderBooks.js');
 
-const allOrderBookOrders = require('./fixtures/allOrderBooks.js')
-
-
-
-const ALGO_ESCROW_ORDER_BOOK_ID = 18988007;
-const ASA_ESCROW_ORDER_BOOK_ID = 18988134;
 
 const config = {
     appId: -1,
@@ -65,10 +53,17 @@ test('executeOrder& marketOrder', async () => {
     let sellOrderAssetAmount = 1000
     let sellOrderAlgoAmount = 1700000
 
-    
+    // Buy no Maker
      expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, allOrderBookOrders, false )).toBe(undefined)
+    // Buy with maker
+     expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAssetAmount, 1000000, allOrderBookOrders, true )).toBe(undefined)
+    // Buy with null orderbook
      expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, null, false )).toBe(undefined)
 
+    //  Sell with no Maker
+     expect(await algodex.executeOrder(client, true, config.assetId, testWallet, sellLimitPrice, sellOrderAssetAmount, sellOrderAlgoAmount, allOrderBookOrders, false )).toBe(undefined)
+
+    // MarketOrder
      expect(await algodex.executeMarketOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, allOrderBookOrders, false )).toBe(undefined)
 
     waitForConfirmationMock.mockRestore()
@@ -122,6 +117,35 @@ test("signAndSendTransactions", async () => {
     expect(await algodex.signAndSendTransactions(client, transactions)).toBeTruthy()
 
     waitForConfirmationMock.mockRestore()
+
+})
+
+test('signAndSendWalletConnectTransactions', async () => {
+    algodex.initSmartContracts('test')
+    let client = config.client
+    let mockRawTransactions = new function (signed) {
+        this.do = () => { return { txId: true } }
+
+    }()
+
+    // mimicking the shape of WalletConnector instance and the only properties used in SignAndSendWalletConnect
+    let walletConnector = {connector: {
+        accounts:[ config.creatorAccount.addr],
+        sendCustomRequest: (request) =>  new Promise((resolve, reject) => {
+            resolve(request.params[0].map(element => new ArrayBuffer(element)))
+        })
+
+    }}
+    let params = await client.getTransactionParams().do()
+
+    client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+    let transactions = await transactionGenerator.getPlaceASAEscrowOrderTxns(config.client, config.creatorAccount, 1, 2, config.assetId, 10, true )
+    transactions[0]["needsUserSig"] = true
+    transactions[3]["needsUserSig"] = true
+
+    algodex.signAndSendWalletConnectTransactions(client, transactions, params, walletConnector )
+
+
 
 })
 test('initSmartContracts', () => {
@@ -184,24 +208,17 @@ test('createOrderBookEntryObject', () => {
 
 
 test("finalPriceCheck", () => {
-   
-
         try{
             algodex.finalPriceCheck(100, 50, .5, false)
-
         } catch(e){
             expect(e.message).toBe("Attempting to buy at a price higher than limit price")
-
         }
 
         try{
             algodex.finalPriceCheck(50, 1000, .5, true)
-
         } catch(e){
             expect(e.message).toBe("Attempting to sell at a price lower than limit price")
-
         }
-
         expect( algodex.finalPriceCheck(100, 50, .5, true)).toBe(undefined)
     }
 )
@@ -254,15 +271,12 @@ test("closeOrderFromOrderBookEntry", async () => {
 
     const generatedOrderBookEntry = algodex.generateOrder(config.creatorAccount.addr, 2, 1, 0, config.assetId, false);
 
-// 
     try{
         await algodex.closeOrderFromOrderBookEntry(client, config.executorAccount.addr, config.creatorAccount.addr, generatedOrderBookEntry, 6)
 
     } catch(e) {
         expect(typeof e).toBe("string")
-
     }
-
    getAccountInfoMock.mockRestore()
 //    assetId returning null because you need to populate the test wallet to account for conditional on  665-668
 // alternativeely mock this.getAccountInfo

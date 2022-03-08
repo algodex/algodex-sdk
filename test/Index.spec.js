@@ -1,11 +1,8 @@
 const algodex = require('../index.js')
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
-const indexerHost = 'algoindexer.testnet.algoexplorerapi.io';
-const algodHost = 'node.testnet.algoexplorerapi.io';
-const protocol = 'https:';
-
-const ALGO_ESCROW_ORDER_BOOK_ID = 18988007;
-const ASA_ESCROW_ORDER_BOOK_ID = 18988134;
+const fakeTxId = 'IQZEYXX74V4XSOG6NWXMBG6QA74A5MHKF62DL4BIVF7QLQI5HLFQ'
+const JEST_MINUTE_TIMEOUT = 60 * 1000
+const orderBookEntry = require('./fixtures/allOrderBooks.js')
 
 test('imported algodex is an object', () => {
   expect(typeof algodex).toBe('object');
@@ -25,6 +22,35 @@ test('getAsaOrderbookTeal is a function', () => {
   expect(typeof algodex.getAsaOrderBookTeal).toBe('function');
 });
 
+test('getConstants', () => {
+  expect(algodex.getConstants()).toBeTruthy()
+});
+
+test('initSmartContracts', () => {
+  expect(algodex.initSmartContracts('test')).toBe(undefined)
+})
+
+test('waitForConfirmation', async () => {
+  expect(await algodex.waitForConfirmation(fakeTxId)).toBeTruthy()
+},JEST_MINUTE_TIMEOUT )
+
+test('printTransactionDebug', () => {
+  algodex.initSmartContracts('test')
+  let fakeSignedTxns = ['fakeTXns', 'to be converted', 'to buffer for debug' ]
+
+  expect( algodex.printTransactionDebug(fakeSignedTxns)).toBe(undefined)
+} )
+
+test('createOrderBookEntryObj', () => {
+  order = orderBookEntry[0]
+  let args = []
+  for(key in order) {
+      args.push(order[key])
+  }
+
+  expect(algodex.createOrderBookEntryObj(...args)).toBeTruthy()
+
+})
 test('getAsaOrderbookTeal returns a string', () => {
   const response = algodex.getAsaOrderBookTeal();
   expect(typeof response).toBe('string');
@@ -44,8 +70,8 @@ test('getOrderBookId is a function', () => {
 });
 
 test('getOrderBookId returns the properId', () => {
-  expect(algodex.getOrderBookId(true)).toEqual(-1);
-  expect(algodex.getOrderBookId(false)).toEqual(-1);
+  expect(algodex.getOrderBookId(true)).toEqual(16021155);
+  expect(algodex.getOrderBookId(false)).toEqual(16021157);
 });
 
 test('printMsg is a function', () => {
@@ -73,12 +99,8 @@ test('initIndexer outputs object with correct properties', () => {
   const response = algodex.initIndexer('local');
   expect(typeof response).toBe('object');
   expect(typeof response.c).toBe('object');
-  expect(typeof response.c.baseURL).toBe('object');
-  expect(response.c.baseURL.host).toBe(indexerHost);
-  expect(response.c.baseURL.protocol).toBe(protocol);
-  expect(typeof response.c.defaultHeaders).toBe('object');
   expect(response.intDecoding).toBe('default');
-  expect(typeof response.c.tokenHeader).toBe('object');
+  
 });
 
 test('initAlgodClient is a function', () => {
@@ -89,12 +111,6 @@ test('initAlgodClient outputs object with correct properties', () => {
   const response = algodex.initAlgodClient('local');
   expect(typeof response).toBe('object');
   expect(typeof response.c).toBe('object');
-  expect(typeof response.c.baseURL).toBe('object');
-  expect(response.c.baseURL.host).toBe(algodHost);
-  expect(response.c.baseURL.protocol).toBe(protocol);
-  expect(typeof response.c.defaultHeaders).toBe('object');
-  expect(response.intDecoding).toBe('default');
-  expect(typeof response.c.tokenHeader).toBe('object');
 });
 
 test('waitForConfirmation is a function', () => {
