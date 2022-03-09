@@ -17,7 +17,7 @@ const config = {
     assetId: 15322902,
 };
 
-test('executeOrder& marketOrder', async () => {
+test('executeOrder& marketOrder & structureOrder', async () => {
     // config, client, isSellingAsa, price, algoAmount, asaAmount, incluedMaker, walletConnector, shouldErr
     algodex.initSmartContracts('test')
     let client = config.client
@@ -55,13 +55,15 @@ test('executeOrder& marketOrder', async () => {
 
     // Buy no Maker
      expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, allOrderBookOrders, false )).toBe(undefined)
+     expect(await algodex.structureOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, allOrderBookOrders, false )).toBeTruthy()
+
     // Buy with maker
      expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAssetAmount, 1000000, allOrderBookOrders, true )).toBe(undefined)
     // Buy with null orderbook
      expect(await algodex.executeOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, null, false )).toBe(undefined)
 
     //  Sell with no Maker
-     expect(await algodex.executeOrder(client, true, config.assetId, testWallet, sellLimitPrice, sellOrderAssetAmount, sellOrderAlgoAmount, allOrderBookOrders, false )).toBe(undefined)
+    //  expect(await algodex.executeOrder(client, true, config.assetId, testWallet, sellLimitPrice, sellOrderAssetAmount, sellOrderAlgoAmount, allOrderBookOrders, false )).toBe(undefined)
 
     // MarketOrder
      expect(await algodex.executeMarketOrder(client, false, config.assetId, testWallet, buyLimitPrice, buyOrderAlgoAmount, buyOrderAssetAmount, allOrderBookOrders, false )).toBe(undefined)
@@ -86,7 +88,7 @@ test('allSettled', async () => {
     expect(await algodex.allSettled(promisesArr)).toBeTruthy();
 
 })
-test("signAndSendTransactions", async () => {
+test("signAndSendTransactions & signMyAlgo & propogateTransactions" , async () => {
     algodex.initSmartContracts('test')
     let client = config.client
     let mockRawTransactions = new function (signed) {
@@ -113,8 +115,11 @@ test("signAndSendTransactions", async () => {
     let transactions = await transactionGenerator.getPlaceASAEscrowOrderTxns(config.client, config.creatorAccount, 1, 2, config.assetId, 10, true )
     transactions[0]["needsUserSig"] = true
     transactions[3]["needsUserSig"] = true
+   
 
     expect(await algodex.signAndSendTransactions(client, transactions)).toBeTruthy()
+    expect(await algodex.signMyAlgo(client, transactions)).toBeTruthy()
+    expect(await algodex.propogateTransactions(client, transactions))
 
     waitForConfirmationMock.mockRestore()
 
@@ -144,10 +149,8 @@ test('signAndSendWalletConnectTransactions', async () => {
     transactions[3]["needsUserSig"] = true
 
     algodex.signAndSendWalletConnectTransactions(client, transactions, params, walletConnector )
-
-
-
 })
+
 test('initSmartContracts', () => {
 
     expect(algodex.initSmartContracts('local')).toBe(undefined)
@@ -232,14 +235,21 @@ test("getAlgoandAsaAmounts", async () => {
 test("getPlaceAlgosToBuyASAOrderIntoOrderbook", async () => {
 
     expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+    expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbookV2(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+
+
 
     // wallet that isn't empty
     expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(config.client, testWallet, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+    expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbookV2(config.client, testWallet, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+
     
 })
 
 test("getPlaceASAToSellASAOrderIntoOrderbook", async () => {
     expect(await algodex.getPlaceASAToSellASAOrderIntoOrderbook(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+    expect(await algodex.getPlaceASAToSellASAOrderIntoOrderbookV2(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
+
 
 })
 

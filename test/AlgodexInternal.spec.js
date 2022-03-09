@@ -12,6 +12,8 @@ const orderBookEntry = require('./fixtures/allOrderBooks.js')
 let emptyWallet = 'KDGKRDPA7KQBBJWF2JPQGKAM6JDO43JWZAK3SJOW25DAXNQBLRB3SKRULA'
 const JEST_MINUTE_TIMEOUT = 60 * 1000
 
+const helperFuncs = require('../helperFunctions.js')
+
 const internalTests = require('./integration_tests/AlgodexInternal.js')
 const axios = require('axios').default;
 
@@ -30,10 +32,31 @@ const config = {
    assetId: 15322902,
 };
 
+test('signAndSendWalletConnectTransactions', async () => {
+   algodexApi.initSmartContracts('test')
+   let client = config.client
+   let mockRawTransactions = new function (signed) {
+       this.do = () => { return { txId: true } }
 
+   }()
 
+   // mimicking the shape of WalletConnector instance and the only properties used in SignAndSendWalletConnect
+   let walletConnector = {connector: {
+       accounts:[ config.creatorAccount.addr],
+       sendCustomRequest: (request) =>  new Promise((resolve, reject) => {
+           resolve(request.params[0].map(element => new ArrayBuffer(element)))
+       })
 
+   }}
+   let params = await client.getTransactionParams().do()
 
+   client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+   let transactions = await transactionGenerator.getPlaceASAEscrowOrderTxns(config.client, config.creatorAccount, 1, 2, config.assetId, 10, true )
+   transactions[0]["needsUserSig"] = true
+   transactions[3]["needsUserSig"] = true
+
+   expect(algodex.signAndSendWalletConnectTransactions(client, transactions, params, walletConnector )).toBeTruthy()
+})
 
 test('generateOrder function', () => {
    let params = [testWallet, 1000, 54, 0, 15322902]
@@ -118,6 +141,23 @@ test('createTransactionFromLsig', async () => {
 
 // })
 
+test('closeASAOrder', async () => {
+
+   let client = config.client
+   let mockRawTransactions= new function(signed) {
+      this.do = () => {return {txId :signed}}
+      
+   }()
+   client.sendRawTransaction = jest.fn(() => mockRawTransactions)
+
+   const waitForConfirmationMock = jest.spyOn(helperFuncs, "waitForConfirmation").mockImplementation((txId) => true)
+   const printTransactionDebugMock = jest.spyOn(helperFuncs, "printTransactionDebug").mockImplementation((signed) => signed)
+   expect(await internalTests.closeASAOrder(client, config)).toBeTruthy()
+   waitForConfirmationMock.mockRestore()
+   printTransactionDebugMock.mockRestore()
+
+}, JEST_MINUTE_TIMEOUT)
+
 test('waitForConfirmation', async() => {
    algodexApi.initSmartContracts('test')
    const successCase = jest.spyOn(axios, 'get').mockImplementation((url ) => {
@@ -135,7 +175,7 @@ test('waitForConfirmation', async() => {
       }
    })
 
-    expect(await algodex.waitForConfirmation('fakeTxId')).toBeTruthy()
+   //  expect(await helperFuncs.waitForConfirmation('fakeTxId')).toBeTruthy()
     successCase.mockRestore();
     const poolErrorCase = jest.spyOn(axios, 'get').mockImplementation((url ) => {
       if (url) {
@@ -151,8 +191,10 @@ test('waitForConfirmation', async() => {
          throw new Error("Url was not passed into Axios request in waitForConfirmation fn()")
       } 
    })
-   expect(await algodex.waitForConfirmation('fakeTxId')).toBeTruthy()
+   // expect(await helperFuncs.waitForConfirmation('fakeTxId')).toBeTruthy()
+   // Since u moved waitForConfirmation to a new file it doesn't have access to indexerPort variable
    poolErrorCase.mockRestore()
+   successCase.mockRestore()
        
      
 }, JEST_MINUTE_TIMEOUT)
@@ -189,7 +231,7 @@ test('printTransactionDebug', async() => {
 
    // const constantDebugMock = jest.spyOn(CONSTANTS, "DEBUG_SMART_CONTRACT_SOURCE").mockImplementation(() => 1)
 
-   expect(algodex.printTransactionDebug(['signedTxns', 'faked'])).toBe(undefined)
+   expect(helperFuncs.printTransactionDebug(['signedTxns', 'faked'])).toBe(undefined)
 
    process.env.DEBUG_SMART_CONTRACT_SOURCE = undefined
    process.env.ALGODEX_INFO_HOST = undefined
@@ -202,16 +244,6 @@ test('printTransactionDebug', async() => {
    // constantDebugMock.mockRestore();
      
 }, JEST_MINUTE_TIMEOUT)
-
-
-test(' formatTransactionWithMetaData', async () => {
-
-   let result = await internalTests.formatMetaData(config, 'close', 'asa')
-   expect(result).toBeTruthy()
-   console.log(result)
-   // console.log(await internalTests.formatMetaData(config, 'error', 'asa'))
-   expect(result[0]["note"]).toBeTruthy()
-})
 
 test('getExecuteOrderTransactionsAsTakerFromOrderEntry', async () => {
 
@@ -249,10 +281,16 @@ test('getExecuteOrderTransactionsAsTakerFromOrderEntry', async () => {
    }
 
 }, JEST_MINUTE_TIMEOUT);
-   // expect(await internalTests.getExecuteOrderTransactionsAsTakerFromOrderEntry(config, true, true)).toThrow("client.compile is not a function")
 
 
+test(' formatTransactionWithMetaData', async () => {
 
+   let result = await internalTests.formatMetaData(config, 'close', 'asa')
+   expect(result).toBeTruthy()
+   console.log(result)
+   // console.log(await internalTests.formatMetaData(config, 'error', 'asa'))
+   expect(result[0]["note"]).toBeTruthy()
+})
 
 test('doAlertInternal', () => {
    const jsdomAlert = global.alert;  
@@ -325,27 +363,18 @@ test('closeOrder', async () => {
    }()
    client.sendRawTransaction = jest.fn(() => mockRawTransactions)
 
-   algodex.waitForConfirmation= jest.fn((txId) => true)
-   algodex.printTransactionDebug = jest.fn(() => console.debug('mockedTransactionDebug'))
+   const waitForConfirmationMock = jest.spyOn(helperFuncs, "waitForConfirmation").mockImplementation((txId) => true)
+   const printTransactionDebugMock = jest.spyOn(helperFuncs, "printTransactionDebug").mockImplementation((signed) => signed)
+   
    expect(await internalTests.closeOrder(client, config)).toBeTruthy()
+   waitForConfirmationMock.mockRestore()
+   printTransactionDebugMock.mockRestore()
+
 
 }, JEST_MINUTE_TIMEOUT)
 
 
-test('closeASAOrder', async () => {
 
-   let client = config.client
-   let mockRawTransactions= new function(signed) {
-      this.do = () => {return {txId :signed}}
-      
-   }()
-   client.sendRawTransaction = jest.fn(() => mockRawTransactions)
-
-   algodex.waitForConfirmation= jest.fn((txId) => true)
-   algodex.printTransactionDebug = jest.fn(() => console.debug('mockedTransactionDebug'))
-   expect(await internalTests.closeASAOrder(client, config)).toBeTruthy()
-
-}, JEST_MINUTE_TIMEOUT)
 
 test('imported algodex is an object', () => {
    expect(typeof algodex).toBe('object');

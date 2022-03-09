@@ -1291,11 +1291,11 @@ const AlgodexInternalApi = {
             'lsig': lsig,
             'txType': "algo",
         });
-            console.debug("almost final ASA amount: " + asaAmount.getValue());
+            console.debug("almost final ASA amount: " + asaAmountSending);
 
             // These are expected to be integers now
-            algoAmountReceiving = parseInt(algoAmountReceiving.getValue());
-            asaAmount = parseInt(asaAmount.getValue());
+            // algoAmountReceiving = parseInt(algoAmountReceiving);
+            // asaAmount = parseInt(asaAmountSending);
 
         retTxns.push({
             'unsignedTxn': transaction3,
