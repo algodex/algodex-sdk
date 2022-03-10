@@ -31,6 +31,7 @@ test('initSmartContracts', () => {
 })
 
 test('waitForConfirmation', async () => {
+  algodex.initSmartContracts('test')
   expect(await algodex.waitForConfirmation(fakeTxId)).toBeTruthy()
 },JEST_MINUTE_TIMEOUT )
 
