@@ -1,7 +1,9 @@
-//
-// USAGE:
-//   node scripts/createApp.js --environment=[local|test|production] --orderbook=[algo|asa] --sender=[sender] --mnemonic=[mnemonic] --saveToDisk=[true|false]
+#!/usr/bin/env node
 
+// TODO: Move to commander.js
+// USAGE:
+//   dex-create-app --environment=[local|test|production] --orderbook=[algo|asa] --sender=[sender] --mnemonic=[mnemonic] --saveToDisk=[true|false]
+throw new Error('whoops')
 const algosdk = require('algosdk');
 const algodex = require('../index.js');
 const fs = require('fs');
@@ -24,7 +26,7 @@ clearProgramSource = `#pragma version 2
 int 1
 `;
 
-// helper function to compile program source  
+// helper function to compile program source
 async function compileProgram(client, programSource) {
     let encoder = new TextEncoder();
     let programBytes = encoder.encode(programSource);
@@ -34,7 +36,7 @@ async function compileProgram(client, programSource) {
 }
 
 // create new application
-async function createApp(client, creatorAccount, approvalProgram, clearProgram, localInts, 
+async function createApp(client, creatorAccount, approvalProgram, clearProgram, localInts,
     localBytes, globalInts, globalBytes, saveToDisk=false) {
     // define sender as creator
     sender = creatorAccount.addr;
@@ -46,8 +48,8 @@ async function createApp(client, creatorAccount, approvalProgram, clearProgram, 
     const params = await client.getTransactionParams().do();
 
     // create unsigned transaction
-    const txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
-                                            approvalProgram, clearProgram, 
+    const txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete,
+                                            approvalProgram, clearProgram,
                                             localInts, localBytes, globalInts, globalBytes,);
     const txId = txn.txID().toString();
 
@@ -61,7 +63,7 @@ async function createApp(client, creatorAccount, approvalProgram, clearProgram, 
         const arr = new Uint8Array(data);
         console.log(arr.join(','));
     });*/
-   
+
     // Sign the transaction
     const signedTxn = txn.signTxn(creatorAccount.sk);
     console.log("Signed transaction with txID: %s", txId);
@@ -101,7 +103,7 @@ async function createApp(client, creatorAccount, approvalProgram, clearProgram, 
 
 async function main() {
     try {
-    
+
         const args = require('minimist')(process.argv.slice(2))
         const environment = args['environment'];
         const orderbook = args['orderbook'];
@@ -118,7 +120,7 @@ async function main() {
         }
 
         // initialize an algodClient
-       
+
         let algodClient = algodex.initAlgodClient(environment);
 
         let creatorAccount = getCreatorAccount(mnemonic, fromAddr);
@@ -127,18 +129,18 @@ async function main() {
         //useraccount will be the token creator
         //await createToken(algodClient, userAccount, creatorAccount);
 
-        // compile programs 
+        // compile programs
         let approvalProgram = await compileProgram(algodClient, approvalProgramSourceInitial);
         let clearProgram = await compileProgram(algodClient, clearProgramSource);
 
         // create new application
-        let appId = await createApp(algodClient, creatorAccount, approvalProgram, clearProgram, 
+        let appId = await createApp(algodClient, creatorAccount, approvalProgram, clearProgram,
             localInts, localBytes, globalInts, globalBytes, saveToDisk);
         console.log( "APPID="+appId);
 
     }
     catch (err){
-        console.log("err", err);  
+        console.log("err", err);
     }
 }
 

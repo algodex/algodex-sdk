@@ -1,6 +1,9 @@
-//
+#!/usr/bin/env node
+
+
+// TODO: Move to commander.js
 // USAGE:
-//   node scripts/updateApp.js --environment=[local|test|production] --appId=[appId]
+//   dex-update-app --environment=[local|test|production] --appId=[appId]
 //         --orderbook=[algo|asa] --sender=[sender] --saveToDisk=[true|false]
 
 
@@ -27,7 +30,7 @@ globalBytes = 1;
 // user declared approval program (initial)
 
 
-// helper function to compile program source  
+// helper function to compile program source
 async function compileProgram(client, programSource) {
     let encoder = new TextEncoder();
     let programBytes = encoder.encode(programSource);
@@ -68,7 +71,7 @@ async function updateApp(client, appId, creatorAccount, approvalProgram, clearPr
     let params = await client.getTransactionParams().do();
 
     // create unsigned transaction
-    let txn = algosdk.makeApplicationUpdateTxn(sender, params, appId, 
+    let txn = algosdk.makeApplicationUpdateTxn(sender, params, appId,
                                             approvalProgram, clearProgram);
     let txId = txn.txID().toString();
 
@@ -96,7 +99,7 @@ async function updateApp(client, appId, creatorAccount, approvalProgram, clearPr
 
 async function main() {
     try {
-    
+
         const args = require('minimist')(process.argv.slice(2))
         const environment = args['environment'];
         const orderbook = args['orderbook'];
@@ -125,13 +128,13 @@ async function main() {
 
         let creatorAccount = getCreatorAccount(mnemonic, fromAddr);
         console.log({creatorAccount});
-        
+
         // declare clear state program source
         clearProgramSource = `#pragma version 2
             int 1
         `;
 
-        // compile programs 
+        // compile programs
         let approvalProgram = await compileProgram(algodClient, approvalProgramSourceInitial);
         let clearProgram = await compileProgram(algodClient, clearProgramSource);
 
@@ -141,7 +144,7 @@ async function main() {
 
     }
     catch (err){
-        console.log("err", err);  
+        console.log("err", err);
     }
 }
 

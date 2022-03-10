@@ -1,6 +1,8 @@
-//
+#!/usr/bin/env node
+
+// TODO: Move to commander.js
 // USAGE:
-//   node scripts/sendMultiSig.js --in-file [in-file] --out-file [out-file] --send=[true|false] --mnemonic=[mnemonic] --first-address=[address] --second-address=[address]
+//   dex-send-multisig --in-file [in-file] --out-file [out-file] --send=[true|false] --mnemonic=[mnemonic] --first-address=[address] --second-address=[address]
 
 
 const algosdk = require('algosdk');
@@ -26,8 +28,8 @@ async function readSignedMultisigTransactionFromFile(account, firstAddress, seco
     //let twosigs = algosdk.appendSignMultisigTransaction(stxn, mparams, account2.sk).blob;
     const algodClient = algodex.initAlgodClient('production');
     algodex.initIndexer('production');
-    
-    let txId = (await algodClient.sendRawTransaction(twosigs).do());        
+
+    let txId = (await algodClient.sendRawTransaction(twosigs).do());
 
     let confirmedTxn = await algodex.waitForConfirmation(txId.txId);
 
@@ -50,18 +52,18 @@ async function writeSignedMultisigTransactionToFile(account, firstAddress, secon
     console.log(algosdk.encodeAddress(txn.from.publicKey))
     let stxn = algosdk.signMultisigTransaction(txn, mparams, account.sk).blob;
 
-    fs.writeFileSync(outFile, stxn ); 
+    fs.writeFileSync(outFile, stxn );
     console.log("The stxn file was saved!");
     // write out mparams as json file
-    let mparamsinfo = JSON.stringify(mparams, undefined, 2); 
-    fs.writeFileSync('./multisigparams.json', mparamsinfo)        
-    console.log("The multisig params file was saved!");    
-       
+    let mparamsinfo = JSON.stringify(mparams, undefined, 2);
+    fs.writeFileSync('./multisigparams.json', mparamsinfo)
+    console.log("The multisig params file was saved!");
+
 };
 
 
 async function main() {
-    
+
     const args = require('minimist')(process.argv.slice(2))
     const inFile = args['in-file'];
     const outFile = args['out-file'];
