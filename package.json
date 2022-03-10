@@ -5,7 +5,8 @@
   "main": "index.js",
   "bin": {
     "dex-create-app": "./bin/create-app",
-    "dex-send-multisig": "./bin/send-multisig"
+    "dex-send-multisig": "./bin/send-multisig",
+    "dex-update-app": "./bin/update-app"
   },
   "scripts": {
     "test": "jest",
