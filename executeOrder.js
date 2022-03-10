@@ -1,5 +1,6 @@
 const algodex = require('./algodex_api.js')
 const signingApi = require('./signing_api.js');
+const deprecate = require('./lib/functions/deprecate');
 
 
 const ExecuteOrder = {
@@ -16,8 +17,9 @@ const ExecuteOrder = {
  * @param {Number}            orderAlgoAmount: Must be integer. max amount of algo to buy or sell in microAlgos
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
+ * @deprecated
  */
-    executeOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+    executeOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId,
         takerWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
 
@@ -51,14 +53,15 @@ const ExecuteOrder = {
  * @param {Number}            orderAlgoAmount: Must be integer. max amount of algo to buy or sell in microAlgos
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
+ * @deprecated
  */
 
-executeMarketOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId, 
+executeMarketOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder, assetId,
 	takerWalletAddr, currentMarketPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector, tolerance=.20) {
 
 	const worstAcceptablePrice = isSellingASA_AsTakerOrder ? currentMarketPrice * (1 - tolerance) : currentMarketPrice * (1 + tolerance);
 
-	const {params, allTransList} = await algodex.structureOrder(algodClient, isSellingASA_AsTakerOrder, assetId, 
+	const {params, allTransList} = await algodex.structureOrder(algodClient, isSellingASA_AsTakerOrder, assetId,
         takerWalletAddr, worstAcceptablePrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, false, walletConnector);
 
 	if(!!walletConnector && walletConnector.connector.connected) {
@@ -85,9 +88,10 @@ executeMarketOrderAsTaker: async function(algodClient, isSellingASA_AsTakerOrder
  * @param {Number}            orderAlgoAmount: Must be integer. max amount of algo to buy or sell in microAlgos
  * @param {Object[]}       allOrderBookOrders: Array of objects each created via createOrderBookEntryObj
  * @returns {Object} Promise for when the batched transaction(s) are fully confirmed
+ * @deprecated
  */
 
-executeOrderAsMakerAndTaker: async function(algodClient, isSellingASA, assetId, 
+executeOrderAsMakerAndTaker: async function(algodClient, isSellingASA, assetId,
         userWalletAddr, limitPrice, orderAssetAmount, orderAlgoAmount, allOrderBookOrders, walletConnector) {
 
 	const { params, allTransList } = await algodex.structureOrder(algodClient, isSellingASA, assetId,
@@ -102,11 +106,14 @@ executeOrderAsMakerAndTaker: async function(algodClient, isSellingASA, assetId,
 		const confirmedMyAlgoWalletArr = await signingApi.propogateTransactions(algodClient, signedGroupedTransactions);
 		return confirmedMyAlgoWalletArr;
 	}
-		
+
 
 },
 
-closeOrderFromOrderBookEntry: algodex.closeOrderFromOrderBookEntry,
+	/**
+	 * @deprecated
+	 */
+	closeOrderFromOrderBookEntry: algodex.closeOrderFromOrderBookEntry,
 
 /**
  * Maker order to create a new algo-only escrow account and order book entry
@@ -119,6 +126,7 @@ closeOrderFromOrderBookEntry: algodex.closeOrderFromOrderBookEntry,
  * @param {Number}         assetId: Algorand ASA ID for the asset.
  * @param {Number}   algoOrderSize: size of the order in terms of algos
  * @returns {Object} Promise for when the transaction is fully confirmed
+ * @deprecated
  */
 
 placeAlgosToBuyASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, d, min, assetId, algoOrderSize, walletConnector) {
@@ -135,6 +143,7 @@ placeAlgosToBuyASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, 
  * @param {Number}             min: minimum execution amount size. Should always be set to 0 (for the time being).
  * @param {Number}         assetId: Algorand ASA ID for the asset.
  * @returns {Object} Promise for when the transaction is fully confirmed
+ * @deprecated
  */
 
 placeASAToSellASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, d, min, assetId, assetAmount, walletConnector) {
@@ -142,5 +151,12 @@ placeASAToSellASAOrderIntoOrderbook: function(algodClient, makerWalletAddr, n, d
 },
 
 }
+
+/**
+ * Export of deprecated functions
+ */
+Object.keys(ExecuteOrder).forEach(( key)=>{
+	ExecuteOrder[key] = deprecate(ExecuteOrder[key], {file:'executeOrder.js'})
+})
 
 module.exports = ExecuteOrder
