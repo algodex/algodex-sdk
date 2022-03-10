@@ -1,6 +1,7 @@
 const algosdk = require('algosdk');
 const { formatJsonRpcRequest } = require("@json-rpc-tools/utils");
 const constants = require('./constants.js');
+const deprecate = require('./lib/functions/deprecate');
 let MyAlgo = null;
 let myAlgoWalletUtil = null;
 if (typeof window != 'undefined') {
@@ -14,14 +15,28 @@ if (MyAlgo != null) {
     // console.debug(myAlgoWallet)
 }
 
-
+/**
+ *
+ *@deprecated
+ */
 const HelperFunctions = {
+    /**
+     *
+     * @param txns
+     * @deprecated
+     */
     assignGroups: function (txns) {
         const groupID = algosdk.computeGroupID(txns)
         for (let i = 0; i < txns.length; i++) {
             txns[i].group = groupID;
         }
     },
+    /**
+     * @deprecated
+     * @param items
+     * @param key
+     * @returns {*}
+     */
     groupBy:
         function (items, key) {
             return items.reduce(
@@ -36,6 +51,12 @@ const HelperFunctions = {
             )
 
         },
+    /**
+     *
+     * @param promises
+     * @returns {Promise<unknown[]>}
+     * @deprecated
+     */
     allSettled: function (promises) {
         let wrappedPromises = promises.map(p => Promise.resolve(p)
             .then(
@@ -43,6 +64,11 @@ const HelperFunctions = {
                 err => ({ status: 'promiseRejected', reason: err })));
         return Promise.all(wrappedPromises);
     },
+    /**
+     *
+     * @param signedTxns
+     * @deprecated
+     */
     printTransactionDebug: function printTransactionDebug(signedTxns) {
         console.debug('zzTxnGroup to debug:');
         const b64_encoded = Buffer.concat(signedTxns.map(txn => Buffer.from(txn))).toString('base64');
@@ -67,6 +93,12 @@ const HelperFunctions = {
             })();
         }
     },
+    /**
+     *
+     * @param txId
+     * @returns {Promise<{statusMsg: string, txId, transaction: (*|((storeNames: (string | Iterable<string>), mode?: IDBTransactionMode) => IDBTransaction)|((callback: (transaction: SQLTransactionSync) => void) => void)|((storeNames: (string | string[]), mode?: IDBTransactionMode) => IDBTransaction)|IDBTransaction|((callback: (transaction: SQLTransaction) => void, errorCallback?: (error: SQLError) => void, successCallback?: () => void) => void)), status: string}>}
+     * @deprecated
+     */
     waitForConfirmation: async function (txId) {
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -125,4 +157,11 @@ const HelperFunctions = {
     },
 
 }
+
+/**
+ * Export of deprecated functions
+ */
+Object.keys(HelperFunctions).forEach((key)=>{
+    HelperFunctions[key] = deprecate(HelperFunctions[key], {file:'helperFunctions.js'})
+})
 module.exports = HelperFunctions;
