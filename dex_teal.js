@@ -5,11 +5,19 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
+const deprecate = require('./lib/functions/deprecate');
+/**
+ * @deprecated
+ * @type {{getClearProgram: (function(): string), getAlgoOrderBookApprovalProgram: (function(): string)}}
+ */
 const AlgoOrderbookTeal = {
 
-
-getClearProgram : function getClearProgram() {
-    const clearProgram = 
+    /**
+     * @deprecated
+     * @returns {string}
+     */
+    getClearProgram : function getClearProgram() {
+    const clearProgram =
             `
 #pragma version 2
 // This program clears program state.
@@ -22,7 +30,11 @@ int 1
 return clearProgram;
 },
 
-getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
+    /**
+     * @deprecated
+     * @returns {string}
+     */
+    getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `
@@ -293,5 +305,11 @@ getAlgoOrderBookApprovalProgram : function getAlgoOrderBookApprovalProgram() {
     }
 }
 
+/**
+ * Export of deprecated functions
+ */
+Object.keys(AlgoOrderbookTeal).forEach((key)=>{
+    AlgoOrderbookTeal[key] = deprecate(AlgoOrderbookTeal[key], {file:'dex_teal.js'})
+})
 module.exports = AlgoOrderbookTeal;
 

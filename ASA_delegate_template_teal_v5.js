@@ -5,8 +5,17 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
+const deprecate = require('./lib/functions/deprecate');
+/**
+ * @deprecated
+ * @type {{getTealTemplate: (function(): string)}}
+ */
 const asaDelegateTemplate = {
 
+    /**
+     * @deprecated
+     * @returns {string}
+     */
     getTealTemplate : function getTealTemplate() {
 
     let asaDelegateTemplate = `
@@ -649,4 +658,10 @@ finalExecuteChecks:
 
 }
 
+/**
+ * Export of deprecated functions
+ */
+Object.keys(asaDelegateTemplate).forEach((key)=>{
+    asaDelegateTemplate[key] = deprecate(asaDelegateTemplate[key], {file:'ASA_delegate_template_teal_v5.js'})
+})
 module.exports = asaDelegateTemplate;

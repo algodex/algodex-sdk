@@ -5,8 +5,17 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
+const deprecate = require('./lib/functions/deprecate');
+/**
+ * @deprecated
+ * @type {{getTealTemplate: (function(): string)}}
+ */
 const algoDelegateTemplate = {
 
+    /**
+     * @deprecated
+     * @returns {string}
+     */
     getTealTemplate : function getTealTemplate() {
 
 let delegateTemplate = `
@@ -468,5 +477,10 @@ let delegateTemplate = `
     }
 
 }
-
+/**
+ * Export of deprecated functions
+ */
+Object.keys(algoDelegateTemplate).forEach((key)=>{
+    algoDelegateTemplate[key] = deprecate(algoDelegateTemplate[key], {file:'algo_delegate_template_teal_v4.js'})
+})
 module.exports = algoDelegateTemplate;

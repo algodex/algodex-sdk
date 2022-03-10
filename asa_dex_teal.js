@@ -5,10 +5,19 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
+const deprecate = require('./lib/functions/deprecate');
+/**
+ * @deprecated
+ * @type {{getClearProgram: (function(): string), getASAOrderBookApprovalProgram: (function(): string)}}
+ */
 const AsaOrderbookTeal = {
 
-getClearProgram : function getClearProgram() {
-    const clearProgram = 
+    /**
+     * @deprecated
+     * @returns {string}
+     */
+    getClearProgram : function getClearProgram() {
+    const clearProgram =
             `
 #pragma version 2
 // This program clears program state.
@@ -21,8 +30,11 @@ int 1
 ;
 return clearProgram;
 },
-
-getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
+    /**
+     * @deprecated
+     * @returns {string}
+     */
+    getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
     // stateful DEX contract
     // This is for the order book
     return `
@@ -369,5 +381,10 @@ getASAOrderBookApprovalProgram : function getASAOrderBookApprovalProgram() {
 
     }
 };
-
+/**
+ * Export of deprecated functions
+ */
+Object.keys(AsaOrderbookTeal).forEach((key)=>{
+    AsaOrderbookTeal[key] = deprecate(AsaOrderbookTeal[key], {file:'asa_dex_teal.js'})
+})
 module.exports = AsaOrderbookTeal;
