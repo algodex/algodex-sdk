@@ -23,9 +23,18 @@ const GREATER_THAN = 1;
 
 let MyAlgo = null;
 let myAlgoWalletUtil = null;
-if (typeof window != 'undefined') {
+if (typeof window != 'undefined' ) {
     MyAlgo = require('@randlabs/myalgo-connect');
     myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
+}
+if(process.env.NODE_ENV === 'test') {
+    myAlgoWalletUtil = require('./MyAlgoWalletUtil.js');
+    MyAlgo = function TestMyAlgo() {
+        if (!new.target) {
+          throw Error("Cannot be called without the new keyword");
+        }
+        this.signTransaction = () => true
+      }
 }
 
 const algoDelegateTemplate = require('./algo_delegate_template_teal.js');

@@ -21,12 +21,20 @@ const algodex = require('./algodex_api.js');
 
 const constants = require('./constants.js');
 const testHelper = require('./test_helper.js');
+const deprecate = require('./lib/functions/deprecate');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
 
 const GenerateTransactions = {
-    // helper function to compile program source  
+    // helper function to compile program source
+    /**
+     *
+     * @param client
+     * @param programSource
+     * @returns {Promise<Uint8Array>}
+     * @deprecated
+     */
     compileProgram: async function (client, programSource) {
         let encoder = new TextEncoder();
         let programBytes = encoder.encode(programSource);
@@ -35,6 +43,17 @@ const GenerateTransactions = {
         return compiledBytes;
     },
 
+    /**
+     *
+     * @param client
+     * @param fromAcct
+     * @param toAcct
+     * @param amount
+     * @param assetId
+     * @param shouldClose
+     * @returns {Promise<Transaction>}
+     * @deprecated
+     */
     getAssetSendTxn : async function (client, fromAcct, toAcct, amount, assetId, shouldClose) {
         if (typeof(fromAcct) !== "string") {
             fromAcct = fromAcct.addr;
@@ -50,12 +69,22 @@ const GenerateTransactions = {
         if (shouldClose === true) {
             closeAddr = toAcct;
         }
-        
+
         let txn = algosdk.makeAssetTransferTxnWithSuggestedParams(fromAcct, toAcct, closeAddr, undefined,
                 amount, undefined, assetId, params);
         return txn;
     },
 
+    /**
+     *
+     * @param client
+     * @param fromAcct
+     * @param toAcct
+     * @param amount
+     * @param shouldClose
+     * @returns {Promise<Transaction>}
+     * @deprecated
+     */
     getPayTxn : async function (client, fromAcct, toAcct, amount, shouldClose) {
         if (typeof(fromAcct) !== "string") {
             fromAcct = fromAcct.addr;
@@ -74,10 +103,19 @@ const GenerateTransactions = {
             closeAddr = toAcct;
         }
         console.log({fromAcct, toAcct, amount, closeAddr, note, params});
-        let txn = algosdk.makePaymentTxnWithSuggestedParams(fromAcct, toAcct, amount, closeAddr, note, params); 
+        let txn = algosdk.makePaymentTxnWithSuggestedParams(fromAcct, toAcct, amount, closeAddr, note, params);
         return txn;
     },
 
+    /**
+     *
+     * @param client
+     * @param creatorAccount
+     * @param isAlgoEscrowApp
+     * @param useBlankSource
+     * @returns {Promise<Transaction>}
+     * @deprecated
+     */
     getCreateAppTxn : async function (client, creatorAccount, isAlgoEscrowApp = true, useBlankSource=false) {
             // define sender as creator
             let approvalProgramSource = null;
@@ -111,12 +149,22 @@ const GenerateTransactions = {
             let approvalProgram = await this.compileProgram(client, approvalProgramSource);
             let clearProgram = await this.compileProgram(client, clearProgramSource);
 
-            let txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete, 
-                                                    approvalProgram, clearProgram, 
+            let txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete,
+                                                    approvalProgram, clearProgram,
                                                     localInts, localBytes, globalInts, globalBytes,);
 
             return txn;
     },
+    /**
+     *
+     * @param algodClient
+     * @param creator
+     * @param price
+     * @param assetId
+     * @param isAsaEscrow
+     * @returns {Promise<*>}
+     * @deprecated
+     */
     getLsig : async function  (algodClient, creator, price, assetId, isAsaEscrow) {
         let numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
         let n = numAndDenom.n;
@@ -127,6 +175,16 @@ const GenerateTransactions = {
         let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, escrowSource, constants.DEBUG_SMART_CONTRACT_SOURCE);
         return lsig;
     },
+    /**
+     *
+     * @param algodClient
+     * @param creator
+     * @param price
+     * @param assetId
+     * @param appId
+     * @returns {Promise<*[]>}
+     * @deprecated
+     */
     getCloseAlgoEscrowOrderTxns : async function (algodClient, creator, price, assetId, appId) {
         let numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
         let n = numAndDenom.n;
@@ -141,7 +199,7 @@ const GenerateTransactions = {
         // "2500-625-0-15322902"
         let orderBookEntry = n + "-" + d + "-0-" + assetId;
         console.log("closing order from order book entry!");
-        console.log("escrowAccountAddr, creatorAddr, orderBookEntry", 
+        console.log("escrowAccountAddr, creatorAddr, orderBookEntry",
             escrowAccountAddr, creatorAddr, orderBookEntry);
 
 
@@ -180,6 +238,16 @@ const GenerateTransactions = {
         return outerTxns;
     },
 
+    /**
+     *
+     * @param algodClient
+     * @param creator
+     * @param price
+     * @param assetId
+     * @param appId
+     * @returns {Promise<*[]>}
+     * @deprecated
+     */
     getCloseASAEscrowOrderTxns : async function (algodClient, creator, price, assetId, appId) {
         let numAndDenom = algodex.getNumeratorAndDenominatorFromPrice(price);
         let n = numAndDenom.n;
@@ -194,7 +262,7 @@ const GenerateTransactions = {
         // "2500-625-0-15322902"
         let orderBookEntry = n + "-" + d + "-0-" + assetId;
         console.log("closing order from order book entry!");
-        console.log("escrowAccountAddr, creatorAddr, orderBookEntry", 
+        console.log("escrowAccountAddr, creatorAddr, orderBookEntry",
             escrowAccountAddr, creatorAddr, orderBookEntry);
 
         let appArgs = [];
@@ -216,7 +284,7 @@ const GenerateTransactions = {
         // sender and receiver are both the same
         let sender = lsig.address();
         let recipient = creatorAddr;
-        // We set revocationTarget to undefined as 
+        // We set revocationTarget to undefined as
         // This is not a clawback operation
         let revocationTarget = undefined;
         // CloseReaminerTo is set to undefined as
@@ -230,7 +298,7 @@ const GenerateTransactions = {
             amount, undefined, assetId, params);
 
         // Make payment tx signed with lsig
-        let txn3 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr, 
+        let txn3 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), creatorAddr, 0, creatorAddr,
                 undefined, params);
 
         // proof of ownership transaction
@@ -256,7 +324,21 @@ const GenerateTransactions = {
         return outerTxns;
     },
 
-    getExecuteAlgoEscrowOrderTxns : async function (algodClient, executorAccount, makerAccount, algoAmountReceiving, asaAmountSending, 
+    /**
+     *
+     * @param algodClient
+     * @param executorAccount
+     * @param makerAccount
+     * @param algoAmountReceiving
+     * @param asaAmountSending
+     * @param price
+     * @param assetId
+     * @param appId
+     * @param shouldClose
+     * @returns {Promise<*[]>}
+     * @deprecated
+     */
+    getExecuteAlgoEscrowOrderTxns : async function (algodClient, executorAccount, makerAccount, algoAmountReceiving, asaAmountSending,
         price, assetId, appId, shouldClose = false) {
 
         const orderCreatorAddr = makerAccount.addr;
@@ -292,7 +374,7 @@ const GenerateTransactions = {
         console.log("arg1: " + appCallType);
         console.log("arg2: " + orderBookEntry);
         console.log("arg3: " + orderCreatorAddr);
-        
+
         let appArgs = [];
         let enc = new TextEncoder();
         appArgs.push(enc.encode(appCallType));
@@ -311,7 +393,7 @@ const GenerateTransactions = {
         // Make payment tx signed with lsig
         let transaction2 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), takerAddr, algoAmountReceiving, closeRemainderTo, undefined, params);
         // Make asset xfer
- 
+
         let transaction3 = await this.getAssetSendTxn(algodClient, takerAddr, orderCreatorAddr, asaAmountSending, assetId, false);
 
         let transaction4 = null;
@@ -348,6 +430,20 @@ const GenerateTransactions = {
 
     },
 
+    /**
+     *
+     * @param algodClient
+     * @param executorAccount
+     * @param makerAccount
+     * @param algoAmountSending
+     * @param asaAmountReceiving
+     * @param price
+     * @param assetId
+     * @param appId
+     * @param shouldClose
+     * @returns {Promise<*[]>}
+     * @deprecated
+     */
     getExecuteASAEscrowOrderTxns : async function (algodClient, executorAccount, makerAccount, algoAmountSending, asaAmountReceiving, price, assetId, appId, shouldClose = false) {
         console.log("here664 ", executorAccount, makerAccount, algoAmountSending, asaAmountReceiving, price, assetId, appId, shouldClose);
         const orderCreatorAddr = makerAccount.addr;
@@ -369,8 +465,8 @@ const GenerateTransactions = {
         const appAccts = [];
         appAccts.push(orderCreatorAddr);
         appAccts.push(takerAddr);
-        
-      
+
+
         let transaction1 = null;
         let closeRemainderTo = undefined;
 
@@ -426,13 +522,13 @@ const GenerateTransactions = {
         if (closeRemainderTo != undefined) {
             // Make payment tx signed with lsig back to owner creator
             console.log("making transaction4 due to closeRemainderTo");
-            transaction4 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), orderCreatorAddr, 0, orderCreatorAddr, 
+            transaction4 = algosdk.makePaymentTxnWithSuggestedParams(lsig.address(), orderCreatorAddr, 0, orderCreatorAddr,
                 undefined, params);
         } else {
             // Make fee refund transaction
             transaction4 = await this.getPayTxn(algodClient, takerAddr, lsig.address(), refundFees, false);
         }
-        
+
         if (transaction2b != null) {
             myAlgoWalletUtil.setTransactionFee(transaction2b);
         }
@@ -475,6 +571,19 @@ const GenerateTransactions = {
         return retTxns;
     },
 
+    /**
+     *
+     * @param algodClient
+     * @param makerAccount
+     * @param algoOrderSize
+     * @param price
+     * @param assetId
+     * @param appId
+     * @param isExistingEscrow
+     * @param skipASAOptIn
+     * @returns {Promise<*[]>}
+     * @deprecated
+     */
     getPlaceAlgoEscrowOrderTxns : async function (algodClient, makerAccount, algoOrderSize, price, assetId, appId, isExistingEscrow = false,
                                         skipASAOptIn = false) {
         const makerAddr = makerAccount.addr;
@@ -520,7 +629,7 @@ const GenerateTransactions = {
         }
 
         console.log("skipASAOptIn: " + skipASAOptIn);
-        
+
         if (!skipASAOptIn) {
             // asset opt-in transfer
             let assetOptInTxn = await this.getAssetSendTxn(algodClient, makerAddr, makerAddr, 0, assetId, false);
@@ -533,6 +642,18 @@ const GenerateTransactions = {
         return outerTxns;
     },
 
+    /**
+     *
+     * @param algodClient
+     * @param makerAccount
+     * @param asaOrderSize
+     * @param price
+     * @param assetId
+     * @param appId
+     * @param isExistingEscrow
+     * @returns {Promise<*[]>}
+     * @deprecated
+     */
     getPlaceASAEscrowOrderTxns : async function (algodClient, makerAccount, asaOrderSize, price, assetId, appId, isExistingEscrow = false) {
         console.log("checking assetId type");
         assetId = parseInt(assetId+"");
@@ -550,7 +671,7 @@ const GenerateTransactions = {
         let lsig = await algodex.getLsigFromProgramSource(algosdk, algodClient, program);
         let generatedOrderEntry = algodex.generateOrder(makerAddr, n, d, min, assetId);
         console.log("address is: " + lsig.address());
-        
+
         // check if the lsig has already opted in
         let accountInfo = await algodex.getAccountInfo(lsig.address());
         let alreadyOptedIn = false;
@@ -571,7 +692,7 @@ const GenerateTransactions = {
 
         let payTxn = await this.getPayTxn(algodClient, makerAddr, lsig.address(), constants.MIN_ASA_ESCROW_BALANCE,
             false);
-       
+
         myAlgoWalletUtil.setTransactionFee(payTxn);
 
         console.log("typeof: " + typeof payTxn.txId);
@@ -593,14 +714,14 @@ const GenerateTransactions = {
         //ownersBitAddr = (algosdk.decodeAddress(ownersAddr)).publicKey;
         console.log(appArgs.length);
 
-        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, appId, 
+        let logSigTrans = await dexInternal.createTransactionFromLogicSig(algodClient, lsig, appId,
                     appArgs, "appOptIn");
 
         // create optin transaction
         // sender and receiver are both the same
         let sender = lsig.address();
         let recipient = sender;
-        // We set revocationTarget to undefined as 
+        // We set revocationTarget to undefined as
         // This is not a clawback operation
         let revocationTarget = undefined;
         // CloseReaminerTo is set to undefined as
@@ -610,7 +731,7 @@ const GenerateTransactions = {
         let amount = 0;
 
         // signing and sending "txn" allows sender to begin accepting asset specified by creator and index
-        let logSigAssetOptInTrans = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo, 
+        let logSigAssetOptInTrans = algosdk.makeAssetTransferTxnWithSuggestedParams(sender, recipient, closeRemainderTo,
             revocationTarget,
             amount, undefined, assetId, params);
 
@@ -635,6 +756,11 @@ const GenerateTransactions = {
     },
 
 }
-
+/**
+ * Export of deprecated functions
+ */
+Object.keys(GenerateTransactions).forEach((key)=>{
+    GenerateTransactions[key] = deprecate(GenerateTransactions[key], {file:'generate_transaction_types.js'})
+})
 module.exports = GenerateTransactions;
 

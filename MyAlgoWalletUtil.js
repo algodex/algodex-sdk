@@ -1,11 +1,18 @@
 
 const constants = require('./constants.js');
+const deprecate = require('./lib/functions/deprecate');
 const axios = require('axios').default;
 
 let ALGOD_SERVER = 'https://testnet.algoexplorerapi.io';
 
+/**
+ *
+ * @param txn
+ * @returns {Promise<*>}
+ * @deprecated
+ */
 exports.connectToWallet = async function(txn) {
-    try {  
+    try {
         console.debug("connecting...");
         console.debug(myAlgoWallet);
         accounts = await myAlgoWallet.connect();
@@ -18,10 +25,20 @@ exports.connectToWallet = async function(txn) {
 
 };
 
+/**
+ *
+ * @param algod_server
+ * @deprecated
+ */
 exports.setAlgodServer = (algod_server) => {
     ALGOD_SERVER = algod_server;
 }
 
+/**
+ *
+ * @returns {Promise<any>}
+ * @deprecated
+ */
 const getParams = async() => {
     try {
         const response = await axios.get(ALGOD_SERVER + '/v2/transactions/params');
@@ -44,9 +61,18 @@ let transactionParams = null;
     console.error(err);
 });
 
-
+/**
+ * @deprecated
+ * @param txn
+ */
 exports.setTransactionFee = function(txn) {
     txn.fee = transactionParams["min-fee"];
 	txn.flatFee = true;
 };
 
+/**
+ * Export of deprecated functions
+ */
+Object.keys(exports).forEach(( key)=>{
+    exports[key] = deprecate(exports[key], {file:'MyAlgoWalletUtil.js'})
+})

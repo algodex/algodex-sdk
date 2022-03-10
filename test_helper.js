@@ -19,6 +19,7 @@ const dexInternal = require('./algodex_internal_api.js');
 const algodex = require('./algodex_api.js');
 const constants = require('./constants.js');
 const transactionGenerator = require('./generate_transaction_types.js');
+const deprecate = require('./lib/functions/deprecate');
 
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
@@ -27,18 +28,34 @@ const ALGOD_SERVER='https://testnet.algoexplorerapi.io';
 const ALGOD_TOKEN = ''; //{ 'X-API-Key': 'VELyABA1dGqGbAVktbew4oACvp0c0298gMgYtYIb' }
 const ALGOD_PORT='';
 
-
+/**
+ * @deprecated
+ * @type {{getRandomAccount: (function(): Account), sendAndCheckPending: ((function(*, *): Promise<void>)|*), checkFailureType: (function(*): boolean), getOpenAccount: (function(): Account), waitForConfirmation: ((function(*, *): Promise<void>)|*), groupAndSignTransactions: (function(*): *[]), transferASA: ((function(*, *, *, *, *): Promise<void>)|*), getAssetBalance: ((function(*, *): Promise<*|null>)|*), getLocalClient: (function(): AlgodClient), sendAndCheckConfirmed: ((function(*, *): Promise<void>)|*), runNegativeTest: ((function(*, *, *, *): Promise<*|boolean>)|*), getExecuteAccount: (function(): Account), getOrderLsig: (function(*, *, *, *, *): *), closeAccount: ((function(*, *, *): Promise<void>)|*), printOuterTransactions: TestHelper.printOuterTransactions, getAccountInfo: ((function(*): Promise<any|undefined>)|*), transferFunds: ((function(*, *, *, *): Promise<void>)|*), checkPending: ((function(*, *): Promise<void>)|*), deleteApplication: ((function(*, *, *): Promise<void>)|*)}}
+ */
 const TestHelper = {
+    /**
+     * @deprecated
+     * @returns {AlgodClient}
+     */
     getLocalClient : function getLocalClientAndEnv() {
         //const algodClient = algodex.initAlgodClient("test");
         const algodClient = new algosdk.Algodv2(ALGOD_TOKEN, ALGOD_SERVER, ALGOD_PORT);
         return algodClient;
     },
 
+    /**
+     * @deprecated
+     * @returns {Account}
+     */
     getRandomAccount : function getRandomAccount() {
         return algosdk.generateAccount();
     },
 
+    /**
+     * @deprecated
+     * @param addr
+     * @returns {Promise<any>}
+     */
     getAccountInfo : async function getAccountInfo(addr) {
         //return algodex.getAccountInfo(addr);
 
@@ -57,12 +74,21 @@ const TestHelper = {
         }
     },
 
+    /**
+     * @deprecated
+     * @param outerTxns
+     */
     printOuterTransactions : function (outerTxns) {
         for (let i = 0; i < outerTxns.length; i++ ) {
            console.log(outerTxns[i]);
         }
     },
 
+    /**
+     * @deprecated
+     * @param error
+     * @returns {boolean}
+     */
     checkFailureType : function (error) {
         let hasKnownError = false;
 
@@ -84,6 +110,10 @@ const TestHelper = {
         return hasKnownError;
     },
 
+    /**
+     * @deprecated
+     * @returns {Account}
+     */
     getOpenAccount : function getOpenAccount() {
         //WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI
         let mn = "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above";
@@ -91,6 +121,15 @@ const TestHelper = {
         return openAccount;
     },
 
+    /**
+     * @deprecated
+     * @param client
+     * @param fromAccount
+     * @param toAccount
+     * @param amount
+     * @param assetId
+     * @returns {Promise<void>}
+     */
     transferASA : async function (client, fromAccount, toAccount, amount, assetId) {
         const asaTransferTxn = await transactionGenerator.getAssetSendTxn(client, fromAccount, toAccount, amount, assetId, false);
         const asaTxnId = asaTransferTxn.txID().toString();
@@ -109,6 +148,14 @@ const TestHelper = {
         await this.checkPending(client, asaTxnId);
     },
 
+    /**
+     * @deprecated
+     * @param client
+     * @param fromAccount
+     * @param toAccount
+     * @param amount
+     * @returns {Promise<void>}
+     */
     transferFunds : async function (client, fromAccount, toAccount, amount) {
         const fundTxn = await transactionGenerator.getPayTxn(client, fromAccount, toAccount, amount, false);
         const fundTxnId = fundTxn.txID().toString();
@@ -127,6 +174,12 @@ const TestHelper = {
         await this.checkPending(client, fundTxnId);
     },
 
+    /**
+     * @deprecated
+     * @param client
+     * @param signedTxns
+     * @returns {Promise<void>}
+     */
     sendAndCheckConfirmed : async function(client, signedTxns) {
         // Submit the transaction
         let txId = null;
@@ -139,6 +192,12 @@ const TestHelper = {
         // Wait for confirmation
         await this.waitForConfirmation(client, txId);
     },
+    /**
+     * @deprecated
+     * @param client
+     * @param signedTxns
+     * @returns {Promise<void>}
+     */
     sendAndCheckPending : async function(client, signedTxns) {
         // Submit the transaction
         let txId = null;
@@ -152,8 +211,17 @@ const TestHelper = {
         await this.checkPending(client, txId);
     },
 
-    // Note: this function is currently not used and has not been run before.
-    getOrderLsig : async function (algodClient, makerAccount, 
+    /**
+     * Note: this function is currently not used and has not been run before.
+     * @deprecated
+     * @param algodClient
+     * @param makerAccount
+     * @param price
+     * @param assetId
+     * @param isASAEscrow
+     * @returns {Promise<*>}
+     */
+    getOrderLsig : async function (algodClient, makerAccount,
         price, assetId, isASAEscrow) {
 
         const orderCreatorAddr = makerAccount.addr;
@@ -166,6 +234,12 @@ const TestHelper = {
         return lsig;
     },
 
+    /**
+     * @deprecated
+     * @param accountAddr
+     * @param assetId
+     * @returns {Promise<null|*>}
+     */
     getAssetBalance : async function (accountAddr, assetId) {
         console.log("checking account info for: " + accountAddr)
         const accountInfo = await this.getAccountInfo(accountAddr);
@@ -182,6 +256,13 @@ const TestHelper = {
         return null;
     },
 
+    /**
+     * @deprecated
+     * @param client
+     * @param fromAccount
+     * @param toAccount
+     * @returns {Promise<void>}
+     */
     closeAccount : async function closeAccount (client, fromAccount, toAccount) {
         console.log("checking account info for: " + fromAccount.addr)
         const fromAccountInfo = await this.getAccountInfo(fromAccount.addr);
@@ -209,6 +290,14 @@ const TestHelper = {
         }
         await this.checkPending(client, fundTxnId);
     },
+    /**
+     * @deprecated
+     * @param config
+     * @param client
+     * @param outerTxns
+     * @param negTestTxnConfig
+     * @returns {Promise<boolean>}
+     */
     runNegativeTest : async function (config, client, outerTxns, negTestTxnConfig) {
         console.log("STARTING runNegativeTest");
         console.log({negTestTxnConfig});
@@ -258,9 +347,16 @@ const TestHelper = {
             // An exception is expected. Return true for success
             return this.checkFailureType(e);
         }
-        
+
         return false;
     },
+    /**
+     * @deprecated
+     * @param client
+     * @param sender
+     * @param appId
+     * @returns {Promise<void>}
+     */
     deleteApplication : async function deleteApplication (client, sender, appId) {
         // create unsigned transaction
         let params = await client.getTransactionParams().do();
@@ -282,6 +378,10 @@ const TestHelper = {
         console.log("Deleted app-id: ",appId);
     },
 
+    /**
+     * @deprecated
+     * @returns {Account}
+     */
     getExecuteAccount : function getExecuteAccount() {
         //UUEUTRNQY7RUXESXRDO7HSYRSJJSSVKYVB4DI7X2HVVDWYOBWJOP5OSM3A
         let mn = "three satisfy build purse lens another idle fashion base equal echo recall proof hill shadow coach early palm act wealth dawn menu portion above mystery";
@@ -289,7 +389,13 @@ const TestHelper = {
         return executeAccount;
     },
 
-    // helper function to await transaction confirmation
+    /**
+     * helper function to await transaction confirmation
+     * @deprecated
+     * @param algodClient
+     * @param txId
+     * @returns {Promise<void>}
+     */
     waitForConfirmation : async function waitForConfirmation (algodClient, txId) {
         let status = (await algodClient.status().do());
         let lastRound = status["last-round"];
@@ -305,7 +411,13 @@ const TestHelper = {
         }
     },
 
-    // helper function to await transaction confirmation
+    /**
+     * helper function to await transaction confirmation
+     * @deprecated
+     * @param algodClient
+     * @param txId
+     * @returns {Promise<void>}
+     */
     checkPending : async function checkPending (algodClient, txId) {
         while (true) {
             const pendingInfo = await algodClient.pendingTransactionInformation(txId).do();
@@ -315,6 +427,11 @@ const TestHelper = {
         }
     },
 
+    /**
+     * @deprecated
+     * @param outerTxns
+     * @returns {*[]}
+     */
     groupAndSignTransactions :
         function (outerTxns) {
             console.log("inside signAndSend transactions");
@@ -353,5 +470,10 @@ const TestHelper = {
 
 
 }
-
+/**
+ * Export of deprecated functions
+ */
+Object.keys(TestHelper).forEach((key)=>{
+    TestHelper[key] = deprecate(TestHelper[key], {file:'test_helper.js'})
+})
 module.exports = TestHelper;
