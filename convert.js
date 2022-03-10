@@ -1,4 +1,5 @@
 const Big = require('big.js');
+const deprecate = require('./lib/functions/deprecate');
 
 /**
  * Converts an asset amount from base units to whole units
@@ -8,6 +9,7 @@ const Big = require('big.js');
  * @param {Number} amount the asset amount in base units
  * @param {Number} decimals asset's `decimals` property (default = 6 for ALGO)
  * @returns {Number} the asset amount in whole units, e.g. 2.187
+ * @deprecated
  */
 exports.convertFromBaseUnits = (amount, decimals = 6) => {
   const divisor = new Big(10).pow(decimals)
@@ -15,6 +17,11 @@ exports.convertFromBaseUnits = (amount, decimals = 6) => {
   return baseUnits.div(divisor).toNumber()
 }
 
+/**
+ * @deprecated
+ * @param number
+ * @returns {string}
+ */
 exports.numberFormatter = (number) => {
   const parts = parseFloat(number).toFixed(0).split('.')
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
@@ -29,6 +36,7 @@ exports.numberFormatter = (number) => {
  * @param {Number} amount the asset amount in whole units
  * @param {Number} decimals asset's `decimals` property (default = 6 for ALGO)
  * @returns {Number} the asset amount in base units, e.g. 2187000
+ * @deprecated
  */
 exports.convertToBaseUnits = (amount, decimals = 6) => {
   const multiplier = new Big(10).pow(decimals)
@@ -43,6 +51,7 @@ exports.convertToBaseUnits = (amount, decimals = 6) => {
  * @param {Number} price the asset price in whole unit ALGOs
  * @param {Number} totalCost order's total cost in microalgos
  * @returns {Number} whole unit ASA amount being ordered
+ * @deprecated
  */
 exports.calculateAsaBuyAmount = (price, totalCost) => {
   const wholeUnitCost = new Big(convertFromBaseUnits(totalCost))
@@ -59,6 +68,7 @@ exports.calculateAsaBuyAmount = (price, totalCost) => {
  * @param {Number} toConvert a price/balance in ALGOs
  * @param {Number} decimals ASA's `decimals` property
  * @returns {Number} converted price/balance
+ * @deprecated
  */
 exports.convertToAsaUnits = (toConvert, decimals) => {
   if (!toConvert) {
@@ -78,6 +88,7 @@ exports.convertToAsaUnits = (toConvert, decimals) => {
  * @param {Number} toConvert a price/balance in ASA units
  * @param {Number} decimals ASA's `decimals` property
  * @returns {Number} converted price/balance
+ * @deprecated
  */
 exports.convertFromAsaUnits = (toConvert, decimals) => {
   if (!toConvert) {
@@ -87,3 +98,10 @@ exports.convertFromAsaUnits = (toConvert, decimals) => {
   const asaUnits = new Big(toConvert)
   return asaUnits.times(multiplier).toNumber()
 }
+
+/**
+ * Export of deprecated functions
+ */
+Object.keys(exports).forEach((key)=>{
+  exports[key] = deprecate(exports[key], {file:'convert.js'})
+})
