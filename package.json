@@ -4,7 +4,8 @@
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
   "bin": {
-    "dex-create-app": "./bin/create-app"
+    "dex-create-app": "./bin/create-app",
+    "dex-send-multisig": "./bin/send-multisig"
   },
   "scripts": {
     "test": "jest",
