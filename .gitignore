@@ -1,5 +1,5 @@
 docs
-*.js.orig
+#*.js.orig
 *.diff
 *.txn
 *.stxn
