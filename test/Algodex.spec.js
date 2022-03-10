@@ -1,7 +1,7 @@
 const algodex = require('../algodex_api.js')
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
-const transactionGenerator = require('../generate_transaction_types.js');
-const testHelper = require('../test_helper.js')
+const transactionGenerator = require('../lib/teal/generate_transaction_types.js');
+const testHelper = require('./setup.js')
 const orderBookEntry = require('./fixtures/allOrderBooks.js')
 const JEST_MINUTE_TIMEOUT = 60 * 1000
 const allOrderBookOrders = require('./fixtures/allOrderBooks.js');
@@ -43,12 +43,12 @@ test('executeOrder& marketOrder', async () => {
 
     })
 
-   
+
 
     let buyLimitPrice = 2000
     let buyOrderAssetAmount = 1000
     let buyOrderAlgoAmount = 2000000
- 
+
     let sellLimitPrice = 1700
     let sellOrderAssetAmount = 1000
     let sellOrderAlgoAmount = 1700000
@@ -193,7 +193,7 @@ accountInfoMock.mockRestore()
 
 
 test('createOrderBookEntryObject', () => {
-    
+
     order = orderBookEntry[0]
     let args = []
     for(key in order) {
@@ -235,7 +235,7 @@ test("getPlaceAlgosToBuyASAOrderIntoOrderbook", async () => {
 
     // wallet that isn't empty
     expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(config.client, testWallet, 1, 2, 0, config.assetId, 1, false)).toBeTruthy()
-    
+
 })
 
 test("getPlaceASAToSellASAOrderIntoOrderbook", async () => {
@@ -253,7 +253,7 @@ test("closeOrderFromOrderBookEntry", async () => {
     const getAccountInfoMock = jest.spyOn(algodex, "getAccountInfo").mockImplementation((addr) => {
         return new Promise((resolve, reject) => {
             resolve({
-                 
+
                     txId: 'fakeId',
                     status: "confirmed",
                     assets: [{"asset-id": config.assetId}],
@@ -261,7 +261,7 @@ test("closeOrderFromOrderBookEntry", async () => {
                 }
             )
         })
-        // assetId = accountInfo['assets'][0]['asset-id']; 
+        // assetId = accountInfo['assets'][0]['asset-id'];
     })
     let mockRawTransactions = new function (signed) {
         this.do = () => { return { txId: true } }

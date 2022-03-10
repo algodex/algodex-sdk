@@ -1,5 +1,5 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
 
 const PRINT_TXNS = 0;
@@ -19,7 +19,7 @@ const Test = {
         let signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
         await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        
+
         return true;
     },
     getOuterTransactions: async function(config) {

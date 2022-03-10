@@ -8,12 +8,12 @@
 const deprecate = require('./lib/functions/deprecate')
 //import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');
-const OrderService = require('./order.js');
-const WalletService = require('./wallet.js')
+const OrderService = require('./lib/functions/order.js');
+const WalletService = require('./lib/functions/wallet.js')
 const algoOrderBook = require('./dex_teal.js');
 const asaOrderBook = require('./asa_dex_teal.js');
-const constants = require('./constants.js');
-const signingApi = require('./signing_api.js');
+const constants = require('./lib/constants.js');
+const signingApi = require('./lib/functions/signing_api.js');
 
 /**
  * Alert function test
@@ -326,5 +326,5 @@ exports.dumpVar = function dumpVar(x) {
  * Export of deprecated functions
  */
 Object.keys(exports).forEach((key)=>{
-	exports[key] = deprecate(exports[key], {file:'index.js'})
+	exports[key] = deprecate(exports[key], {context: exports, throws: true, file:'index.js'})
 })

@@ -1,7 +1,7 @@
 
 
-const testHelper = require('../test_helper.js');
-const transactionGenerator = require('../generate_transaction_types.js');
+const testHelper = require('./setup.js');
+const transactionGenerator = require('../lib/teal/generate_transaction_types.js');
 const createAppTest = require('./teal_tests/createAppTest.js');
 const deleteAppTest = require('./teal_tests/deleteAppTest.js');
 const placeOrderTest = require('./teal_tests/placeAlgoEscrowOrder.js');
@@ -12,8 +12,8 @@ const closeOrderTest = require('./teal_tests/closeAlgoEscrowOrder.js');
 const closeASAOrderTest = require('./teal_tests/closeASAEscrowOrder.js');
 
 
-const AlgodexApi = require('../algodex_api.js');
-const constants = require('../constants.js');
+const AlgodexApi = require('../lib/AlgodexApi.js');
+const constants = require('../lib/constants.js');
 const JEST_MINUTE_TIMEOUT = 60 * 1000;
 
 config = {
@@ -139,37 +139,37 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test ('Algo amount too large', async () => {
     const result = await executeAlgoOrderTest.runAlgoAmtTooLargeTest(config);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
-  
+  }, JEST_MINUTE_TIMEOUT);
+
   test ('Algo amount to wrong address', async () => {
     const result = await executeAlgoOrderTest.runAlgoAmtWrongAddrTest(config);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Algo closeout to wrong address', async () => {
     const result = await executeAlgoOrderTest.runAlgoWrongAddrCloseToTest(config);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('ASA transfer to wrong address', async () => {
     const result = await executeAlgoOrderTest.runAsaAmtWrongAddrTest(config);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Algo payment from wrong address', async () => {
     const result = await executeAlgoOrderTest.runAlgoPayFromWrongAddrTest(config);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Algo payment has closeout to non-owner', async () => {
     const result = await executeAlgoOrderTest.runAlgoCloseoutToWrongOwnerTest(config);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('ASA transfer has closeout', async () => {
     const result = await executeAlgoOrderTest.runASATransferHasCloseoutTest(config);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   ////////////////////////////////////////////////
   // END FULL EXECUTION NEGATIVE TEST CASES
@@ -201,52 +201,52 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test ('Algo amount too large', async () => {
     const result = await executeAlgoOrderTest.runAlgoAmtTooLargeTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
-  
+  }, JEST_MINUTE_TIMEOUT);
+
   test ('Algo amount to wrong address', async () => {
     const result = await executeAlgoOrderTest.runAlgoAmtWrongAddrTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Algo closeout to wrong address', async () => {
     const result = await executeAlgoOrderTest.runAlgoWrongAddrCloseToTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('ASA transfer to wrong address', async () => {
     const result = await executeAlgoOrderTest.runAsaAmtWrongAddrTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Algo payment from wrong address', async () => {
     const result = await executeAlgoOrderTest.runAlgoPayFromWrongAddrTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Algo payment has closeout to non-owner', async () => {
     const result = await executeAlgoOrderTest.runAlgoCloseoutToWrongOwnerTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('ASA transfer has closeout', async () => {
     const result = await executeAlgoOrderTest.runASATransferHasCloseoutTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Fee refund is going to the wrong address', async () => {
     const result = await executeAlgoOrderTest.runFeeToWrongAddrTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Fee refund is too low', async () => {
     const result = await executeAlgoOrderTest.runLowFeeTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
   test ('Fee refund originates from lsig maliciously', async () => {
     const result = await executeAlgoOrderTest.runFeeFromWrongAddrTest(config, false);
     expect (result).toBeTruthy();
-  }, JEST_MINUTE_TIMEOUT);  
+  }, JEST_MINUTE_TIMEOUT);
 
 
   ////////////////////////////////////////////////
@@ -449,7 +449,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
   ////////////////////////////////////////
   // START PARTIAL EXECUTION NEGATIVE TEST CASES
   ////////////////////////////////////////
-  
+
   test ('Run asset amount too large test (partial exec)', async () => {
     const result = await executeAsaOrderTest.runAssetAmtTooLargeTest(config, false);
     expect (result).toBeTruthy();
@@ -514,7 +514,7 @@ describe('ASA ESCROW ORDER BOOK', () => {
   // END PARTIAL EXECUTION NEGATIVE TEST CASES
   ////////////////////////////////////////
 
- //UNCOMMENT FOR DEV TESTING ONLY FOR NEG CASES 
+ //UNCOMMENT FOR DEV TESTING ONLY FOR NEG CASES
 //  test ('Close asa escrow order', async () => {
 //       const price = 1.25;
 //       const result = await closeASAOrderTest.runTest(config, price);
@@ -629,10 +629,10 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Par
     // The execution will cause it to be opted in
     const result = await executeAsaOrderTest.runPartialExecTest(config, asaAmountReceiving, price);
     expect (result).toBeTruthy();
-    
+
     asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
     expect (asaBalance).toBeGreaterThan(0);
-    
+
   }, JEST_MINUTE_TIMEOUT);
 
   test ('Close asa escrow order', async () => {
