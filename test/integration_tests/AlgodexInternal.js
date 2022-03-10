@@ -1,11 +1,11 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
-const algodexApi = require('../../algodex_api.js')
-const internalApi = require('../../algodex_internal_api.js')
+const algodexApi = require('../../lib/AlgodexApi.js')
+const internalApi = require('../../lib/functions/base')
 const PRINT_TXNS = 0;
-const CONSTANTS = require('../../constants.js');
-const { generateOrder } = require('../../algodex_internal_api.js');
+const CONSTANTS = require('../../lib/constants.js');
+const { generateOrder } = internalApi;
 const allOrderBookOrders = require('../fixtures/allOrderBooks.js')
 
 const axios = require('axios').default;
@@ -28,8 +28,8 @@ const InternalTests = {
         appArgs.push(enc.encode(generatedOrderEntry.slice(59)));
         appArgs.push(new Uint8Array([CONSTANTS.ESCROW_CONTRACT_VERSION]));
 
-        
-        const logicTxn = appOptIn ? 
+
+        const logicTxn = appOptIn ?
             await internalApi.createTransactionFromLogicSig(config.client, lsig, Number(appId), appArgs, 'appOptIn')
             :
             await internalApi.createTransactionFromLogicSig(config.client, lsig, Number(appId), appArgs, 'appNoOp')
@@ -126,7 +126,7 @@ const InternalTests = {
             }
 
 
-            
+
             return shouldErr ?
                 await internalApi.getExecuteOrderTransactionsAsTakerFromOrderEntry('error', allOrderBookOrders[4], takerOrderBalance, params)
                 :
@@ -157,7 +157,7 @@ const InternalTests = {
             isASAescrow: true,
         }
 
-        
+
         const executorAccount = config.executorAccount;
         const creatorAccount = config.creatorAccount;
         const assetId = config.assetId;
@@ -176,7 +176,7 @@ const InternalTests = {
 
 
 
-  
+
     },
     closeASAOrder: async function (client, config) {
         algodexApi.initSmartContracts('test')
@@ -196,7 +196,7 @@ const InternalTests = {
             isASAescrow: true,
         }
 
-        
+
         const executorAccount = config.executorAccount;
         const creatorAccount = config.creatorAccount;
         const assetId = config.assetId;
@@ -215,7 +215,7 @@ const InternalTests = {
 
 
 
-  
+
     },
 }
 
