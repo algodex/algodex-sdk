@@ -12,6 +12,11 @@ const convert = require('./convert.js')
 // function WalletService({config}) {
 //      this.client = config.sdk || setClient(config)
 // }
+/**
+ * @deprecated
+ * @param algodex_environment
+ * @constructor
+ */
 function WalletService(
   algodex_environment,
 ) {
