@@ -10,6 +10,7 @@
   },
   "scripts": {
     "doc": "jsdoc ./lib -r --readme ./README.md -d ./docs && jest-coverage-badges output ./assets",
+    "doc-types": "tsc",
     "test": "jest",
     "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
     "test-lint": "eslint .",
@@ -64,10 +65,15 @@
     "jest-coverage-badges": "^1.1.2",
     "jsdoc": "^3.6.10",
     "semantic-release": "^17.0.0",
-    "semantic-release-gitmoji": "^1.4.2"
+    "semantic-release-gitmoji": "^1.4.2",
+    "typescript": "^4.6.2"
   },
   "jest": {
-    "coverageReporters": ["lcov", "json-summary", "text"],
+    "coverageReporters": [
+      "lcov",
+      "json-summary",
+      "text"
+    ],
     "coverageThreshold": {
       "branches": 70
     },
