@@ -6,12 +6,23 @@
 /////////////////////////////
 
 const deprecate = require('./lib/functions/deprecate');
-const AsaOrderbookTeal = require('./lib/teal/asa_dex_teal')
-
+const obTemplate = require('./lib/teal/templates/ASA_Orderbook.teal')
+const clearTemplate = require('./lib/teal/templates/ClearProgram.teal')
 /**
  * Export of deprecated functions
+ * @deprecated
  */
-Object.keys(AsaOrderbookTeal).forEach((key)=>{
-    AsaOrderbookTeal[key] = deprecate(AsaOrderbookTeal[key], {file:'asa_dex_teal.js'})
-})
-module.exports = AsaOrderbookTeal;
+module.exports = {
+    /**
+     * @deprecated
+     */
+    getClearProgram: deprecate(()=>{
+        return clearTemplate
+    }),
+    /**
+     * @deprecated
+     */
+    getASAOrderBookApprovalProgram: deprecate(()=>{
+        return obTemplate
+    })
+}

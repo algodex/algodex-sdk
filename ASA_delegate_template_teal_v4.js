@@ -6,12 +6,18 @@
 /////////////////////////////
 
 const deprecate = require('./lib/functions/deprecate');
-const asaDelegateTemplate = require('./lib/teal/ASA_delegate_template_teal_v4')
+const template = require('./lib/teal/templates/ASA_Delegate_v4.template.teal')
 
 /**
  * Export of deprecated functions
+ * @deprecated
  */
-Object.keys(asaDelegateTemplate).forEach((key)=>{
-    asaDelegateTemplate[key] = deprecate(asaDelegateTemplate[key], {file:'ASA_delegate_template_teal_v4.js'})
-})
-module.exports = asaDelegateTemplate;
+module.exports = {
+    /**
+     * @deprecated
+     */
+    getTealTemplate: deprecate(()=>{
+        return template
+    })
+}
+

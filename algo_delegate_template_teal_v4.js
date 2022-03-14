@@ -6,12 +6,18 @@
 /////////////////////////////
 
 const deprecate = require('./lib/functions/deprecate');
-const algoDelegateTemplate = require('./lib/teal/algo_delegate_template_teal_v4')
+const template = require('./lib/teal/templates/ALGO_Delegate_v4.template.teal')
 
 /**
  * Export of deprecated functions
+ * @deprecated
  */
-Object.keys(algoDelegateTemplate).forEach((key)=>{
-    algoDelegateTemplate[key] = deprecate(algoDelegateTemplate[key], {file:'algo_delegate_template_teal_v4.js'})
-})
-module.exports = algoDelegateTemplate;
+module.exports = {
+    /**
+     * @deprecated
+     */
+    getTealTemplate: deprecate(()=>{
+      return template
+    })
+}
+

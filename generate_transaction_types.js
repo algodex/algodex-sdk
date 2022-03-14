@@ -5,14 +5,10 @@
 // All Rights Reserved.    //
 /////////////////////////////
 
-const deprecate = require('./lib/functions/deprecate');
-const GenerateTransactions = require('./lib/teal/generate_transaction_types')
+const GenerateTransactions = require('./lib/teal/Transactions')
 
 /**
- * Export of deprecated functions
+ * @deprecated
  */
-Object.keys(GenerateTransactions).forEach((key)=>{
-    GenerateTransactions[key] = deprecate(GenerateTransactions[key], {context: GenerateTransactions, file:'generate_transaction_types.js'})
-})
 module.exports = GenerateTransactions;
 

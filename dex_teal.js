@@ -6,13 +6,23 @@
 /////////////////////////////
 
 const deprecate = require('./lib/functions/deprecate');
-const AlgoOrderbookTeal = require('./lib/teal/dex_teal')
-
+const obTemplate = require('./lib/teal/templates/ALGO_Orderbook.teal')
+const clearTemplate = require('./lib/teal/templates/ClearProgram.teal')
 /**
  * Export of deprecated functions
+ * @deprecated
  */
-Object.keys(AlgoOrderbookTeal).forEach((key)=>{
-    AlgoOrderbookTeal[key] = deprecate(AlgoOrderbookTeal[key], {file:'dex_teal.js'})
-})
-module.exports = AlgoOrderbookTeal;
-
+module.exports = {
+    /**
+     * @deprecated
+     */
+    getClearProgram: deprecate(()=>{
+        return clearTemplate
+    }),
+    /**
+     * @deprecated
+     */
+    getAlgoOrderBookApprovalProgram: deprecate(()=>{
+        return obTemplate
+    })
+}
