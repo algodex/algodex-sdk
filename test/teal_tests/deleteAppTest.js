@@ -1,5 +1,5 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
 
 const Test = {
@@ -21,7 +21,7 @@ const Test = {
         if (fakeAppId) {
             console.log("deleting fake app: " + fakeAppId);
             await testHelper.deleteApplication(client, creatorAccount, fakeAppId);
-        };        
+        };
 
         console.log("closing account: " + creatorAccount.addr + " to " + openAccount.addr);
         await testHelper.closeAccount(client, creatorAccount, openAccount);

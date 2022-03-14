@@ -1,7 +1,7 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
-const { printTransactionDebug } = require('../../algodex_internal_api.js');
+const { printTransactionDebug } = require('../../lib/functions/base.js');
 
 const PRINT_TXNS = 0;
 
@@ -21,7 +21,7 @@ const Test = {
             asaAmountSending = Math.floor(asaAmountSending) + 1; // give slightly better deal to maker
         }
 
-        const outerTxns = await transactionGenerator.getExecuteAlgoEscrowOrderTxns(client, executorAccount, creatorAccount, 
+        const outerTxns = await transactionGenerator.getExecuteAlgoEscrowOrderTxns(client, executorAccount, creatorAccount,
             algoAmountReceiving, asaAmountSending, price, config.assetId, appId, false);
 
         if (returnOuterTransactions) {
@@ -54,7 +54,7 @@ const Test = {
             asaAmountSending = Math.floor(asaAmountSending) + 1; // give slightly better deal to maker
         }
 
-        const outerTxns = await transactionGenerator.getExecuteAlgoEscrowOrderTxns(client, executorAccount, creatorAccount, 
+        const outerTxns = await transactionGenerator.getExecuteAlgoEscrowOrderTxns(client, executorAccount, creatorAccount,
             algoAmountReceiving, asaAmountSending, price, config.assetId, appId, true);
 
         if (returnOuterTransactions) {
@@ -229,7 +229,7 @@ const Test = {
         }
 
         outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -273,7 +273,7 @@ const Test = {
         }
 
         outerTxns[1].unsignedTxn.from = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -295,7 +295,7 @@ const Test = {
         }
 
         outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -317,7 +317,7 @@ const Test = {
         }
 
         outerTxns[2].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -339,7 +339,7 @@ const Test = {
         }
 
         outerTxns[3].unsignedTxn.amount = 1000;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -361,7 +361,7 @@ const Test = {
         }
 
         outerTxns[3].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -372,7 +372,7 @@ const Test = {
 
         return false;
     },
-    
+
     runFeeFromWrongAddrTest : async function (config, useFullOrderExecution = true) {
         const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
@@ -385,7 +385,7 @@ const Test = {
         outerTxns[3].unsignedTxn = await transactionGenerator.getPayTxn(client, lsig.address(), lsig.address(), 2000, false);
         outerTxns[3].lsig = lsig;
         outerTxns[3].senderAcct = null;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -396,6 +396,6 @@ const Test = {
 
         return false;
     },
-    
+
 }
 module.exports = Test;

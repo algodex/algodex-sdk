@@ -3,9 +3,16 @@
   "version": "2.0.0-next.0",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
+  "bin": {
+    "dex-create-app": "./bin/create-app",
+    "dex-send-multisig": "./bin/send-multisig",
+    "dex-update-app": "./bin/update-app"
+  },
   "scripts": {
+    "doc": "jsdoc ./lib -r --readme ./README.md -d ./docs && jest-coverage-badges output ./assets",
+    "doc-types": "tsc",
     "test": "jest",
-    "test-unit": "jest --testPathIgnorePatterns='Teal.spec.js' --coverage",
+    "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
     "test-lint": "eslint .",
     "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
     "testOrders": "npm test -- Order"
@@ -42,11 +49,31 @@
     "util": "^0.12.4"
   },
   "devDependencies": {
+    "@semantic-release/git": "^9.0.1",
+    "@semantic-release/github": "^7.0.0",
+    "@semantic-release/npm": "^7.0.0",
+    "esdoc": "^1.1.0",
+    "esdoc-coverage-plugin": "^1.1.0",
+    "esdoc-ecmascript-proposal-plugin": "^1.0.0",
+    "esdoc-publish-markdown-plugin": "^1.1.0",
+    "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
     "eslint-plugin-jest": "^26.1.1",
-    "jest": "^27.0.6"
+    "husky": "^7.0.4",
+    "jest": "^27.0.6",
+    "jest-coverage-badges": "^1.1.2",
+    "jsdoc": "^3.6.10",
+    "semantic-release": "^17.0.0",
+    "semantic-release-gitmoji": "^1.4.2",
+    "typescript": "^4.6.2"
   },
   "jest": {
+    "coverageReporters": [
+      "lcov",
+      "json-summary",
+      "text"
+    ],
     "coverageThreshold": {
       "branches": 70
     },
@@ -57,6 +84,66 @@
       "!test_helper.js",
       "!coverage/**/*.js",
       "!scripts/**/*.js"
+    ]
+  },
+  "esdoc": {
+    "source": "./lib",
+    "destination": "./docs",
+    "excludes": [
+      "\\.json$"
+    ],
+    "plugins": [
+      {
+        "name": "esdoc-standard-plugin"
+      }
+    ]
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      [
+        "semantic-release-gitmoji",
+        {
+          "releaseRules": {
+            "major": [
+              ":boom:",
+              "💥"
+            ],
+            "minor": [
+              ":sparkles:",
+              "✨"
+            ],
+            "patch": [
+              ":bug:",
+              ":ambulance:",
+              ":lock:",
+              "🐛",
+              "🚑",
+              "🔒"
+            ]
+          },
+          "releaseNotes": {
+            "issueResolution": {
+              "template": "{baseUrl}/{owner}/{repo}/issues/{ref}",
+              "baseUrl": "https://github.com",
+              "source": "github.com"
+            }
+          }
+        }
+      ],
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json"
+          ],
+          "message": "🔖 ${nextRelease.version} \n\n${nextRelease.notes}"
+        }
+      ],
+      "@semantic-release/github"
     ]
   }
 }

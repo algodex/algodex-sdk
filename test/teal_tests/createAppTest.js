@@ -1,10 +1,10 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
 
 const Test = {
     runTest : createAppTest = async(config, isAlgoEscrowApp = true, optIntoASAForExecutor = true) => {
-        
+
         console.log("STARTING createAppTest: ", {isAlgoEscrowApp} );
         const client = config.client;
         const openAccount = config.openAccount;

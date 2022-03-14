@@ -1,5 +1,5 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
 
 const PRINT_TXNS = 0;
@@ -11,9 +11,9 @@ const Test = {
         const creatorAccount = config.creatorAccount;
         const appId = config.appId;
 
-        let outerTxns = await transactionGenerator.getPlaceAlgoEscrowOrderTxns(client, creatorAccount, algoAmount, price, 
+        let outerTxns = await transactionGenerator.getPlaceAlgoEscrowOrderTxns(client, creatorAccount, algoAmount, price,
                 config.assetId, appId, false, skipASAOptIn);
-        
+
         if (returnOuterTransactions) {
             return outerTxns;
         }
