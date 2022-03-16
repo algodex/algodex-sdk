@@ -9,7 +9,7 @@
     "dex-update-app": "./bin/update-app"
   },
   "scripts": {
-    "doc": "jsdoc ./lib -r --readme ./README.md -d ./docs && jest-coverage-badges output ./assets",
+    "doc": "jsdoc ./lib -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme && jest-coverage-badges output ./assets",
     "doc-types": "tsc",
     "test": "jest",
     "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
@@ -48,6 +48,7 @@
     "@semantic-release/git": "^9.0.1",
     "@semantic-release/github": "^7.0.0",
     "@semantic-release/npm": "^7.0.0",
+    "clean-jsdoc-theme": "^3.3.4",
     "esdoc": "^1.1.0",
     "esdoc-coverage-plugin": "^1.1.0",
     "esdoc-ecmascript-proposal-plugin": "^1.0.0",
