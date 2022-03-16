@@ -2,7 +2,7 @@
 const constants = require('./constants.js');
 const axios = require('axios').default;
 
-let ALGOD_SERVER = 'https://testnet.algoexplorerapi.io';
+let ALGOD_SERVER = 'https://node.testnet.algoexplorerapi.io';
 
 exports.connectToWallet = async function(txn) {
     try {  
