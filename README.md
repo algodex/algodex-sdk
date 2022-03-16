@@ -16,8 +16,10 @@ Client-side JavaScript API calls for Algodex as an npm package
 .
 ├── ./bin # Binary Files
 ├── ./lib # Library Files
-│   ├── ./lib/functions # Lambda Functions
+│   ├── ./lib/functions # Algodex Functions
 │   └── ./lib/teal # Contract Code
+│   └── ./lib/http # REST Clients
+│   └── ./lib/utils # Utilities
 │   └── ./lib/AlgodexAPI.js # API Interface
 ├── ./spec # Type Specifications
 ├── ./test # Testing Directory
