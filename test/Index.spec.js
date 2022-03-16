@@ -1,8 +1,8 @@
-const algodex = require('../lib/AlgodexApi.js')
+const algodex = require('../lib/AlgodexApi.js');
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
-const fakeTxId = 'IQZEYXX74V4XSOG6NWXMBG6QA74A5MHKF62DL4BIVF7QLQI5HLFQ'
-const JEST_MINUTE_TIMEOUT = 60 * 1000
-const orderBookEntry = require('./fixtures/allOrderBooks.js')
+const fakeTxId = 'IQZEYXX74V4XSOG6NWXMBG6QA74A5MHKF62DL4BIVF7QLQI5HLFQ';
+const JEST_MINUTE_TIMEOUT = 60 * 1000;
+const orderBookEntry = require('./fixtures/allOrderBooks.js');
 
 test('imported algodex is an object', () => {
   expect(typeof algodex).toBe('object');
@@ -23,35 +23,36 @@ test('getAsaOrderbookTeal is a function', () => {
 });
 
 test('getConstants', () => {
-  expect(algodex.getConstants()).toBeTruthy()
+  expect(algodex.getConstants()).toBeTruthy();
 });
 
 test('initSmartContracts', () => {
-  expect(algodex.initSmartContracts('test')).toBe(undefined)
-})
+  expect(algodex.initSmartContracts('test')).toBe(undefined);
+});
 
 test('waitForConfirmation', async () => {
-  algodex.initSmartContracts('test')
-  expect(await algodex.waitForConfirmation(fakeTxId)).toBeTruthy()
-},JEST_MINUTE_TIMEOUT )
+  algodex.initSmartContracts('test');
+  expect(await algodex.waitForConfirmation(fakeTxId)).toBeTruthy();
+}, JEST_MINUTE_TIMEOUT );
 
 test('printTransactionDebug', () => {
-  algodex.initSmartContracts('test')
-  let fakeSignedTxns = ['fakeTXns', 'to be converted', 'to buffer for debug' ]
+  algodex.initSmartContracts('test');
+  const fakeSignedTxns = ['fakeTXns', 'to be converted', 'to buffer for debug'];
 
-  expect( algodex.printTransactionDebug(fakeSignedTxns)).toBe(undefined)
-} )
+  expect( algodex.printTransactionDebug(fakeSignedTxns)).toBe(undefined);
+} );
 
 test('createOrderBookEntryObj', () => {
-  order = orderBookEntry[0]
-  let args = []
-  for(key in order) {
-      args.push(order[key])
+  order = orderBookEntry[0];
+  const args = [];
+  for (const key in order) {
+    if (key !== 'prototype') {
+      args.push(order[key]);
+    }
   }
 
-  expect(algodex.createOrderBookEntryObj(...args)).toBeTruthy()
-
-})
+  expect(algodex.createOrderBookEntryObj(...args)).toBeTruthy();
+});
 test('getAsaOrderbookTeal returns a string', () => {
   const response = algodex.getAsaOrderBookTeal();
   expect(typeof response).toBe('string');
@@ -80,7 +81,7 @@ test('printMsg is a function', () => {
 });
 
 test('printMsg returns a string', () => {
-  let response = algodex.printMsg();
+  const response = algodex.printMsg();
   expect(typeof response).toBe('string');
 });
 
@@ -101,7 +102,6 @@ test('initIndexer outputs object with correct properties', () => {
   expect(typeof response).toBe('object');
   expect(typeof response.c).toBe('object');
   expect(response.intDecoding).toBe('default');
-
 });
 
 test('initAlgodClient is a function', () => {

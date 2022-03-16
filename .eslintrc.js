@@ -1,4 +1,5 @@
 module.exports = {
+  'ignorePatterns': ['**/docs/**/*.js'],
   'env': {
     'jest/globals': true,
     'browser': true,
@@ -12,25 +13,15 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
-    'max-len': ['error', 100],
+    'max-len': ['warn', 100],
     'camelcase': ['warn'],
-  //     'max-lines-per-function': ['error', 45],
-  //     'max-params':['error', 3],
-  //     'indent': [
-  //         'warn',
-  //         4
-  //     ],
-  //     // 'linebreak-style': [
-  //     //     'error',
-  //     //     'unix'
-  //     // ],
-  //     'quotes': [
-  //         'warn',
-  //         'single'
-  //     ],
-  //     'semi': [
-  //         'warn',
-  //         'always'
-  //     ]
+    // TODO go back to error for the following:
+    'no-unused-vars': ['warn'],
+    'no-undef': ['warn'],
+    'valid-jsdoc': ['warn'],
+    'no-useless-catch': ['warn'],
+    'require-jsdoc': ['warn'],
+    'no-constant-condition': ['warn'],
+    'no-throw-literal': ['warn'],
   },
 };
