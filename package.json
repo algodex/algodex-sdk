@@ -1,10 +1,19 @@
 {
   "name": "@algodex/algodex-sdk",
-  "version": "1.1.13",
+  "version": "2.0.0-next.0",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
+  "bin": {
+    "dex-create-app": "./bin/create-app",
+    "dex-send-multisig": "./bin/send-multisig",
+    "dex-update-app": "./bin/update-app"
+  },
   "scripts": {
+    "doc": "jsdoc ./lib -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme && jest-coverage-badges output ./assets",
+    "doc-types": "tsc",
     "test": "jest",
+    "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
+    "test-lint": "eslint .",
     "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
     "testOrders": "npm test -- Order"
   },
@@ -27,17 +36,112 @@
   },
   "dependencies": {
     "@json-rpc-tools/utils": "^1.7.6",
-    "@randlabs/myalgo-connect": "^1.0.1",
     "algosdk": "^1.13.1",
     "axios": "^0.21.4",
+    "big.js": "^6.1.1",
     "js-big-decimal": "^1.3.4",
-    "minimist": "^1.2.5",
-    "mocha": "^9.0.2",
-    "text-encoding": "^0.7.0",
-    "tslib": "^2.3.1",
-    "util": "^0.12.4"
+    "lodash": "^4.17.21",
+    "text-encoding": "^0.7.0"
   },
   "devDependencies": {
-    "jest": "^27.0.6"
+    "@randlabs/myalgo-connect": "^1.0.1",
+    "@semantic-release/git": "^9.0.1",
+    "@semantic-release/github": "^7.0.0",
+    "@semantic-release/npm": "^7.0.0",
+    "clean-jsdoc-theme": "^3.3.4",
+    "esdoc": "^1.1.0",
+    "esdoc-coverage-plugin": "^1.1.0",
+    "esdoc-ecmascript-proposal-plugin": "^1.0.0",
+    "esdoc-publish-markdown-plugin": "^1.1.0",
+    "esdoc-standard-plugin": "^1.0.0",
+    "eslint": "^8.11.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-jest": "^26.1.1",
+    "husky": "^7.0.4",
+    "jest": "^27.0.6",
+    "jest-coverage-badges": "^1.1.2",
+    "jsdoc": "^3.6.10",
+    "semantic-release": "^17.0.0",
+    "semantic-release-gitmoji": "^1.4.2",
+    "typescript": "^4.6.2"
+  },
+  "jest": {
+    "coverageReporters": [
+      "lcov",
+      "json-summary",
+      "text"
+    ],
+    "coverageThreshold": {
+      "branches": 70
+    },
+    "collectCoverageFrom": [
+      "**/*.js",
+      "**/*.mjs",
+      "!.eslintrc.js",
+      "!test/**/*.js",
+      "!test_helper.js",
+      "!coverage/**/*.js",
+      "!scripts/**/*.js"
+    ]
+  },
+  "esdoc": {
+    "source": "./lib",
+    "destination": "./docs",
+    "excludes": [
+      "\\.json$"
+    ],
+    "plugins": [
+      {
+        "name": "esdoc-standard-plugin"
+      }
+    ]
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      [
+        "semantic-release-gitmoji",
+        {
+          "releaseRules": {
+            "major": [
+              ":boom:",
+              "💥"
+            ],
+            "minor": [
+              ":sparkles:",
+              "✨"
+            ],
+            "patch": [
+              ":bug:",
+              ":ambulance:",
+              ":lock:",
+              "🐛",
+              "🚑",
+              "🔒"
+            ]
+          },
+          "releaseNotes": {
+            "issueResolution": {
+              "template": "{baseUrl}/{owner}/{repo}/issues/{ref}",
+              "baseUrl": "https://github.com",
+              "source": "github.com"
+            }
+          }
+        }
+      ],
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json"
+          ],
+          "message": "🔖 ${nextRelease.version} \n\n${nextRelease.notes}"
+        }
+      ],
+      "@semantic-release/github"
+    ]
   }
 }

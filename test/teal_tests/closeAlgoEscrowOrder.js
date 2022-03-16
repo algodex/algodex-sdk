@@ -1,5 +1,5 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
 const PRINT_TXNS = 0;
 
@@ -11,15 +11,16 @@ const Test = {
         const assetId = config.assetId;
         const appId = config.appId;
         console.log("creator account is: " + creatorAccount.addr);
-        
+
         let outerTxns = await transactionGenerator.getCloseAlgoEscrowOrderTxns(client, creatorAccount, price, assetId, appId);
+
         if (returnOuterTransactions) {
             return outerTxns;
         }
         let signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
         await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        
+
         return true;
     },
 
@@ -94,7 +95,7 @@ const Test = {
         }
 
         outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -116,7 +117,7 @@ const Test = {
         }
 
         outerTxns[1].unsignedTxn.amount = 1000;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -138,7 +139,7 @@ const Test = {
         }
 
         outerTxns[2].unsignedTxn.from = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);

@@ -1,5 +1,5 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
 const PRINT_TXNS = 0;
 
@@ -16,8 +16,8 @@ const Test = {
         if (Math.floor(algoAmountSending) != algoAmountSending) {
             algoAmountSending = Math.floor(algoAmountSending) + 1; // give slightly better deal to maker
         }
-        
-        const outerTxns = await transactionGenerator.getExecuteASAEscrowOrderTxns(client, executorAccount, creatorAccount, 
+
+        const outerTxns = await transactionGenerator.getExecuteASAEscrowOrderTxns(client, executorAccount, creatorAccount,
             algoAmountSending, asaAmountReceiving, price, config.assetId, appId, false);
 
         if (returnOuterTransactions) {
@@ -47,9 +47,9 @@ const Test = {
         if (Math.floor(algoAmountSending) != algoAmountSending) {
             algoAmountSending = Math.floor(algoAmountSending) + 1; // give slightly better deal to maker
         }
-        
+
         console.log({asaAmountReceiving}, {algoAmountSending});
-        const outerTxns = await transactionGenerator.getExecuteASAEscrowOrderTxns(client, executorAccount, creatorAccount, 
+        const outerTxns = await transactionGenerator.getExecuteASAEscrowOrderTxns(client, executorAccount, creatorAccount,
             algoAmountSending, asaAmountReceiving, price, assetId, appId, true);
 
         if (returnOuterTransactions) {
@@ -201,7 +201,7 @@ const Test = {
         const optInOffset = outerTxns.length == 5 ? 1 : 0;
 
         outerTxns[2+optInOffset].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -226,7 +226,7 @@ const Test = {
         const optInOffset = outerTxns.length == 5 ? 1 : 0;
 
         outerTxns[3+optInOffset].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -237,7 +237,7 @@ const Test = {
 
         return false;
     },
-    
+
     runFeeTooSmallTest : async function (config, useFullOrderExecution = false) {
         const outerTxns = await this.getOuterExecTransations(config, useFullOrderExecution);
         const client = config.client;
@@ -251,7 +251,7 @@ const Test = {
         const optInOffset = outerTxns.length == 5 ? 1 : 0;
 
         outerTxns[3+optInOffset].unsignedTxn.amount = 1000;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -279,7 +279,7 @@ const Test = {
         outerTxns[3+optInOffset].unsignedTxn = await transactionGenerator.getPayTxn(client, lsig.address(), lsig.address(), 2000, false);
         outerTxns[3+optInOffset].lsig = lsig;
         outerTxns[3+optInOffset].senderAcct = null;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -301,7 +301,7 @@ const Test = {
         }
 
         outerTxns[0].unsignedTxn.appIndex = 18988134;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -353,7 +353,7 @@ const Test = {
         const optInOffset = outerTxns.length == 5 ? 1 : 0;
 
         outerTxns[3+optInOffset].unsignedTxn.amount = 1000;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);
@@ -378,11 +378,11 @@ const Test = {
         const optInOffset = outerTxns.length == 5 ? 1 : 0;
 
         const lsig = outerTxns[0].lsig;
-        outerTxns[3+optInOffset].unsignedTxn = await transactionGenerator.getAssetSendTxn(client, lsig.address(), maliciousAccount.addr, 2000, 
+        outerTxns[3+optInOffset].unsignedTxn = await transactionGenerator.getAssetSendTxn(client, lsig.address(), maliciousAccount.addr, 2000,
             config.assetId, false);
         outerTxns[3+optInOffset].lsig = lsig;
         outerTxns[3+optInOffset].senderAcct = null;
-        
+
         const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
         try {
             await testHelper.sendAndCheckConfirmed(client, signedTxns);

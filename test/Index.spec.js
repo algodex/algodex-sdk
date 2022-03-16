@@ -1,4 +1,4 @@
-const algodex = require('../index.js')
+const algodex = require('../lib/AlgodexApi.js')
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
 const fakeTxId = 'IQZEYXX74V4XSOG6NWXMBG6QA74A5MHKF62DL4BIVF7QLQI5HLFQ'
 const JEST_MINUTE_TIMEOUT = 60 * 1000
@@ -31,6 +31,7 @@ test('initSmartContracts', () => {
 })
 
 test('waitForConfirmation', async () => {
+  algodex.initSmartContracts('test')
   expect(await algodex.waitForConfirmation(fakeTxId)).toBeTruthy()
 },JEST_MINUTE_TIMEOUT )
 
@@ -100,7 +101,7 @@ test('initIndexer outputs object with correct properties', () => {
   expect(typeof response).toBe('object');
   expect(typeof response.c).toBe('object');
   expect(response.intDecoding).toBe('default');
-  
+
 });
 
 test('initAlgodClient is a function', () => {
