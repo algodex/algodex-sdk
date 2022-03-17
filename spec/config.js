@@ -1,26 +1,26 @@
-const schema = require('./config.json')
+const schema = require('./config.json');
 const example = {
-    'algod': {
-        'uri': {
-            'protocol': 'https:',
-            'host': 'example.com',
-            'pathname': '/algod',
-            'port': 8080,
-        },
-        'token': 'abcdefghijkl'
+  'algod': {
+    'uri': {
+      'protocol': 'https:',
+      'host': 'example.com',
+      'pathname': '/algod',
+      'port': 8080,
     },
-    'indexer': {
-        'uri': 'https://example.com/indexer',
-        'token': 'abcdefghijkl'
+    'token': 'abcdefghijkl',
+  },
+  'indexer': {
+    'uri': 'https://example.com/indexer',
+    'token': 'abcdefghijkl',
+  },
+  'dexd': {
+    'uri': {
+      'protocol': 'https:',
+      'host': 'example.com',
+      'pathname': '/algod',
+      'port': 8080,
     },
-    'dexd': {
-        'uri': {
-            'protocol': 'https:',
-            'host': 'example.com',
-            'pathname': '/algod',
-            'port': 8080,
-        },
-        'token': 'abcdefghijkl'
-    }
+    'token': 'abcdefghijkl',
+  },
 };
 module.exports = {example, schema};
