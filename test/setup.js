@@ -10,7 +10,7 @@ const axios = require('axios').default;
 const deprecate = require('../lib/functions/deprecate');
 const algodex = require('../lib/AlgodexApi.js');
 const constants = require('../lib/constants.js');
-const transactionGenerator = require('../lib/teal/generate_transaction_types.js');
+const transactionGenerator = require('../generate_transaction_types.js');
 
 const ALGOD_SERVER='https://testnet.algoexplorerapi.io';
 const ALGOD_TOKEN = ''; // { 'X-API-Key': 'VELyABA1dGqGbAVktbew4oACvp0c0298gMgYtYIb' }
