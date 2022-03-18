@@ -20,23 +20,26 @@ const config = {
   assetId: 15322902,
 };
 
-jest.mock('../lib/functions/base', () => ({
-    ...(jest.requireActual('../lib/functions/base')),
-    waitForConfirmation: jest.fn((txn) => {
-        console.debug(`*************** hit`)
 
-    return new Promise((resolve, reject) => {
-         resolve({
-             data: {
-                 txId: 'fakeId',
-                 status: "confirmed",
-                 statusMsg: `Transaction confirmed in round  fakeRound`,
-                 transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
-             }
-         })
-     }) 
-  })
-}))
+// below snippet doesn't work
+
+// jest.mock('../lib/functions/base', () => ({
+//     ...(jest.requireActual('../lib/functions/base')),
+//     waitForConfirmation: jest.fn((txn) => {
+//         console.debug(`*************** hit`)
+
+//     return new Promise((resolve, reject) => {
+//          resolve({
+//              data: {
+//                  txId: 'fakeId',
+//                  status: "confirmed",
+//                  statusMsg: `Transaction confirmed in round  fakeRound`,
+//                  transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
+//              }
+//          })
+//      }) 
+//   })
+// }))
 
 test('executeOrder& marketOrder', async () => {
     // config, client, isSellingAsa, price, algoAmount, asaAmount, incluedMaker, walletConnector, shouldErr
@@ -56,23 +59,23 @@ test('executeOrder& marketOrder', async () => {
     //  client.getTransactionParams = jest.fn(() => mockTransactionParams)
 
 
+// no longer works since executeOrder calls waitForConfimration() and not this.waitForConfirmation()
+    const waitForConfirmationMock = jest.spyOn(base, "waitForConfirmation").mockImplementation((txn) => {
+        console.debug(`*************** hit`)
 
-    // const waitForConfirmationMock = jest.spyOn(base, "waitForConfirmation").mockImplementation((txn) => {
-    //     console.debug(`*************** hit`)
-
-    //    return new Promise((resolve, reject) => {
-    //         resolve({
-    //             data: {
-    //                 txId: 'fakeId',
-    //                 status: "confirmed",
-    //                 statusMsg: `Transaction confirmed in round  fakeRound`,
-    //                 transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
-    //             }
-    //         })
-    //     })
+       return new Promise((resolve, reject) => {
+            resolve({
+                data: {
+                    txId: 'fakeId',
+                    status: "confirmed",
+                    statusMsg: `Transaction confirmed in round  fakeRound`,
+                    transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
+                }
+            })
+        })
 
 
-    // })
+    })
 
    
 
