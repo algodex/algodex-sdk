@@ -28,6 +28,10 @@ config = {
 
 console.log("DEBUG_SMART_CONTRACT_SOURCE is: " + constants.DEBUG_SMART_CONTRACT_SOURCE);
 
+function sleep(seconds) {
+    console.log("Sleeping: " + seconds);
+    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+}
 
 describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
   test('Create algo escrow order book', async () => {
@@ -68,6 +72,8 @@ describe('ALGO ESCROW ORDER BOOK (opt in test)', () => {
 
     const result = await placeOrderTest.runTest(config, 800000, 1.2);
     expect (result).toBeTruthy();
+
+    await sleep(5);
 
     asaBalance = await testHelper.getAssetBalance(config.creatorAccount.addr, config.assetId);
     expect (asaBalance).toEqual(0);
@@ -629,7 +635,7 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Par
     // The execution will cause it to be opted in
     const result = await executeAsaOrderTest.runPartialExecTest(config, asaAmountReceiving, price);
     expect (result).toBeTruthy();
-    
+    await sleep(5);
     asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
     expect (asaBalance).toBeGreaterThan(0);
     
@@ -670,11 +676,13 @@ describe('ASA ESCROW ORDER BOOK (with extra ASA opt-in txn during execution. Ful
   test ('Fully execute asa escrow order (with asa opt-in txn) ', async () => {
     let asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
     expect (asaBalance).toBeNull();
+    await sleep(5);
 
     const price = 1.55;
     // The execution will cause it to be opted in
     const result = await executeAsaOrderTest.runFullExecTest(config, price);
     expect (result).toBeTruthy();
+    await sleep(5);
 
     asaBalance = await testHelper.getAssetBalance(config.executorAccount.addr, config.assetId);
     expect (asaBalance).toBeGreaterThan(0);
