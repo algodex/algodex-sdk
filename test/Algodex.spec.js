@@ -1,4 +1,7 @@
 const algodex = require('../algodex_api.js');
+const base = require('../lib/functions/base')
+// const algodexApi = require('../lib/AlgodexApi')
+
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
 const transactionGenerator = require('../generate_transaction_types.js');
 const testHelper = require('./setup.js')
@@ -17,31 +20,59 @@ const config = {
   assetId: 15322902,
 };
 
+jest.mock('../lib/functions/base', () => ({
+    ...(jest.requireActual('../lib/functions/base')),
+    waitForConfirmation: jest.fn((txn) => {
+        console.debug(`*************** hit`)
+
+    return new Promise((resolve, reject) => {
+         resolve({
+             data: {
+                 txId: 'fakeId',
+                 status: "confirmed",
+                 statusMsg: `Transaction confirmed in round  fakeRound`,
+                 transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
+             }
+         })
+     }) 
+  })
+}))
+
 test('executeOrder& marketOrder', async () => {
     // config, client, isSellingAsa, price, algoAmount, asaAmount, incluedMaker, walletConnector, shouldErr
-    algodex.initSmartContracts('test')
-    let client = config.client
+    // algodex.initSmartContracts('test')
+    let client = algodex.initAlgodClient('test')
     let mockRawTransactions = new function (signed) {
+        this.signed = signed
         this.do = () => { return { txId: signed } }
-
     }()
+    // let mockTransactionParams = new function () {
+    //     this.do = () => { return {params: "fake" } }
+    // }()
+
+
 
      client.sendRawTransaction = jest.fn(() => mockRawTransactions)
-
-    const waitForConfirmationMock = jest.spyOn(algodex, "waitForConfirmation").mockImplementation((txn) => {
-       return new Promise((resolve, reject) => {
-            resolve({
-                data: {
-                    txId: 'fakeId',
-                    status: "confirmed",
-                    statusMsg: `Transaction confirmed in round  fakeRound`,
-                    transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
-                }
-            })
-        })
+    //  client.getTransactionParams = jest.fn(() => mockTransactionParams)
 
 
-    })
+
+    // const waitForConfirmationMock = jest.spyOn(base, "waitForConfirmation").mockImplementation((txn) => {
+    //     console.debug(`*************** hit`)
+
+    //    return new Promise((resolve, reject) => {
+    //         resolve({
+    //             data: {
+    //                 txId: 'fakeId',
+    //                 status: "confirmed",
+    //                 statusMsg: `Transaction confirmed in round  fakeRound`,
+    //                 transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
+    //             }
+    //         })
+    //     })
+
+
+    // })
 
    
 
