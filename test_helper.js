@@ -23,7 +23,7 @@ const transactionGenerator = require('./generate_transaction_types.js');
 let ALGO_ESCROW_ORDER_BOOK_ID = -1;
 let ASA_ESCROW_ORDER_BOOK_ID = -1;
 
-const ALGOD_SERVER='https://testnet.algoexplorerapi.io';
+const ALGOD_SERVER='https://node.testnet.algoexplorerapi.io';
 const ALGOD_TOKEN = ''; //{ 'X-API-Key': 'VELyABA1dGqGbAVktbew4oACvp0c0298gMgYtYIb' }
 const ALGOD_PORT='';
 
@@ -40,12 +40,12 @@ const TestHelper = {
     },
 
     getAccountInfo : async function getAccountInfo(addr) {
-        //return algodex.getAccountInfo(addr);
+        return algodex.getAccountInfo(addr);
 
         // This is the old account info that uses algod, not the indexer
         // This is necessary for the tests to go faster as the indexer takes time to update.
 
-        try {
+        /*try {
             let port = (!!ALGOD_PORT) ? ':' + ALGOD_PORT : '';
 
             const response = await axios.get(ALGOD_SERVER + port +  "/v2/accounts/"+addr, {headers: {'X-Algo-API-Token': ALGOD_TOKEN}});
@@ -54,7 +54,7 @@ const TestHelper = {
         } catch (error) {
             console.error(error);
             throw new Error("getAccountInfo failed: ", error);
-        }
+        }*/
     },
 
     printOuterTransactions : function (outerTxns) {
@@ -68,11 +68,9 @@ const TestHelper = {
 
         if (error != null && error.response.body.message != null) {
             const msg = error.response.body.message;
-            if (msg.includes("rejected by logic err=assert failed")) {
+            if (msg.includes("rejected by logic err=")) {
                 hasKnownError = true;
             } else if (msg.includes("TEAL runtime encountered err opcode")) {
-                hasKnownError = true;
-            } else if (msg.includes("rejected by logic err=gtxn lookup TxnGroup") && msg.includes("but it only has") ) {
                 hasKnownError = true;
             } else {
                 throw("Unknown error type: " + msg);
