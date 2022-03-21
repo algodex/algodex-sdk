@@ -1,5 +1,5 @@
 module.exports = {
-  'ignorePatterns': ['**/docs/**/*.js'],
+  'ignorePatterns': ['**/docs/**/*.js', 'base.js'],
   'env': {
     'jest/globals': true,
     'browser': true,
