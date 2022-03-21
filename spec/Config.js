@@ -17,7 +17,7 @@
 
 /**
  * JSON Schema Specification
- * @type {import('ajv').Schema}
+ * @type {Schema}
  * @name ConfigSchema
  * @memberOf spec
  */

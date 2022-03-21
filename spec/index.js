@@ -1,4 +1,8 @@
 /**
+ * @typedef import('ajv').Schema Schema
+ */
+
+/**
  * Specifications for the AlgodexAPI. Used to validate types of objects in
  * the ecosystem
  *

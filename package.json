@@ -3,17 +3,22 @@
   "version": "2.0.0-next.0",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
-  "browserslist": ["defaults", "maintained node versions"],
+  "browserslist": [
+    "defaults",
+    "maintained node versions"
+  ],
   "bin": {
     "dex-create-app": "./bin/create-app",
     "dex-send-multisig": "./bin/send-multisig",
     "dex-update-app": "./bin/update-app"
   },
   "scripts": {
-    "doc": "jsdoc ./lib ./spec -c jsdoc.json -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme && jest-coverage-badges output ./assets",
+    "doc": "jsdoc -c jsdoc.json -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme",
+    "doc-badge": "jest-coverage-badges output ./assets",
+    "doc-watch": "nodemon --exec 'npm run doc' --watch lib",
     "doc-types": "tsc",
     "test": "jest",
-    "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
+    "test-unit": "jest --testPathIgnorePatterns='./test/*' --coverage",
     "test-lint": "eslint .",
     "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
     "testOrders": "npm test -- Order"
@@ -64,6 +69,7 @@
     "jest": "^27.0.6",
     "jest-coverage-badges": "^1.1.2",
     "jsdoc": "^3.6.10",
+    "nodemon": "^2.0.15",
     "semantic-release": "^17.0.0",
     "semantic-release-gitmoji": "^1.4.2",
     "typescript": "^4.6.2"

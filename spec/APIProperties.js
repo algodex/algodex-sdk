@@ -8,7 +8,7 @@
 
 /**
  * JSON Schema Specification
- * @type {import('ajv').Schema}
+ * @type {Schema}
  * @name APIPropertiesSchema
  */
 module.exports = {

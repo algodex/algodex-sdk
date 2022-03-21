@@ -1,8 +1,15 @@
 {
   "plugins": ["plugins/markdown"],
+  "source": {
+    "include": ["./lib", "./spec"],
+    "exclude": ["./lib/functions/base.js"]
+  },
+  "sourceType": "module",
   "opts": {
+    "template": "./node_modules/clean-jsdoc-theme",
     "theme_opts": {
-      "create_style": "header,.name,.page-title{visibility: hidden; height: 0px; margin: 0px; padding: 0px;}"
+      "theme": "dark",
+      "create_style": "header,h4.name,.page-title{visibility: hidden; height: 0px; margin: 0px; padding: 0px;}"
     }
   }
 }
