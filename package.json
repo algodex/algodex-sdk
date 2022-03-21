@@ -3,13 +3,14 @@
   "version": "2.0.0-next.0",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
+  "browserslist": ["defaults", "maintained node versions"],
   "bin": {
     "dex-create-app": "./bin/create-app",
     "dex-send-multisig": "./bin/send-multisig",
     "dex-update-app": "./bin/update-app"
   },
   "scripts": {
-    "doc": "jsdoc ./lib -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme && jest-coverage-badges output ./assets",
+    "doc": "jsdoc ./lib ./spec -c jsdoc.json -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme && jest-coverage-badges output ./assets",
     "doc-types": "tsc",
     "test": "jest",
     "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
@@ -36,6 +37,8 @@
   },
   "dependencies": {
     "@json-rpc-tools/utils": "^1.7.6",
+    "ajv": "^8.10.0",
+    "ajv-formats": "^2.1.1",
     "algosdk": "^1.13.1",
     "axios": "^0.21.4",
     "big.js": "^6.1.1",

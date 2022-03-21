@@ -1,5 +1,5 @@
 module.exports = {
-  'ignorePatterns': ['**/docs/**/*.js', 'AlgodexAPI.js', 'base.js'],
+  'ignorePatterns': ['**/docs/**/*.js'],
   'env': {
     'jest/globals': true,
     'browser': true,
@@ -13,7 +13,7 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
-    'max-len': ['warn', 100],
+    'max-len': ['warn', 80],
     'camelcase': ['warn'],
     // TODO go back to error for the following:
     'no-unused-vars': ['warn'],

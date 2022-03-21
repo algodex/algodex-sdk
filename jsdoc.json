@@ -1,0 +1,8 @@
+{
+  "plugins": ["plugins/markdown"],
+  "opts": {
+    "theme_opts": {
+      "create_style": "header,.name,.page-title{visibility: hidden; height: 0px; margin: 0px; padding: 0px;}"
+    }
+  }
+}
