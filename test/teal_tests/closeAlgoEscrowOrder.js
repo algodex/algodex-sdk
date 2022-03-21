@@ -1,231 +1,232 @@
-const testHelper = require('../../test_helper.js');
-const transactionGenerator = require('../../generate_transaction_types.js');
+const testHelper = require('../setup.js');
+const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
 const algosdk = require('algosdk');
 const PRINT_TXNS = 0;
 
 const Test = {
-    runTest : async function (config, price, returnOuterTransactions = false) {
-        console.log("STARTING close algo escrow order test");
-        const client = config.client;
-        const creatorAccount = config.creatorAccount;
-        const assetId = config.assetId;
-        const appId = config.appId;
-        console.log("creator account is: " + creatorAccount.addr);
-        
-        let outerTxns = await transactionGenerator.getCloseAlgoEscrowOrderTxns(client, creatorAccount, price, assetId, appId);
-        if (returnOuterTransactions) {
-            return outerTxns;
-        }
-        let signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+  runTest: async function(config, price, returnOuterTransactions = false) {
+    console.log('STARTING close algo escrow order test');
+    const client = config.client;
+    const creatorAccount = config.creatorAccount;
+    const assetId = config.assetId;
+    const appId = config.appId;
+    console.log('creator account is: ' + creatorAccount.addr);
 
-        await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        
-        return true;
-    },
+    const outerTxns = await transactionGenerator.getCloseAlgoEscrowOrderTxns(client, creatorAccount, price, assetId, appId);
 
-    getOuterTransactions: async function(config) {
-        const outerTxns = await this.runTest(config, 1.2, true);
-        return outerTxns;
-    },
+    if (returnOuterTransactions) {
+      return outerTxns;
+    }
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
-    runGroupSizeWrongTest : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    await testHelper.sendAndCheckConfirmed(client, signedTxns);
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+    return true;
+  },
 
-        const lsig = outerTxns[0].lsig;
+  getOuterTransactions: async function(config) {
+    const outerTxns = await this.runTest(config, 1.2, true);
+    return outerTxns;
+  },
 
-        outerTxns.push( {
-            unsignedTxn: await transactionGenerator.getPayTxn(client, lsig.address(), maliciousAccount.addr,
-                1000, false),
-            lsig: lsig
-        });
+  runGroupSizeWrongTest: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        return false;
-    },
+    const lsig = outerTxns[0].lsig;
 
-    runGroupSizeWrongTest2 : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    outerTxns.push( {
+      unsignedTxn: await transactionGenerator.getPayTxn(client, lsig.address(), maliciousAccount.addr,
+          1000, false),
+      lsig: lsig,
+    });
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-        const lsig = outerTxns[0].lsig;
+    return false;
+  },
 
-        outerTxns.push( {
-            unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
-                1000, false),
-            senderAcct: maliciousAccount
-        });
+  runGroupSizeWrongTest2: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        return false;
-    },
+    const lsig = outerTxns[0].lsig;
 
-    runAlgoWrongAddrCloseToTest : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    outerTxns.push( {
+      unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
+          1000, false),
+      senderAcct: maliciousAccount,
+    });
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-        outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
-        
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    return false;
+  },
 
-        return false;
-    },
+  runAlgoWrongAddrCloseToTest: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-    runCloseToTxnHasNonZeroAmount : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+    outerTxns[1].unsignedTxn.closeRemainderTo = algosdk.decodeAddress(maliciousAccount.addr);
 
-        outerTxns[1].unsignedTxn.amount = 1000;
-        
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-        return false;
-    },
+    return false;
+  },
 
-    runAlgoWrongOwnerProofTest : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+  runCloseToTxnHasNonZeroAmount: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        outerTxns[2].unsignedTxn.from = algosdk.decodeAddress(maliciousAccount.addr);
-        
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns[1].unsignedTxn.amount = 1000;
 
-        return false;
-    },
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-    appCallMissing : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    return false;
+  },
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+  runAlgoWrongOwnerProofTest: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        outerTxns[0] = {
-            unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
-                1000, false),
-            senderAcct: maliciousAccount
-        };
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns[2].unsignedTxn.from = algosdk.decodeAddress(maliciousAccount.addr);
 
-        return false;
-    },
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-    payTxnWrongType : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    return false;
+  },
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+  appCallMissing: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        outerTxns[1] = {
-            unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
-                1000, false),
-            senderAcct: maliciousAccount
-        };
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns[0] = {
+      unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
+          1000, false),
+      senderAcct: maliciousAccount,
+    };
 
-        return false;
-    },
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-    refundTxnWrongType : async function (config) {
-        const outerTxns = await this.getOuterTransactions(config);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    return false;
+  },
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+  payTxnWrongType: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        outerTxns[2] = {
-            unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
-                1000, false),
-            senderAcct: maliciousAccount
-        };
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns[1] = {
+      unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
+          1000, false),
+      senderAcct: maliciousAccount,
+    };
 
-        return false;
-    },
-}
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
+
+    return false;
+  },
+
+  refundTxnWrongType: async function(config) {
+    const outerTxns = await this.getOuterTransactions(config);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
+
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
+
+    outerTxns[2] = {
+      unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
+          1000, false),
+      senderAcct: maliciousAccount,
+    };
+
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
+
+    return false;
+  },
+};
 module.exports = Test;
