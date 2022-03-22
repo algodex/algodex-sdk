@@ -1,28 +1,9 @@
 /**
- * @typedef import('ajv').Schema Schema
- */
-
-/**
- * Specifications for the AlgodexAPI. Used to validate types of objects in
- * the ecosystem
+ * # ℹ Schema Definitions
  *
- * @example
- * const ajv = require('@algodex/algodex-sdk/lib/schema')
+ * Includes all JSON Schema validation definitions
  *
- * const validate = ajv.getSchema('Config')
- *
- * if(!validate({some: 'thing'})){
- *   console.error('validate.errors[0].message')
- * }
- *
- *
- * @namespace spec
- */
-
-module.exports = {
-  API: require('./API'),
-  Asset: require('./Asset'),
-  Config: require('./Config'),
-  URI: require('./URI'),
-  Wallet: require('./Wallet'),
-};
+ * @see https://json-schema.org/
+ * @see https://ajv.js.org/
+ * @namespace Schema
+ **/

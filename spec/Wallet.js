@@ -1,33 +1,82 @@
+
 /**
- * An asset in a wallet
- * @typedef {Object} WalletAsset
- * @property {string} name Name of Asset
- * @property {number} balance Balance in wallet
- * @memberOf spec
+ * ## 📝 Wallet List
+ * @typedef {Object.<number, Wallet>} List
+ * @memberOf Wallet
  */
 
 /**
- * A List keyed by asset ID that contains the wallets assets
- * @typedef {Object.<string, WalletAsset>} WalletAssets
- * @memberOf spec
+ * ## 💰 Assets
+ *
+ * A List of type {@link Asset} keyed by {@link Asset#id}. Used as a lookup
+ * for the current asset order.
+ *
+ * @example
+ * const assets = {
+ *   123456: {
+ *     decimals: 5
+ *     balance: 100
+ *   }
+ * }
+ *
+ * @typedef {Object.<string, Asset>} assets
+ * @memberOf Wallet
  */
 
 /**
- * A wallet instance
+ * # 📝 Wallet Specification
+ *
+ * See the {@link Schema.Wallet} for property validations
  *
  * @typedef {Object} Wallet
  * @property {string} type Type of Wallet
  * @property {string} address Wallet Address
+ * @property {Asset} algo Balance in ALGOs
  * @property {string} [name] Optionally name the wallet
- * @property {WalletAssets} [assets] Assets owned by the Wallet
- * @memberOf spec
+ * @property {Wallet.assets} [assets] Assets owned by the Wallet
+ * @namespace Wallet
+ *
+ * @see {AlgodexApi#setWallet}
  */
 
 /**
- * JSON Schema Specification
+ * ## 💰 Wallet Schema
+ *
+ * JSON Schema of the Wallet. Used for validation in
+ * {@link AlgodexApi#setWallet}
+ * ```json
+ * {
+ *   '$schema': 'http://json-schema.org/draft-07/schema',
+ *   '$id': 'https://schemas.algodex.com/v1/Wallet.json',
+ *   'type': 'object',
+ *   'properties': {
+ *     'type': {
+ *       'type': 'string',
+ *       'enum': ['my-algo-wallet', 'wallet-connect'],
+ *     },
+ *     'address': {
+ *       'type': 'string',
+ *       'pattern': '[A-Z0-9]{58}',
+ *       'description': 'An account public key',
+ *     },
+ *     'name': {
+ *       'type': 'string',
+ *     },
+ *     'algo': {
+ *       '$ref': 'https://schemas.algodex.com/v1/Asset.json',
+ *     },
+ *     'assets': {
+ *       'type': 'object',
+ *       'additionalProperties': {
+ *         '$ref': 'https://schemas.algodex.com/v1/Asset.json',
+ *       },
+ *     },
+ *   },
+ * }
+ * ```
+ * @name Wallet
  * @type {Schema}
- * @name WalletSchema
- * @memberOf spec
+ * @memberOf Schema
  */
 module.exports = {
   '$schema': 'http://json-schema.org/draft-07/schema',
@@ -46,20 +95,13 @@ module.exports = {
     'name': {
       'type': 'string',
     },
+    'algo': {
+      '$ref': 'https://schemas.algodex.com/v1/Asset.json',
+    },
     'assets': {
       'type': 'object',
       'additionalProperties': {
-        'type': 'object',
-        'properties': {
-          'balance': {
-            'type': 'number',
-            'minimum': 0,
-          },
-          'name': {
-            'type': 'string',
-          },
-        },
-        'required': ['balance'],
+        '$ref': 'https://schemas.algodex.com/v1/Asset.json',
       },
     },
   },

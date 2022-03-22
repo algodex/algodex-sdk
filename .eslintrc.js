@@ -13,9 +13,12 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
+    'max-params': ['warn', 3],
+    'max-statements': ['warn', 30],
+    'complexity': ['warn', 6],
+    // TODO go back to error for the following:
     'max-len': ['warn', 80],
     'camelcase': ['warn'],
-    // TODO go back to error for the following:
     'no-unused-vars': ['warn'],
     'no-undef': ['warn'],
     'valid-jsdoc': ['warn'],
