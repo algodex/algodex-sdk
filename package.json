@@ -80,14 +80,17 @@
   "jest": {
     "coverageReporters": [
       "lcov",
+      "json",
       "json-summary",
       "text"
     ],
     "coverageThreshold": {
-      "statements": 70,
-      "branches": 70,
-      "functions": 80,
-      "lines": 90
+      "global": {
+        "statements": 70,
+        "branches": 70,
+        "functions": 80,
+        "lines": 80
+      }
     },
     "collectCoverageFrom": [
       "./lib/**/*.js",
