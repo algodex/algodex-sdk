@@ -84,11 +84,16 @@
       "text"
     ],
     "coverageThreshold": {
-      "branches": 70
+      "statements": 70,
+      "branches": 70,
+      "functions": 80,
+      "lines": 90
     },
     "collectCoverageFrom": [
       "./lib/**/*.js",
-      "./spec/**/*.js"
+      "./spec/**/*.js",
+      "!./lib/functions/**/*.js",
+      "!./lib/teal/**/*.js"
     ]
   },
   "esdoc": {
