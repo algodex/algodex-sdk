@@ -1,5 +1,5 @@
 const testHelper = require('../setup.js');
-const transactionGenerator = require('../../lib/teal/generate_transaction_types.js');
+const transactionGenerator = require('../../lib/teal/Transactions.js');
 const algosdk = require('algosdk');
 const algodexApi = require('../../lib/AlgodexApi.js');
 const internalApi = require('../../lib/functions/base');
