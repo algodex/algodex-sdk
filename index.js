@@ -8,8 +8,6 @@
 const deprecate = require('./lib/functions/deprecate');
 // import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');
-const OrderService = require('./lib/functions/order.js');
-const WalletService = require('./lib/functions/wallet.js');
 const algoOrderBook = require('./dex_teal.js');
 const asaOrderBook = require('./asa_dex_teal.js');
 const constants = require('./lib/constants.js');
@@ -79,17 +77,6 @@ exports.initIndexer = algodex.initIndexer;
  */
 exports.initAlgodClient = algodex.initAlgodClient;
 
-/**
- * @deprecated
- * @type {{setClient({client: *, [p: string]: *}): void, getAllEscrowOrders: function(*): *, placeOrder({order: Object, orders?: Object, config?: Object}): Promise<*[]|undefined>, placeOrderOriginal(*, *, *, *=): (Promise<*>|Promise<*|undefined>|Promise<*[]|*>), constructor({config: *}): void, closeOrder: function(*, String, String, String, int): Promise<void>, getOrders()}}
- */
-exports.OrderService = OrderService;
-
-/**
- * @deprecated
- * @type {function(*): void}
- */
-exports.WalletService = WalletService;
 
 /**
  * @deprecated
@@ -324,5 +311,5 @@ exports.dumpVar = function dumpVar(x) {
  * Export of deprecated functions
  */
 Object.keys(exports).forEach((key) => {
-  exports[key] = deprecate(exports[key], {context: exports, throws: true, file: 'index.js'});
+  exports[key] = deprecate(exports[key], {context: exports, file: 'index.js'});
 });
