@@ -10,6 +10,7 @@
 
 Client-side JavaScript API calls for Algodex as an npm package
 
+
 ### 📁 Folder Structure
 ```shell
 # tree -f -L 2
