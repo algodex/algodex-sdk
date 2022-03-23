@@ -13,6 +13,7 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
+    'linebreak-style': 'off',
     'max-params': ['warn', 3],
     'max-statements': ['warn', 30],
     'complexity': ['warn', 6],
