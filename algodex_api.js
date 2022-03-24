@@ -3,7 +3,7 @@ const algodex = {
   ...fns,
   ...fns.default,
 };
-const deprecate = require('./lib/functions/deprecate.js');
+const deprecate = require('./lib/utils/deprecate.js');
 
 const deprecatedFns = {};
 

@@ -282,7 +282,7 @@ test('buildDelegateTemplateFromArgs', () => {
     expect(algodex.buildDelegateTemplateFromArgs('error', assetId, n, d, orderCreatorAddr, isAsaEscrow, 2)).toBe(null);
     // error for AsaOrders
   } catch (e) {
-    expect(e).toBe('one or more null arguments in buildDelegateTemplateFromArgs!');
+    expect(e.message).toBe('one or more null arguments in buildDelegateTemplateFromArgs!');
   }
 });
 

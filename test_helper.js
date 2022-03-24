@@ -6,7 +6,7 @@
 // ///////////////////////////
 
 const algosdk = require('algosdk');
-const setup = require('./__tests__/setup');
+const setup = require('./lib/test/setup');
 const {groupAndSignTransactions} = setup;
 const algodex = require('./algodex_api.js');
 const constants = require('./constants.js');

@@ -258,7 +258,7 @@ test('closeOrderFromOrderBookEntry', async () => {
   try {
     await algodex.closeOrderFromOrderBookEntry(client, config.executorAccount.addr, config.creatorAccount.addr, generatedOrderBookEntry, 6);
   } catch (e) {
-    expect(typeof e).toBe('string');
+    expect(typeof e.message).toBe('string');
   }
   getAccountInfoMock.mockRestore();
 //    assetId returning null because you need to populate the test wallet to account for conditional on  665-668

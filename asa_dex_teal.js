@@ -5,7 +5,7 @@
 // All Rights Reserved.    //
 // ///////////////////////////
 
-const deprecate = require('./lib/functions/deprecate');
+const deprecate = require('./lib/utils/deprecate');
 const obTemplate = require('./lib/teal/templates/ASA_Orderbook.teal');
 const clearTemplate = require('./lib/teal/templates/ClearProgram.teal');
 /**

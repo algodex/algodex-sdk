@@ -5,13 +5,13 @@
 // All Rights Reserved.    //
 // ///////////////////////////
 
-const deprecate = require('./lib/functions/deprecate');
+const deprecate = require('./lib/utils/deprecate');
 // import algodex from './algodex_api.js';
 const algodex = require('./algodex_api.js');
 const algoOrderBook = require('./dex_teal.js');
 const asaOrderBook = require('./asa_dex_teal.js');
 const constants = require('./lib/constants.js');
-const signingApi = require('./lib/functions/signing_api.js');
+const signingApi = require('./lib/wallet/signing_api.js');
 
 /**
  * Alert function test

@@ -16,7 +16,7 @@ const AlgodexApi = require('../algodex_api.js');
 const constants = require('../constants.js');
 const JEST_MINUTE_TIMEOUT = 60 * 1000;
 
-config = {
+const config = {
   appId: -1,
   creatorAccount: testHelper.getRandomAccount(),
   executorAccount: testHelper.getRandomAccount(),
