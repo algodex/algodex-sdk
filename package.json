@@ -17,7 +17,7 @@
     "doc-badges": "jest-coverage-badges output ./assets",
     "doc-types": "tsc",
     "test": "jest",
-    "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
+    "test-unit": "jest --testPathIgnorePatterns='__tests__/*' --testPathIgnorePatterns='test/*' --coverage",
     "test-lint": "eslint . --quiet",
     "test-integration": "jest --testPathIgnorePatterns='__tests__/*' --testPathIgnorePatterns='./lib/*' --coverage",
     "test-sanity": "jest --testPathIgnorePatterns='__tests__/*' --testPathIgnorePatterns='./lib/*' --coverage",
