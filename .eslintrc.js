@@ -13,6 +13,8 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
+    'new-cap': 'warn',
+    'linebreak-style': 'off',
     'max-len': ['warn', 100],
     'camelcase': ['warn'],
     // TODO go back to error for the following:

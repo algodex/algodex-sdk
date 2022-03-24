@@ -14,6 +14,8 @@
     "test": "jest",
     "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
     "test-lint": "eslint .",
+    "test-integration": "jest --testPathIgnorePatterns='__tests__/*' --testPathIgnorePatterns='./lib/*' --coverage",
+    "test-sanity": "jest --testPathIgnorePatterns='__tests__/*' --testPathIgnorePatterns='./lib/*' --coverage",
     "testDebug": "node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand ",
     "testOrders": "npm test -- Order"
   },

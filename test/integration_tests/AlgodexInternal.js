@@ -1,11 +1,11 @@
-const testHelper = require('../setup.js');
-const transactionGenerator = require('../../lib/teal/Transactions.js');
+const testHelper = require('../../test_helper.js');
+const transactionGenerator = require('../../generate_transaction_types.js');
 const algosdk = require('algosdk');
-const algodexApi = require('../../lib/AlgodexApi.js');
-const internalApi = require('../../lib/functions/base');
+const algodexApi = require('../../algodex_api.js');
+const internalApi = require('../../algodex_internal_api.js');
 const PRINT_TXNS = 0;
-const CONSTANTS = require('../../lib/constants.js');
-const {generateOrder} = internalApi;
+const CONSTANTS = require('../../constants.js');
+const {generateOrder} = require('../../algodex_internal_api.js');
 const allOrderBookOrders = require('../fixtures/allOrderBooks.js');
 
 const axios = require('axios').default;

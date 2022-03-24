@@ -1,10 +1,7 @@
 const algodex = require('../algodex_api.js');
-const base = require('../lib/functions/base');
-// const algodexApi = require('../lib/AlgodexApi')
-
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
 const transactionGenerator = require('../generate_transaction_types.js');
-const testHelper = require('./setup.js');
+const testHelper = require('../test_helper.js');
 const orderBookEntry = require('./fixtures/allOrderBooks.js');
 const JEST_MINUTE_TIMEOUT = 60 * 1000;
 const allOrderBookOrders = require('./fixtures/allOrderBooks.js');
@@ -20,50 +17,19 @@ const config = {
   assetId: 15322902,
 };
 
-
-// below snippet doesn't work
-
-// jest.mock('../lib/functions/base', () => ({
-//     ...(jest.requireActual('../lib/functions/base')),
-//     waitForConfirmation: jest.fn((txn) => {
-//         console.debug(`*************** hit`)
-
-//     return new Promise((resolve, reject) => {
-//          resolve({
-//              data: {
-//                  txId: 'fakeId',
-//                  status: "confirmed",
-//                  statusMsg: `Transaction confirmed in round  fakeRound`,
-//                  transaction: { "amount": 'fake', "wallet": 'fake', "pool-error": [1, 2] }
-//              }
-//          })
-//      })
-//   })
-// }))
-
 test('executeOrder& marketOrder', async () => {
   // config, client, isSellingAsa, price, algoAmount, asaAmount, incluedMaker, walletConnector, shouldErr
-  // algodex.initSmartContracts('test')
-  const client = algodex.initAlgodClient('test');
+  algodex.initSmartContracts('test');
+  const client = config.client;
   const mockRawTransactions = new function(signed) {
-    this.signed = signed;
     this.do = () => {
       return {txId: signed};
     };
   }();
-  // let mockTransactionParams = new function () {
-    //     this.do = () => { return {params: "fake" } }
-    // }()
-
 
   client.sendRawTransaction = jest.fn(() => mockRawTransactions);
-  //  client.getTransactionParams = jest.fn(() => mockTransactionParams)
 
-
-  // no longer works since executeOrder calls waitForConfimration() and not this.waitForConfirmation()
-  const waitForConfirmationMock = jest.spyOn(base, 'waitForConfirmation').mockImplementation((txn) => {
-    console.debug(`*************** hit`);
-
+  const waitForConfirmationMock = jest.spyOn(algodex, 'waitForConfirmation').mockImplementation((txn) => {
     return new Promise((resolve, reject) => {
       resolve({
         data: {
@@ -109,7 +75,8 @@ test('allSettled', async () => {
 
   const rejectedPromise = new Promise((resolve, reject) => {
     setTimeout(() => {
-      reject(new Error('always rejects'));
+      // eslint-disable-next-line prefer-promise-reject-errors
+      reject('always rejects');
     }, 300);
   });
 
@@ -217,84 +184,10 @@ test('getMinWalletBalance', () => {
 test('createOrderBookEntryObject', () => {
   order = orderBookEntry[0];
   const args = [];
-  for (const key in order) {
-    if (key !== 'prototype') {
-      args.push(order[key]);
-    }
+  // eslint-disable-next-line guard-for-in
+  for (key in order) {
+    args.push(order[key]);
   }
-
-  expect(algodex.createOrderBookEntryObj(...args)).toBeTruthy();
-  // order.orderBookEntry, 15, 1, 15, 0, order.escrowAddr, order.algoBalance, order.asaBalance, 'sell', true, order.orderCreatorAddr, order.assetId, order.version
-});
-
-
-test('finalPriceCheck', () => {
-  try {
-    algodex.finalPriceCheck(100, 50, .5, false);
-  } catch (e) {
-    expect(e.message).toBe('Attempting to buy at a price higher than limit price');
-  }
-
-  try {
-    algodex.finalPriceCheck(50, 1000, .5, true);
-  } catch (e) {
-    expect(e.message).toBe('Attempting to sell at a price lower than limit price');
-  }
-  expect( algodex.finalPriceCheck(100, 50, .5, true)).toBe(undefined);
-},
-);
-
-test('getAlgoandAsaAmounts', async () => {
-  algodex.initSmartContracts('test');
-  const transactions = await transactionGenerator.getPlaceASAEscrowOrderTxns(config.client, config.creatorAccount, 1, 2, config.assetId, 10, true );
-  expect(algodex.getAlgoandAsaAmounts(transactions)).toBeTruthy();
-});
-
-test('getPlaceAlgosToBuyASAOrderIntoOrderbook', async () => {
-  expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy();
-
-  // wallet that isn't empty
-  expect(await algodex.getPlaceAlgosToBuyASAOrderIntoOrderbook(config.client, testWallet, 1, 2, 0, config.assetId, 1, false)).toBeTruthy();
-});
-
-test('getPlaceASAToSellASAOrderIntoOrderbook', async () => {
-  expect(await algodex.getPlaceASAToSellASAOrderIntoOrderbook(config.client, config.creatorAccount.addr, 1, 2, 0, config.assetId, 1, false)).toBeTruthy();
-});
-
-
-test('closeOrderFromOrderBookEntry', async () => {
-  algodex.initSmartContracts('test');
-  const client = config.client;
-
-
-  const getAccountInfoMock = jest.spyOn(algodex, 'getAccountInfo').mockImplementation((addr) => {
-    return new Promise((resolve, reject) => {
-      resolve({
-
-        txId: 'fakeId',
-        status: 'confirmed',
-        assets: [{'asset-id': config.assetId}],
-        transaction: {'amount': 'fake', 'wallet': 'fake', 'pool-error': [1, 2]},
-      },
-      );
-    });
-    // assetId = accountInfo['assets'][0]['asset-id'];
-  });
-  const mockRawTransactions = new function(signed) {
-    this.do = () => {
-      return {txId: true};
-    };
-  }();
-  client.sendRawTransaction = jest.fn(() => mockRawTransactions);
-
-  const generatedOrderBookEntry = algodex.generateOrder(config.creatorAccount.addr, 2, 1, 0, config.assetId, false);
-
-  try {
-    await algodex.closeOrderFromOrderBookEntry(client, config.executorAccount.addr, config.creatorAccount.addr, generatedOrderBookEntry, 6);
-  } catch (e) {
-    expect(typeof e.message).toBe('string');
-  }
-
 
   expect(algodex.createOrderBookEntryObj(...args)).toBeTruthy();
   // order.orderBookEntry, 15, 1, 15, 0, order.escrowAddr, order.algoBalance, order.asaBalance, 'sell', true, order.orderCreatorAddr, order.assetId, order.version
