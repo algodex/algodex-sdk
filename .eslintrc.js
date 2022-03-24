@@ -1,5 +1,5 @@
 module.exports = {
-  'ignorePatterns': ['**/docs/**/*.js', 'base.js'],
+  'ignorePatterns': ['**/docs/**/*.js'],
   'env': {
     'jest/globals': true,
     'browser': true,
@@ -13,19 +13,19 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
+    'no-implicit-globals': ['error', {'lexicalBindings': true}],
+    'no-shadow': 'error',
+    'new-cap': 'warn',
     'linebreak-style': 'off',
-    'max-params': ['warn', 3],
-    'max-statements': ['warn', 30],
-    'complexity': ['warn', 6],
-    // TODO go back to error for the following:
     'max-len': ['warn', 80],
     'camelcase': ['warn'],
-    'no-unused-vars': ['warn'],
-    'no-undef': ['warn'],
+    // TODO go back to error for the following:
+    'no-unused-vars': ['error'],
+    'no-undef': ['error'],
     'valid-jsdoc': ['warn'],
-    'no-useless-catch': ['warn'],
+    'no-useless-catch': ['error'],
     'require-jsdoc': ['warn'],
     'no-constant-condition': ['warn'],
-    'no-throw-literal': ['warn'],
+    'no-throw-literal': ['error'],
   },
 };
