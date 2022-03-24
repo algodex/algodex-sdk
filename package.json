@@ -3,6 +3,10 @@
   "version": "2.0.0-next.0",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
+  "browserslist": [
+    "defaults",
+    "maintained node versions"
+  ],
   "bin": {
     "dex-create-app": "./bin/create-app",
     "dex-send-multisig": "./bin/send-multisig",
@@ -38,8 +42,11 @@
     "registry": "https://npm.pkg.github.com/algodex"
   },
   "dependencies": {
+    "ajv": "^8.10.0",
+    "ajv-formats": "^2.1.1",
     "axios": "^0.21.4",
     "big.js": "^6.1.1",
+    "eventemitter3": "^4.0.7",
     "js-big-decimal": "^1.3.4",
     "lodash": "^4.17.21"
   },
@@ -59,6 +66,7 @@
     "algorand-walletconnect-qrcode-modal": "^1.7.4",
     "algosdk": "^1.15.0",
     "clean-jsdoc-theme": "^3.3.4",
+    "cross-env": "^7.0.3",
     "esdoc": "^1.1.0",
     "esdoc-coverage-plugin": "^1.1.0",
     "esdoc-ecmascript-proposal-plugin": "^1.0.0",
@@ -71,6 +79,7 @@
     "jest": "^27.0.6",
     "jest-coverage-badges": "^1.1.2",
     "jsdoc": "^3.6.10",
+    "nodemon": "^2.0.15",
     "semantic-release": "^17.0.0",
     "semantic-release-gitmoji": "^1.4.2",
     "typescript": "^4.6.2"
