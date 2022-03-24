@@ -10,6 +10,7 @@
   },
   "scripts": {
     "doc": "jsdoc ./lib -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme && jest-coverage-badges output ./assets",
+    "doc-badges": "jest-coverage-badges output ./assets",
     "doc-types": "tsc",
     "test": "jest",
     "test-unit": "jest --testPathIgnorePatterns='Teal*' --coverage",
@@ -78,17 +79,20 @@
       "text"
     ],
     "coverageThreshold": {
-      "branches": 70
+      "global": {
+        "branches": 70
+      }
     },
     "collectCoverageFrom": [
       "**/*.js",
       "**/*.mjs",
       "!.eslintrc.js",
-      "!**/*.spec.js",
-      "!**__tests__**",
-      "!test/**/*.js",
       "!test_helper.js",
-      "!coverage/**/*.js"
+      "!**/*.spec.js",
+      "!lib/teal/__tests__/**/*.js",
+      "!lib/test/**/*.js",
+      "!coverage/**/*.js",
+      "!docs/**/*.js"
     ]
   },
   "esdoc": {
