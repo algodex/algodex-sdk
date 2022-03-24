@@ -1,4 +1,4 @@
-const algodex = require('../lib/AlgodexApi.js');
+const algodex = require('../index.js');
 const testWallet = 'DFV2MR2ILEZT5IVM6ZKJO34FTRROICPSRQYIRFK4DHEBDK7SQSA4NEVC2Q';
 const fakeTxId = 'IQZEYXX74V4XSOG6NWXMBG6QA74A5MHKF62DL4BIVF7QLQI5HLFQ';
 const JEST_MINUTE_TIMEOUT = 60 * 1000;
@@ -31,7 +31,6 @@ test('initSmartContracts', () => {
 });
 
 test('waitForConfirmation', async () => {
-  algodex.initSmartContracts('test');
   expect(await algodex.waitForConfirmation(fakeTxId)).toBeTruthy();
 }, JEST_MINUTE_TIMEOUT );
 
@@ -45,10 +44,9 @@ test('printTransactionDebug', () => {
 test('createOrderBookEntryObj', () => {
   order = orderBookEntry[0];
   const args = [];
-  for (const key in order) {
-    if (key !== 'prototype') {
-      args.push(order[key]);
-    }
+  // eslint-disable-next-line guard-for-in
+  for (key in order) {
+    args.push(order[key]);
   }
 
   expect(algodex.createOrderBookEntryObj(...args)).toBeTruthy();

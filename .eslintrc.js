@@ -1,5 +1,5 @@
 module.exports = {
-  'ignorePatterns': ['**/docs/**/*.js', 'AlgodexAPI.js', 'base.js'],
+  'ignorePatterns': ['**/docs/**/*.js'],
   'env': {
     'jest/globals': true,
     'browser': true,
@@ -13,15 +13,19 @@ module.exports = {
     'ecmaVersion': 'latest',
   },
   'rules': {
-    'max-len': ['warn', 100],
+    'no-implicit-globals': ['error', {'lexicalBindings': true}],
+    'no-shadow': 'error',
+    'new-cap': 'warn',
+    'linebreak-style': 'off',
+    'max-len': ['warn', 80],
     'camelcase': ['warn'],
     // TODO go back to error for the following:
-    'no-unused-vars': ['warn'],
-    'no-undef': ['warn'],
+    'no-unused-vars': ['error'],
+    'no-undef': ['error'],
     'valid-jsdoc': ['warn'],
-    'no-useless-catch': ['warn'],
+    'no-useless-catch': ['error'],
     'require-jsdoc': ['warn'],
     'no-constant-condition': ['warn'],
-    'no-throw-literal': ['warn'],
+    'no-throw-literal': ['error'],
   },
 };
