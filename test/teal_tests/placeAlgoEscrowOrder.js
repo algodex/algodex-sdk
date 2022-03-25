@@ -5,128 +5,128 @@ const algosdk = require('algosdk');
 const PRINT_TXNS = 0;
 
 const Test = {
-    runTest : async function (config, algoAmount, price, skipASAOptIn = false, returnOuterTransactions = false) {
-        console.log("STARTING placeAlgoEscrowOrder test");
-        const client = config.client;
-        const creatorAccount = config.creatorAccount;
-        const appId = config.appId;
+  runTest: async function(config, algoAmount, price, skipASAOptIn = false, returnOuterTransactions = false) {
+    console.log('STARTING placeAlgoEscrowOrder test');
+    const client = config.client;
+    const creatorAccount = config.creatorAccount;
+    const appId = config.appId;
 
-        let outerTxns = await transactionGenerator.getPlaceAlgoEscrowOrderTxns(client, creatorAccount, algoAmount, price, 
-                config.assetId, appId, false, skipASAOptIn);
-        
-        if (returnOuterTransactions) {
-            return outerTxns;
-        }
+    const outerTxns = await transactionGenerator.getPlaceAlgoEscrowOrderTxns(client, creatorAccount, algoAmount, price,
+        config.assetId, appId, false, skipASAOptIn);
 
-        let signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    if (returnOuterTransactions) {
+      return outerTxns;
+    }
 
-        await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
 
-        return true;
-    },
+    await testHelper.sendAndCheckConfirmed(client, signedTxns);
 
-    runGroupSizeWrongTest : async function (config, skipASAOptIn = false) {
-        const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    return true;
+  },
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+  runGroupSizeWrongTest: async function(config, skipASAOptIn = false) {
+    const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        const lsig = outerTxns[1].lsig;
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        outerTxns.push( {
-            unsignedTxn: await transactionGenerator.getPayTxn(client, lsig.address(), maliciousAccount.addr,
-                1000, false),
-            lsig: lsig
-        });
+    const lsig = outerTxns[1].lsig;
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns.push( {
+      unsignedTxn: await transactionGenerator.getPayTxn(client, lsig.address(), maliciousAccount.addr,
+          1000, false),
+      lsig: lsig,
+    });
 
-        return false;
-    },
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-    runGroupSizeWrongTest2 : async function (config, skipASAOptIn = false) {
-        const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    return false;
+  },
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+  runGroupSizeWrongTest2: async function(config, skipASAOptIn = false) {
+    const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        const lsig = outerTxns[1].lsig;
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        outerTxns.push( {
-            unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
-                1000, false),
-            senderAcct: maliciousAccount
-        });
+    const lsig = outerTxns[1].lsig;
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns.push( {
+      unsignedTxn: await transactionGenerator.getPayTxn(client, maliciousAccount.addr, maliciousAccount.addr,
+          1000, false),
+      senderAcct: maliciousAccount,
+    });
 
-        return false;
-    },
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-    runPayAmountTooLowTest : async function (config, skipASAOptIn = false) {
-        const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    return false;
+  },
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+  runPayAmountTooLowTest: async function(config, skipASAOptIn = false) {
+    const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        const lsig = outerTxns[1].lsig;
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        outerTxns[0].unsignedTxn.amount = 400000;
+    const lsig = outerTxns[1].lsig;
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns[0].unsignedTxn.amount = 400000;
 
-        return false;
-    },
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
 
-    runPayNotToLsigTest : async function (config, skipASAOptIn = false) {
-        const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
-        const client = config.client;
-        const maliciousAccount = config.maliciousAccount;
+    return false;
+  },
 
-        if (PRINT_TXNS) {
-            testHelper.printOuterTransactions(outerTxns);
-        }
+  runPayNotToLsigTest: async function(config, skipASAOptIn = false) {
+    const outerTxns = await this.runTest(config, 800000, 1.375, skipASAOptIn, true);
+    const client = config.client;
+    const maliciousAccount = config.maliciousAccount;
 
-        const lsig = outerTxns[1].lsig;
+    if (PRINT_TXNS) {
+      testHelper.printOuterTransactions(outerTxns);
+    }
 
-        outerTxns[0].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
+    const lsig = outerTxns[1].lsig;
 
-        const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
-        try {
-            await testHelper.sendAndCheckConfirmed(client, signedTxns);
-        } catch (e) {
-            // An exception is expected. Return true for success
-            return testHelper.checkFailureType(e);
-        }
+    outerTxns[0].unsignedTxn.to = algosdk.decodeAddress(maliciousAccount.addr);
 
-        return false;
-    },
-}
+    const signedTxns = testHelper.groupAndSignTransactions(outerTxns);
+    try {
+      await testHelper.sendAndCheckConfirmed(client, signedTxns);
+    } catch (e) {
+      // An exception is expected. Return true for success
+      return testHelper.checkFailureType(e);
+    }
+
+    return false;
+  },
+};
 module.exports = Test;
