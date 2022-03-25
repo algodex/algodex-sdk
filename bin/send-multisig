@@ -1,0 +1,86 @@
+#!/usr/bin/env node
+
+// TODO: Move to commander.js
+// USAGE:
+//   dex-send-multisig --in-file [in-file] --out-file [out-file] --send=[true|false] --mnemonic=[mnemonic] --first-address=[address] --second-address=[address]
+
+
+const algosdk = require('algosdk');
+const algodex = require('../index.js');
+const fs = require('fs');
+
+async function readSignedMultisigTransactionFromFile(account, firstAddress, secondAddress, stxn) {
+    // Setup the parameters for the multisig account
+    const mparams = {
+        version: 1,
+        threshold: 2,
+        addrs: [
+            firstAddress,
+            secondAddress,
+        ],
+    };
+
+    let multsigaddr = algosdk.multisigAddress(mparams);
+    console.log("Multisig Address: " + multsigaddr);
+
+    let twosigs = algosdk.appendSignMultisigTransaction(stxn, mparams, account.sk).blob;
+    //sign with second account - this can be signed before writing twosigs offline or when reading in, if second tx not signed here just writting stxn
+    //let twosigs = algosdk.appendSignMultisigTransaction(stxn, mparams, account2.sk).blob;
+    const algodClient = algodex.initAlgodClient('production');
+    algodex.initIndexer('production');
+
+    let txId = (await algodClient.sendRawTransaction(twosigs).do());
+
+    let confirmedTxn = await algodex.waitForConfirmation(txId.txId);
+
+    console.log("Transaction " + txId.txId + " confirmed in round " + confirmedTxn["confirmed-round"]);
+};
+
+async function writeSignedMultisigTransactionToFile(account, firstAddress, secondAddress, txn, outFile='./signedmultisig.stxn') {
+    // Setup the parameters for the multisig account
+    const mparams = {
+        version: 1,
+        threshold: 2,
+        addrs: [
+            firstAddress,
+            secondAddress,
+        ],
+    };
+
+    let multsigaddr = algosdk.multisigAddress(mparams);
+    console.log("Multisig Address: " + multsigaddr);
+    console.log(algosdk.encodeAddress(txn.from.publicKey))
+    let stxn = algosdk.signMultisigTransaction(txn, mparams, account.sk).blob;
+
+    fs.writeFileSync(outFile, stxn );
+    console.log("The stxn file was saved!");
+    // write out mparams as json file
+    let mparamsinfo = JSON.stringify(mparams, undefined, 2);
+    fs.writeFileSync('./multisigparams.json', mparamsinfo)
+    console.log("The multisig params file was saved!");
+
+};
+
+
+async function main() {
+
+    const args = require('minimist')(process.argv.slice(2))
+    const inFile = args['in-file'];
+    const outFile = args['out-file'];
+    const send = args['send'] === 'true';
+    const mnemonic = args['mnemonic'];
+    const firstAddress = args['first-address'];
+    const secondAddress = args['second-address'];
+
+    const account = algosdk.mnemonicToSecretKey(mnemonic);
+    if (!send) {
+        console.log('send is false so writing');
+        const txn = algosdk.decodeUnsignedTransaction(fs.readFileSync(inFile));
+        writeSignedMultisigTransactionToFile(account, firstAddress, secondAddress, txn, outFile);
+    } else {
+        const stxn = fs.readFileSync(inFile);
+        readSignedMultisigTransactionFromFile(account, firstAddress, secondAddress, stxn);
+    }
+}
+
+main();
