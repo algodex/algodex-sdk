@@ -1,5 +1,5 @@
 /**
- * Order
+ * # Order
  *
  * @example
  * const validate = ajv.getSchema('Asset')
@@ -15,12 +15,15 @@
  * @property {number} D Denominator
  * @property {string} to To Algorand Address
  * @property {string} [from] From Algorand Address
+ * @property {Object} [contract] Contract State
+ * @namespace Order
  */
 
 /**
  * JSON Schema Specification
  * @type {Schema}
- * @name OrderSchema
+ * @name Schema
+ * @memberOf Order
  */
 module.exports = {
   '$schema': 'http://json-schema.org/draft-07/schema',
