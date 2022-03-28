@@ -1,0 +1,25 @@
+{
+  "name": "@algodex/teal",
+  "version": "1.0.0",
+  "description": "TEAL and contract utilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alexander Trefonas",
+  "contributors": [
+    {
+      "name": "Michael Feher",
+      "email": "michael@algonaut.ca",
+      "website": "https://telluric.guru"
+    }
+  ],
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "algosdk": "^1.15.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "pino": "^7.9.2"
+  }
+}
