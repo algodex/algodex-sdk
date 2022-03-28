@@ -1,17 +1,29 @@
 /**
- * Order
+ * # Order
  *
  * @example
  * const validate = ajv.getSchema('Asset')
  *
  * @typedef {Object} Order
- * @property {number} id Asset Index
+ * @property {string} address Order Address
+ * @property {number} amount Amount in order
+ * @property {number} total Total of order
+ * @property {("maker"|"taker"|"market")} execution Execution of order
+ * @property {Asset} asset Algorand Asset
+ * @property {number} price Asset Price
+ * @property {number} N Numerator
+ * @property {number} D Denominator
+ * @property {string} to To Algorand Address
+ * @property {string} [from] From Algorand Address
+ * @property {Object} [contract] Contract State
+ * @namespace Order
  */
 
 /**
  * JSON Schema Specification
  * @type {Schema}
- * @name OrderSchema
+ * @name Schema
+ * @memberOf Order
  */
 module.exports = {
   '$schema': 'http://json-schema.org/draft-07/schema',
