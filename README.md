@@ -46,6 +46,11 @@ yarn
 ```shell
 yarn test
 ```
+## Unit testing with coverage
+
+```shell
+yarn coverage
+```
 
 With Chrome debugger support:
 
