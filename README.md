@@ -3,10 +3,8 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 [![algodex/algodex-sdk:main](https://github.com/algodex/algodex-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/algodex/algodex-sdk/actions/workflows/ci.yml)
-[![unit-branches](./assets/badge-branches.svg)](./lib)
-[![unit-functions](./assets/badge-functions.svg)](./lib)
-[![unit-lines](./assets/badge-lines.svg)](./lib)
-[![unit-statements](./assets/badge-statements.svg)](./lib)
+[![Maintainability](https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/maintainability)](https://codeclimate.com/repos/62438536b3ae7671bd0005a9/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/test_coverage)](https://codeclimate.com/repos/62438536b3ae7671bd0005a9/test_coverage)
 
 Client-side JavaScript API calls for Algodex as an npm package
 
