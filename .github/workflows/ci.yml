@@ -38,6 +38,11 @@ jobs:
           NPM_AUTH_TOKEN: ${{ secrets.GH_PKG_READONLY }}
       - name: Run Unit Tests
         run: yarn test-unit
+      - uses: paambaati/codeclimate-action@v3.0.0
+        env:
+          CC_TEST_REPORTER_ID: e2686c1fccfa715226d9cde62837ee820794854214200349c6f6f7a1253e2e23
+        with:
+          coverageCommand: yarn coverage
   e2e:
     name: End<->End
     runs-on: ubuntu-latest
