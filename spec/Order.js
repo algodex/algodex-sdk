@@ -16,6 +16,7 @@
  * @property {string} to To Algorand Address
  * @property {string} [from] From Algorand Address
  * @property {Object} [contract] Contract State
+ * @property {algosdk.Algodv2} [client] Algosdk Client
  * @namespace Order
  */
 
