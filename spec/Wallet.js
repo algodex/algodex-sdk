@@ -52,7 +52,7 @@
  *   'properties': {
  *     'type': {
  *       'type': 'string',
- *       'enum': ['my-algo-wallet', 'wallet-connect'],
+ *       'enum': ['my-algo-wallet', 'wallet-connect', 'sdk'],
  *     },
  *     'address': {
  *       'type': 'string',
@@ -85,7 +85,7 @@ module.exports = {
   'properties': {
     'type': {
       'type': 'string',
-      'enum': ['my-algo-wallet', 'wallet-connect'],
+      'enum': ['my-algo-wallet', 'wallet-connect', 'sdk'],
     },
     'address': {
       'type': 'string',
