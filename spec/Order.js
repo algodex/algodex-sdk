@@ -11,11 +11,14 @@
  * @property {("maker"|"taker"|"market")} execution Execution of order
  * @property {Asset} asset Algorand Asset
  * @property {number} price Asset Price
- * @property {number} N Numerator
- * @property {number} D Denominator
- * @property {string} to To Algorand Address
- * @property {string} [from] From Algorand Address
- * @property {Object} [contract] Contract State
+ * @property {Object} [contract] Composed Contract State
+ * @property {number} contract.price Asset BaseUnit Price
+ * @property {number} contract.amount Asset BaseUnit Amount
+ * @property {number} contract.total Asset BaseUnit Total
+ * @property {number} contract.N Numerator
+ * @property {number} contract.D Denominator
+ * @property {string} contract.to To Algorand Address
+ * @property {string} [contract.from] From Algorand Address
  * @property {algosdk.Algodv2} [client] Algosdk Client
  * @namespace Order
  */
