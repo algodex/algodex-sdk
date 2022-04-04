@@ -6,8 +6,8 @@
 // ///////////////////////////
 
 const deprecate = require('./lib/utils/deprecate');
-const obTemplate = require('./lib/teal/templates/ALGO_Orderbook.teal');
-const clearTemplate = require('./lib/teal/templates/ClearProgram.teal');
+const obTemplate = require('./lib/order/teal/ALGO_Orderbook.teal');
+const clearTemplate = require('./lib/teal/ClearProgram.teal');
 /**
  * Export of deprecated functions
  * @deprecated
