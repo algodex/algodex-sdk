@@ -96,11 +96,12 @@
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 2
+        "branches": 10
       }
     },
     "collectCoverageFrom": [
       "./lib/**/*.js",
+      "!**/__tests__/**/*.js",
       "!.eslintrc.js",
       "!test_helper.js",
       "!**/*.spec.js",
