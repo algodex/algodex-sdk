@@ -7,7 +7,6 @@
  * @typedef {Object} Asset
  * @property {number} id Asset Index
  * @property {number} decimals Asset Decimals
- * @property {number} [balance] Asset Balance
  * @namespace Asset
  */
 

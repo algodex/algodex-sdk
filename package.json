@@ -1,8 +1,8 @@
 {
   "name": "@algodex/algodex-sdk",
-  "version": "2.0.0-next.0",
+  "version": "2.0.0-next.1",
   "description": "API calls for interacting with the Algorand blockchain",
-  "main": "index.js",
+  "main": "lib/index.js",
   "browserslist": [
     "defaults",
     "maintained node versions"
@@ -34,7 +34,7 @@
     "algorand"
   ],
   "author": "Alexander Trefonas",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "bugs": {
     "url": "https://github.com/algodex/algodex-sdk/issues"
   },
@@ -96,11 +96,12 @@
     ],
     "coverageThreshold": {
       "global": {
-        "branches": 2
+        "branches": 10
       }
     },
     "collectCoverageFrom": [
       "./lib/**/*.js",
+      "!**/__tests__/**/*.js",
       "!.eslintrc.js",
       "!test_helper.js",
       "!**/*.spec.js",
