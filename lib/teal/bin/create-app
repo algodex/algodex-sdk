@@ -13,18 +13,16 @@ const fs = require('fs');
 //fund the account below before creating
 
 // declare application state storage (immutable)
-localInts = 2;
-localBytes = 1;
-globalInts = 0;
-globalBytes = 1;
+let localInts = 2;
+let localBytes = 1;
+let globalInts = 0;
+let globalBytes = 1;
 
 // user declared approval program (initial)
 
 
 // declare clear state program source
-clearProgramSource = `#pragma version 2
-int 1
-`;
+const clearProgramSource = require('../ClearProgram.teal');
 
 // helper function to compile program source
 async function compileProgram(client, programSource) {
@@ -39,10 +37,10 @@ async function compileProgram(client, programSource) {
 async function createApp(client, creatorAccount, approvalProgram, clearProgram, localInts,
     localBytes, globalInts, globalBytes, saveToDisk=false) {
     // define sender as creator
-    sender = creatorAccount.addr;
+    let sender = creatorAccount.addr;
 
     // declare onComplete as NoOp
-    onComplete = algosdk.OnApplicationComplete.NoOpOC;
+    let onComplete = algosdk.OnApplicationComplete.NoOpOC;
 
 	// get node suggested parameters
     const params = await client.getTransactionParams().do();
