@@ -105,4 +105,5 @@ module.exports = {
       },
     },
   },
+  'required': ['address', 'type'],
 };
