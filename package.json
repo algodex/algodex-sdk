@@ -103,6 +103,9 @@
     "collectCoverageFrom": [
       "./lib/**/*.js",
       "!**/__tests__/**/*.js",
+      "!**/lib/functions/**/*.js",
+      "!**/lib/wallet/**/*.js",
+      "!**/lib/order/txns/**/*.js",
       "!.eslintrc.js",
       "!test_helper.js",
       "!**/*.spec.js",
