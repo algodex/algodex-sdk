@@ -59,7 +59,7 @@ function scientificToString(n) {
         throw new TypeError('Must be a Big.js value!');
     }
     let num = Object.create(n);
-    if (typeof num.e !== 'undefined' && num.e !== 0) {
+    if (typeof num.e !== 'undefined' && num.e !== 0 && num.e !== -1) {
         if (num.e > 0) {
             // TODO: large numbers
         } else {
