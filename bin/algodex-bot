@@ -32,7 +32,7 @@ setIntervalAsync(async ()=>{
   //   'execution': 'maker'
   // }
   orders.push(order)
-  const res = await api.placeOrder(order)
+  const res = await api.placeOrder(order, {orderbook})
   console.log(res.contract.entry)
 }, 10000)
 
