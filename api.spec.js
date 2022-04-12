@@ -22,4 +22,8 @@ it('getNumeratorAndDenominatorFromPrice', ()=>{
     d: 1045,
     n: 100
   });
+  expect(getNumeratorAndDenominatorFromPrice(0.0171)).toEqual({
+    d: 171,
+    n: 10000
+  });
 });
