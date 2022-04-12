@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+
+const { setIntervalAsync } = require('set-interval-async/fixed')
+const AlgodexApi = require('../lib/AlgodexApi');
+const config = require(`${process.cwd()}/config.json`);
+
+const api = new AlgodexApi(config);
+const orders = [];
+
+setIntervalAsync(async ()=>{
+  const assetOrders = await api.http.dexd.fetchAssetOrders(api.asset.id)
+  const orderbook = api.http.dexd.mapToAllEscrowOrders({
+    buy: assetOrders.buyASAOrdersInEscrow,
+    sell: assetOrders.sellASAOrdersInEscrow
+  })
+  console.log(`Total Orders: ${orderbook.length}`)
+
+  // TODO: Baseline Logic for maker bots
+  const order = {
+    "asset": api.asset,
+    "address": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+    "price": 2.22,
+    "amount": 1,
+    "total": 2.22,
+    "execution": "both",
+    "type": "buy",
+    "appId": 22045503,
+    "version": 6
+  }
+  // const order = {
+  //   'type': 'cancel',
+  //   'execution': 'maker'
+  // }
+  orders.push(order)
+  const res = await api.placeOrder(order)
+  console.log(res.contract.entry)
+}, 10000)
+
+
+
