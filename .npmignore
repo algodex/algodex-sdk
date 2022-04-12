@@ -1,3 +1,10 @@
+# Extra package ignores:
+__tests__
+__mocks__
+test
+.github
+
+# Add GitIgnore:
 .idea
 docs
 *.js.orig
