@@ -55,9 +55,9 @@
     }
   },
   "address": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
-  "price": 305,
-  "amount": 0.01,
-  "total": 3.05,
+  "price": 2.22,
+  "amount": 1,
+  "total": 2.22,
   "execution": "both",
   "type": "buy",
   "appId": 22045503,
