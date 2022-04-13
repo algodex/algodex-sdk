@@ -17,7 +17,8 @@ module.exports = {
     'no-shadow': 'warn',
     'new-cap': 'warn',
     'linebreak-style': 'off',
-    'max-len': ['warn', 80],
+    'no-tabs': 'off',
+    'max-len': ['warn', 120],
     'camelcase': ['warn'],
     // TODO go back to error for the following:
     'no-unused-vars': ['warn'],
