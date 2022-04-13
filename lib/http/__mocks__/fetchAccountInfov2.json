@@ -1,0 +1,192 @@
+{
+  "account": {
+    "address": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+    "amount": 182985344,
+    "amount-without-pending-rewards": 182985344,
+    "assets": [
+      {
+        "amount": 0,
+        "asset-id": 21547225,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 16262026
+      },
+      {
+        "amount": 0,
+        "asset-id": 15870866,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 18453489
+      },
+      {
+        "amount": 0,
+        "asset-id": 26838520,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 17293010
+      },
+      {
+        "amount": 0,
+        "asset-id": 69394953,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 19626446
+      },
+      {
+        "amount": 0,
+        "asset-id": 15322902,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 17203462
+      },
+      {
+        "amount": 0,
+        "asset-id": 22223920,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 18203246
+      },
+      {
+        "amount": 0,
+        "asset-id": 10458941,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 17370208
+      },
+      {
+        "amount": 0,
+        "asset-id": 33698417,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 18083112
+      },
+      {
+        "amount": 10000000,
+        "asset-id": 22847687,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 18568701
+      },
+      {
+        "amount": 0,
+        "asset-id": 22074963,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 17351689
+      },
+      {
+        "amount": 0,
+        "asset-id": 23244971,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 16262196
+      },
+      {
+        "amount": 0,
+        "asset-id": 22295876,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 17292942
+      },
+      {
+        "amount": 40074988000,
+        "asset-id": 69413060,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 19626573
+      },
+      {
+        "amount": 0,
+        "asset-id": 24270812,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 17293505
+      },
+      {
+        "amount": 0,
+        "asset-id": 12400859,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 18064359
+      },
+      {
+        "amount": 0,
+        "asset-id": 48806985,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 19062051
+      },
+      {
+        "amount": 0,
+        "asset-id": 23156562,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 17370187
+      },
+      {
+        "amount": 13339987804656,
+        "asset-id": 69410904,
+        "deleted": false,
+        "is-frozen": false,
+        "opted-in-at-round": 19626472
+      }
+    ],
+    "created-assets": [
+      {
+        "created-at-round": 19626472,
+        "deleted": false,
+        "index": 69410904,
+        "params": {
+          "clawback": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "creator": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "decimals": 10,
+          "default-frozen": false,
+          "freeze": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "manager": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "name": "Zero",
+          "name-b64": "WmVybw==",
+          "reserve": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "total": 13370000000000,
+          "unit-name": "ZERO",
+          "unit-name-b64": "WkVSTw==",
+          "url": "https://phearzero.com",
+          "url-b64": "aHR0cHM6Ly9waGVhcnplcm8uY29t"
+        }
+      },
+      {
+        "created-at-round": 19626573,
+        "deleted": false,
+        "index": 69413060,
+        "params": {
+          "clawback": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "creator": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "decimals": 6,
+          "default-frozen": false,
+          "freeze": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "manager": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "name": "Telluric",
+          "name-b64": "VGVsbHVyaWM=",
+          "reserve": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
+          "total": 40075000000,
+          "unit-name": "TELLURIC",
+          "unit-name-b64": "VEVMTFVSSUM=",
+          "url": "https://telluric.guru",
+          "url-b64": "aHR0cHM6Ly90ZWxsdXJpYy5ndXJ1"
+        }
+      }
+    ],
+    "created-at-round": 16261997,
+    "deleted": false,
+    "pending-rewards": 0,
+    "reward-base": 27521,
+    "rewards": 0,
+    "round": 20813922,
+    "sig-type": "sig",
+    "status": "Offline",
+    "total-apps-opted-in": 0,
+    "total-assets-opted-in": 18,
+    "total-created-apps": 0,
+    "total-created-assets": 2
+  },
+  "current-round": 20813922
+}
