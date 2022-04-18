@@ -9,6 +9,8 @@ const orders = [];
 
 setIntervalAsync(async ()=>{
   const assetOrders = await api.http.dexd.fetchAssetOrders(api.asset.id)
+  const tinymanPrices = await api.http.tiny.fetchCurrentAssetPrices()
+  console.log(tinymanPrices)
   const orderbook = api.http.dexd.mapToAllEscrowOrders({
     buy: assetOrders.buyASAOrdersInEscrow,
     sell: assetOrders.sellASAOrdersInEscrow
