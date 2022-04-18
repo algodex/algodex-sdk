@@ -7,35 +7,84 @@ const config = require(`${process.cwd()}/config.json`);
 const api = new AlgodexApi(config);
 const orders = [];
 
+class TinymanError extends Error {}
+class AlgodexError extends Error {}
+
+
+function _filterByPriceSpread(order, price, spread){
+  const _price = parseFloat(order.price);
+  const _max =  price + spread/2/100*price;
+  const _min = price - spread/2/100*price;
+  const _match = _price >= _min && _price <= _max;
+  if(process.env.DEBUG && _match){
+    console.log(`Tiny: ${price} Dex: ${order.price} Min: ${_min} Max: ${_max}`)
+  }
+  return _match;
+}
+
 setIntervalAsync(async ()=>{
-  const assetOrders = await api.http.dexd.fetchAssetOrders(api.asset.id)
-  const tinymanPrices = await api.http.tiny.fetchCurrentAssetPrices()
-  console.log(tinymanPrices)
+  const spread = api.config.tinyman.spread
+  let prices;
+  let assetOrders;
+  if(typeof api.asset !== 'object' || typeof api.asset.id ==='undefined'){
+    throw new AlgodexError('Unsupported Asset! Must have ID')
+  }
+
+  // Fetch Tinyman State
+  try {
+    prices = await api.http.tiny.fetchCurrentAssetPrices()
+  } catch(e){
+    throw new TinymanError(e.message)
+  }
+
+  if(typeof prices !== 'object' || Object.keys(prices).length === 0){
+    throw new TinymanError('Unsupported Prices!')
+  }
+
+  if(typeof prices[api.asset.id] === 'undefined'){
+    throw new TinymanError(
+      `Asset ${api.asset.id} not supported on Tinyman\n` +
+      `Available Assets: [${Object.keys(prices)}]`
+    )
+  }
+  const tinyPrice = prices[api.asset.id].price;
+
+  // Fetch Dex State
+  try {
+    assetOrders = await api.http.dexd.fetchAssetOrders(api.asset.id)
+  } catch(e){
+    throw AlgodexError(e.message)
+  }
+
   const orderbook = api.http.dexd.mapToAllEscrowOrders({
     buy: assetOrders.buyASAOrdersInEscrow,
     sell: assetOrders.sellASAOrdersInEscrow
-  })
+  }).filter((order)=>_filterByPriceSpread(order, tinyPrice, spread))
+
+
+
   console.log(`Total Orders: ${orderbook.length}`)
 
   // TODO: Baseline Logic for maker bots
-  const order = {
-    "asset": api.asset,
-    "address": "TJFFNUYWHPPIYDE4DGGYPGHWKGAPJEWP3DGE5THZS3B2M2XIAPQ2WY3X4I",
-    "price": 2.22,
-    "amount": 1,
-    "total": 2.22,
-    "execution": "both",
-    "type": "buy",
-    "appId": 22045503,
-    "version": 6
+  if(orderbook.length !== 0){
+    const order = {
+      "asset": api.asset,
+      "address": api.wallet.address,
+      "price": 2.22,
+      "amount": 1,
+      "total": 2.22,
+      "execution": "both",
+      "type": "buy",
+      "appId": 22045522,
+      "version": 6
+    }
+
+
+    const res = await api.placeOrder(order, {orderbook})
+    orders.push(res);
+    console.log(`Orders: ${orders.length - 1}, added ${res.contract.entry}`)
   }
-  // const order = {
-  //   'type': 'cancel',
-  //   'execution': 'maker'
-  // }
-  orders.push(order)
-  const res = await api.placeOrder(order, {orderbook})
-  console.log(res.contract.entry)
+
 }, 10000)
 
 

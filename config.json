@@ -15,12 +15,13 @@
     },
     "tinyman": {
       "uri": "https://testnet.analytics.tinyman.org",
-      "token": ""
+      "token": "",
+      "spread": 50
     }
   },
   "asset": {
-    "id": 69410904,
-    "decimals": 10
+    "id": 21582668,
+    "decimals": 6
   },
   "wallet": {
     "type": "sdk",
