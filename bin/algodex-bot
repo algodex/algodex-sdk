@@ -3,7 +3,8 @@
 const { setIntervalAsync } = require('set-interval-async/fixed')
 const AlgodexApi = require('../lib/AlgodexApi');
 const config = require(`${process.cwd()}/config.json`);
-
+config.wallet.connector = require('../lib/wallet/connectors/AlgoSDK')
+config.wallet.connector.connected = true
 const api = new AlgodexApi(config);
 const orders = [];
 
@@ -68,11 +69,32 @@ setIntervalAsync(async ()=>{
   // TODO: Baseline Logic for maker bots
   if(orderbook.length !== 0){
     const order = {
-      "asset": api.asset,
-      "address": api.wallet.address,
-      "price": 2.22,
-      "amount": 1,
-      "total": 2.22,
+      "asset": {
+        "id": 15322902,
+        "deleted": false,
+        "txid": "NOFSUK4EXHFFXJK3ZA6DZMGE6CAGQ7G5JT2X7FYTYQBSQEBZHY4Q",
+        "timestamp": 1618666459,
+        "decimals": 6,
+        "name": "LAMP",
+        "txns": 693011,
+        "fullName": "Lamps",
+        "circulating": 99989322377,
+        "verified": false,
+        "url": null,
+        "total": 100000000000,
+        "price_info": {
+          "id": 15322902,
+          "unix_time": 1648652750,
+          "price": 300,
+          "priceBefore": 299.900476758045,
+          "price24Change": 0.03318542305463083,
+          "isTraded": true
+        }
+      },
+      "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+      "price": 300,
+      "amount": 0.01,
+      "total": 3,
       "execution": "both",
       "type": "buy",
       "appId": 22045522,
@@ -82,7 +104,7 @@ setIntervalAsync(async ()=>{
 
     const res = await api.placeOrder(order, {orderbook})
     orders.push(res);
-    console.log(`Orders: ${orders.length - 1}, added ${res.contract.entry}`)
+    console.log(`Orders: ${orders.length - 1}`)
   }
 
 }, 10000)
