@@ -99,10 +99,7 @@ module.exports = {
       '$ref': 'https://schemas.algodex.com/v1/Asset.json',
     },
     'assets': {
-      'type': 'object',
-      'additionalProperties': {
-        '$ref': 'https://schemas.algodex.com/v1/Asset.json',
-      },
+      'type': 'array',
     },
   },
   'required': ['address', 'type'],
