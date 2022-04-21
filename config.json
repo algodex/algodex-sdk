@@ -26,6 +26,9 @@
   "wallet": {
     "type": "sdk",
     "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+    "connector": {
+      "connected": false
+    },
     "mnemonic": "mass army warrior number blush distance enroll vivid horse become spend asthma hat desert amazing room asset ivory lucky ridge now deputy erase absorb above"
   }
 }
