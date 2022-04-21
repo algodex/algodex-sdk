@@ -15,8 +15,7 @@
   },
   "scripts": {
     "start": "node ./bin/algodex-bot",
-    "doc": "jsdoc -c jsdoc.json -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme && jest-coverage-badges output ./assets",
-    "doc-badges": "jest-coverage-badges output ./assets",
+    "doc": "jsdoc -c jsdoc.json -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme",
     "doc-types": "tsc",
     "test": "yarn test-lint && yarn test-unit && yarn test-integration",
     "test-lint": "eslint . --quiet",

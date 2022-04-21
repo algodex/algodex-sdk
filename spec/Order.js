@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-unused-vars
+const algosdk = require('algosdk');
 /**
  * # Order
  *
@@ -17,8 +19,7 @@
  * @property {number} contract.total Asset BaseUnit Total
  * @property {number} contract.N Numerator
  * @property {number} contract.D Denominator
- * @property {string} contract.to To Algorand Address
- * @property {string} [contract.from] From Algorand Address
+ * @property {algosdk.SuggestedParams} [contract.params] Suggested Params
  * @property {algosdk.Algodv2} [client] Algosdk Client
  * @namespace Order
  */
