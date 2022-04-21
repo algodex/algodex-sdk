@@ -22,9 +22,9 @@
 		}
 },
 	"type": "sell",
-	"price": "254.006000",
-	"amount": ".001",
-	"total": "0.254006",
+	"price":  235.000000,
+	"amount": 0.1,
+	"total": 23.50000,
 	"execution": "both",
 	"address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
 	"appId": 22045503,
