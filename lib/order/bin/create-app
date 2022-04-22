@@ -1,145 +1,70 @@
 #!/usr/bin/env node
 
-// TODO: Move to commander.js
-// USAGE:
-//   dex-create-app --environment=[local|test|production] --orderbook=[algo|asa] --sender=[sender] --mnemonic=[mnemonic] --saveToDisk=[true|false]
-throw new Error('whoops')
-const algosdk = require('algosdk');
-const algodex = require('../index.js');
 const fs = require('fs');
+const path = require('path');
+const algosdk = require('algosdk');
+const {Command} = require('commander');
 
-// user declared account mnemonics
+const AlgodexApi = require('../../AlgodexApi');
+const makeApplicationCreateTxn = require('../txns/makeApplicationCreateTxn');
+const config = require(`${process.cwd()}${path.sep}config.json`);
+const program = new Command();
+const api = new AlgodexApi(config);
 
-//fund the account below before creating
+program
+    .name('dex-create-app')
+    .description('CLI to create an Algodex Orderbook')
+    .requiredOption('-t, --type <buy|sell>', 'type of orderbook to create')
+    .requiredOption('-f, --from <address>', 'creator account address')
+    .requiredOption('-m, --from-mnemonic <mnemonic>', 'mnemonic phrase for the creator account')
+    .option('--dry-run', 'flag to save transaction to disk and dry run')
+    .version(require('../../../package.json').version)
+    .showHelpAfterError();
 
-// declare application state storage (immutable)
-let localInts = 2;
-let localBytes = 1;
-let globalInts = 0;
-let globalBytes = 1;
+program.parse();
 
-// user declared approval program (initial)
+/**
+ *
+ * @return {Promise<number>}
+ */
+(async function() {
+  console.log(`⚙ Loading...`);
+  const client = api.algod;
+  const {type, from, fromMnemonic, dryRun} = program.opts();
 
+  const account = algosdk.mnemonicToSecretKey(fromMnemonic);
 
-// declare clear state program source
-const clearProgramSource = require('../ClearProgram.teal');
+  // Make sure we have valid parameters
+  if (account.addr !== from) {
+    throw new Error('Account mismatch!');
+  }
+  console.log(`⚙ Wallet Unlocked: ${account.addr}`);
 
-// helper function to compile program source
-async function compileProgram(client, programSource) {
-    let encoder = new TextEncoder();
-    let programBytes = encoder.encode(programSource);
-    let compileResponse = await client.compile(programBytes).do();
-    let compiledBytes = new Uint8Array(Buffer.from(compileResponse.result, "base64"));
-    return compiledBytes;
-}
+  // create unsigned transaction
+  const txn = await makeApplicationCreateTxn(
+      client,
+      type,
+      from,
+  );
+  const txId = txn.txID().toString();
+  console.log(`⚙ Transaction Created: ${txId}`);
+  // Dry Run, save to disk and exit
+  if (dryRun) {
+    const _txnOut = `${process.cwd()}${path.sep}unsigned.${txId}.txn`;
+    fs.writeFileSync(_txnOut, algosdk.encodeUnsignedTransaction(txn));
+    console.log(`✅ Dry Run Complete: ${_txnOut}`);
+    process.exit(0);
+  }
 
-// create new application
-async function createApp(client, creatorAccount, approvalProgram, clearProgram, localInts,
-    localBytes, globalInts, globalBytes, saveToDisk=false) {
-    // define sender as creator
-    let sender = creatorAccount.addr;
+  // Sign the transaction
+  const signedTxn = txn.signTxn(account.sk);
+  console.log(`⚙ Signed Transaction: ${txId}`);
 
-    // declare onComplete as NoOp
-    let onComplete = algosdk.OnApplicationComplete.NoOpOC;
+  // Submit the transaction
+  await client.sendRawTransaction(signedTxn).do();
+  console.log(`⚙ Sent Transaction: ${txId}`);
 
-	// get node suggested parameters
-    const params = await client.getTransactionParams().do();
-
-    // create unsigned transaction
-    const txn = algosdk.makeApplicationCreateTxn(sender, params, onComplete,
-                                            approvalProgram, clearProgram,
-                                            localInts, localBytes, globalInts, globalBytes,);
-    const txId = txn.txID().toString();
-
-    if (saveToDisk) {
-        fs.writeFileSync('./unsigned.txn', algosdk.encodeUnsignedTransaction( txn ));
-        console.log("Saved [unsigned.txn] to disk! returning early");
-        return -1;
-    }
-    /*fs.readFile('./unsigned.txn', null, function(err, data) {
-         if (err) throw err;
-        const arr = new Uint8Array(data);
-        console.log(arr.join(','));
-    });*/
-
-    // Sign the transaction
-    const signedTxn = txn.signTxn(creatorAccount.sk);
-    console.log("Signed transaction with txID: %s", txId);
-
-    // Submit the transaction
-    await client.sendRawTransaction(signedTxn).do();
-
-    // Wait for confirmation
-    // display results
-
-    const transactionResponse = (await algodex.waitForConfirmation(txId)).transaction;
-    const appId = transactionResponse['created-application-index'];
-    console.log("Created new app-id: ",appId);
-    return appId;
-}
-
- const getCreatorAccount = (mnemonic, fromAddr) => {
-    let accountStr = null;
-    let account = null;
-    if (mnemonic) {
-        account = algosdk.mnemonicToSecretKey(mnemonic);
-    } else {
-        accountStr = fromAddr;
-        account = {
-            addr: fromAddr,
-            sk: null
-        }
-    }
-
-    if (mnemonic && fromAddr && fromAddr != accountStr) {
-        throw 'fromAddr does not match mnemonic addr!';
-    }
-
-    return account;
-}
-
-
-async function main() {
-    try {
-
-        const args = require('minimist')(process.argv.slice(2))
-        const environment = args['environment'];
-        const orderbook = args['orderbook'];
-        const mnemonic = args['mnemonic'];
-        const fromAddr = args['sender'];
-        const saveToDisk = args['saveToDisk'] === 'true';
-        let approvalProgramSourceInitial = null;
-        console.log({environment, orderbook, mnemonic});
-        // asa or algo
-        if (orderbook === 'algo') {
-            approvalProgramSourceInitial = algodex.getAlgoOrderBookTeal();
-        } else {
-            approvalProgramSourceInitial = algodex.getAsaOrderBookTeal();
-        }
-
-        // initialize an algodClient
-
-        let algodClient = algodex.initAlgodClient(environment);
-
-        let creatorAccount = getCreatorAccount(mnemonic, fromAddr);
-        console.log({creatorAccount});
-        //create sample token and optin note the switch of accounts
-        //useraccount will be the token creator
-        //await createToken(algodClient, userAccount, creatorAccount);
-
-        // compile programs
-        let approvalProgram = await compileProgram(algodClient, approvalProgramSourceInitial);
-        let clearProgram = await compileProgram(algodClient, clearProgramSource);
-
-        // create new application
-        let appId = await createApp(algodClient, creatorAccount, approvalProgram, clearProgram,
-            localInts, localBytes, globalInts, globalBytes, saveToDisk);
-        console.log( "APPID="+appId);
-
-    }
-    catch (err){
-        console.log("err", err);
-    }
-}
-
-main();
+  // Wait for confirmation
+  const res = await algosdk.waitForConfirmation(client, txId, 10);
+  console.log('✅ Application Deployment: ', res['application-index']);
+})();
