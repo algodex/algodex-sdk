@@ -116,15 +116,7 @@
       "./lib/**/*.js",
       "!**/__tests__/**/*.js",
       "!**/lib/functions/**/*.js",
-      "!**/lib/order/txns/**/*.js",
-      "!.eslintrc.js",
-      "!test_helper.js",
-      "!**/*.spec.js",
-      "!lib/teal/__tests__/**/*.js",
-      "!lib/test/**/*.js",
-      "!test/**/*.js",
-      "!coverage/**/*.js",
-      "!docs/**/*.js"
+      "!**/*.spec.js"
     ]
   },
   "esdoc": {
