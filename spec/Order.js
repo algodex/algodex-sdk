@@ -23,7 +23,14 @@ const algosdk = require('algosdk');
  * @property {algosdk.Algodv2} [client] Algosdk Client
  * @namespace Order
  */
-
+// "type": "sell",
+//     "price":  235.000000,
+//     "amount": 0.1,
+//     "total": 23.50000,
+//     "execution": "both",
+//     "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+//     "appId": 22045503,
+//     "version": 6
 /**
  * JSON Schema Specification
  * @type {Schema}
@@ -37,10 +44,38 @@ module.exports = {
   'description': 'Algorand standard asset',
   'type': 'object',
   'properties': {
-    'id': {
+    'type': {
+      'type': 'string',
+      'enum': ['buy', 'sell'],
+    },
+    'price': {
       'type': 'number',
-      'minimum': 0,
+      'multipleOf': 1,
+    },
+    'amount': {
+      'type': 'number',
+      'multipleOf': 1,
+    },
+    'total': {
+      'type': 'number',
+      'multipleOf': 1,
+    },
+    'execution': {
+      'type': 'string',
+      'enum': ['taker', 'both', 'maker', 'market'],
+    },
+    'address': {
+      'type': 'string',
+      'pattern': '[A-Z0-9]{58}',
+      'description': 'An account public key',
+    },
+    'appId': {
+      'type': 'number',
+      'multipleOf': 1,
+    },
+    'version': {
+      'type': 'number',
+      'multipleOf': 1,
     },
   },
-  'required': ['id'],
 };
