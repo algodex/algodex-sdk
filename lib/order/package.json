@@ -1,0 +1,16 @@
+{
+  "name": "@algodex/algodex-sdk",
+  "version": "2.0.0-next.5",
+  "description": "Algodex API Interface",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "algodex",
+    "algorand",
+    "algosdk"
+  ],
+  "author": "",
+  "license": "SEE LICENSE IN LICENSE"
+}
