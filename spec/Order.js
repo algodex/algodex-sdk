@@ -10,7 +10,7 @@ const algosdk = require('algosdk');
  * @property {string} address Order Address
  * @property {number} amount Amount in order
  * @property {number} total Total of order
- * @property {("maker"|"taker"|"market")} execution Execution of order
+ * @property {("maker"|"taker"|"market"|"both"|"execution"|"close")} execution Execution of order
  * @property {Asset} asset Algorand Asset
  * @property {number} price Asset Price
  * @property {Object} [contract] Composed Contract State
