@@ -34,6 +34,8 @@ There are three types of execution for each contract, Maker(Place) | Taker(Execu
 |----------|-----------|-----------------------|-------------------------------------|
 | Buy      | Maker     | ./makePlaceAlgoTxns   | Place Algos into the Buy Orderbook  |
 | Sell     | Maker     | ./makePlaceAsaTxns    | Place Asset into the Sell Orderbook |
-| Buy      | Taker     | ./makeExecuteAlgoTxns | Execute against Algo Orders         | 
-| Sell     | Taker     | ./makeExecuteAsaTxns  | Execute against Asset Orders        |
+| Buy      | Taker     | ./makeExecuteAsaTxns  | Take from the Sell/ASA Orderbook    | 
+| Sell     | Taker     | ./makeExecuteAlgoTxns | Take from the Buy/ALGO Orderbook    |
+| Buy      | Execute   | ./makeExecuteAlgoTxns | Execute against Buy/Algo Orders     | 
+| Sell     | Execute   | ./makeExecuteAsaTxns  | Execute against Sell/Asset Orders   |
 | Buy/Sell | Both      | ./makeTxns            | Computed Maker/Taker orders         |

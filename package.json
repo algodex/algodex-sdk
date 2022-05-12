@@ -1,6 +1,6 @@
 {
   "name": "@algodex/algodex-sdk",
-  "version": "2.0.0-next.8",
+  "version": "2.0.0-next.11",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "lib/index.js",
   "browserslist": [
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "start": "node ./bin/algodex-bot",
-    "doc": "jsdoc -c jsdoc.json -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme",
+    "doc": "jsdoc -u ./tutorials -c jsdoc.json -r --readme ./README.md -d ./docs -t ./node_modules/clean-jsdoc-theme",
     "doc-types": "tsc",
     "test": "yarn test-lint && yarn test-unit && yarn test-integration",
     "test-lint": "eslint . --quiet",
