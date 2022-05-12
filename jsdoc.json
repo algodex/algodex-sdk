@@ -3,6 +3,11 @@
   "source": {
     "include": ["./lib", "./spec"]
   },
+  "templates": {
+    "default": {
+      "outputSourceFiles": false
+    }
+  },
   "opts": {
     "template": "./node_modules/clean-jsdoc-theme",
     "theme_opts": {
