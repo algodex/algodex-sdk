@@ -9,6 +9,10 @@
       "uri": "https://algoindexer.testnet.algoexplorerapi.io",
       "token": ""
     },
+    "explorer": {
+      "uri": "https://indexer.testnet.algoexplorerapi.io",
+      "port": ""
+    },
     "dexd": {
       "uri": "https://api-testnet-public.algodex.com/algodex-backend",
       "token": ""
