@@ -1,5 +1,5 @@
 
 
 module.exports = {
-    Maker: require('./Maker.md')
-}
+  Maker: require('./Maker.md'),
+};
