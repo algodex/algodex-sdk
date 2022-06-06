@@ -35,9 +35,20 @@ Client-side JavaScript API calls for Algodex as an npm package
 
 ## 📦 Setup
 
+## Node
+
 ```shell
-yarn
+npm install @algodex/sdk
 ```
+
+## Yarn
+
+```shell
+yarn add @algodex/sdk
+```
+
+## 📚 Documentation
+Detailed documentation can be found [here](https://algodex-dky9z8dda-algodex-dev.vercel.app/module-order_structure.html)
 
 ## ✅ Testing
 
@@ -52,6 +63,18 @@ yarn test
 yarn coverage
 ```
 
+## End to End integeration testing
+
+```shell
+yarn test-integration
+```
+
+## Exclude Teal Tests
+
+```shell 
+yarn test-sanity
+```
+
 With Chrome debugger support:
 
 ```shell
@@ -63,6 +86,92 @@ yarn testDebug
 export DEBUG_SMART_CONTRACT_SOURCE=1
 
 Note: if https://github.com/algodex/algodex-go-api is set up and running, the console will also print out the transactions in json format
+
+## ⚗Usage
+```
+// In Node.js
+ const [AlgodexAPI]{@link AlgodexApi} = require(@algodex/algodex-sdk)
+ const apiProps = {
+  config: {
+    'algod': {
+      'uri': 'http:/ec2-3-18-80-65.us-east-2.compute.amazonaws.com',
+      'token': '11e4dcfb445a8c7e8380848747f18afcd5d84ccb395e003e5b72127ca5e9a259',
+      'port': 8080,
+    },
+    'indexer': {
+      'uri': 'https://algoindexer.testnet.algoexplorerapi.io',
+      'token': '',
+    },
+    'explorer': {
+      'uri': 'https://indexer.testnet.algoexplorerapi.io',
+      'port': '',
+    },
+    'dexd': {
+      'uri': 'https://api-testnet-public.algodex.com/algodex-backend',
+      'token': '',
+    },
+    'tinyman': {
+      'uri': 'https://mainnet.analytics.tinyman.org',
+      'token': '',
+    },
+  },
+};
+
+ const api = new [AlgodexAPI]{@link AlgodexApi}(apiProps)
+
+ console.log(api)
+ //OUTPUTS:
+ {
+      emit: [Function: emit],
+      on: [Function: on],
+      type: 'API',
+      isInitialized: true,
+      addresses: [],
+      algod: AlgodClient {
+        c: HTTPClient { bc: [URLTokenBaseHTTPClient] },
+        intDecoding: 'default'
+      },
+      indexer: IndexerClient {
+        c: HTTPClient { bc: [URLTokenBaseHTTPClient] },
+        intDecoding: 'default'
+      },
+      http: {
+        explorer: Function {
+          config: undefined,
+          baseUrl: 'https://indexer.testnet.algoexplorerapi.io',
+          etags: false
+        },
+        dexd: Function {
+          config: undefined,
+          baseUrl: 'https://api-testnet-public.algodex.com/algodex-backend',
+          etags: true,
+          cache: [Object]
+        },
+        indexer: Function {
+          config: [Object],
+          baseUrl: 'https://algoindexer.testnet.algoexplorerapi.io',
+          etags: false
+        }
+      },
+      config: {
+        algod: {
+          uri: 'http:/ec2-3-18-80-65.us-east-2.compute.amazonaws.com',
+          token: '11e4dcfb445a8c7e8380848747f18afcd5d84ccb395e003e5b72127ca5e9a259',
+          port: 8080
+        },
+        indexer: {
+          uri: 'https://algoindexer.testnet.algoexplorerapi.io',
+          token: ''
+        },
+        explorer: { uri: 'https://indexer.testnet.algoexplorerapi.io', port: '' },
+        dexd: {
+          uri: 'https://api-testnet-public.algodex.com/algodex-backend',
+          token: ''
+        },
+        tinyman: { uri: 'https://mainnet.analytics.tinyman.org', token: '' }
+      }
+    }
+ ```
 
 ## ⚗ Manual Usage
 
@@ -79,6 +188,13 @@ yarn link
 rm -rf 'node_modules/@algodex'
 yarn link @algodex/algodex-sdk
 ```
+
+## 🏘 Community 
+[Discord](https://discord.com/invite/qS3Q7AqwF6)
+[Telegram](https://t.me/algodex)
+[Reddit](https://www.reddit.com/r/Algodex/)
+[Twitter](https://twitter.com/AlgodexOfficial)
+
 
 ## 🕸 Links
 - [Code of Conduct](CODE_OF_CONDUCT.md)
