@@ -9,22 +9,7 @@
 Client-side JavaScript API calls for Algodex as an npm package
 
 
-### 📁 Folder Structure
-```shell
-# tree -f -L 2
-.
-├── ./bin # Binary Files
-├── ./lib # Library Files
-│   ├── ./lib/functions # Algodex Functions
-│   └── ./lib/teal # Contract Code
-│   └── ./lib/http # REST Clients
-│   └── ./lib/utils # Utilities
-│   └── ./lib/AlgodexAPI.js # API Interface
-├── ./spec # Type Specifications
-├── ./test # Testing Directory
-├── ./package.json
-└── ./yarn.lock
-```
+
 
 # ⚙ Getting Started
 
@@ -33,9 +18,9 @@ Client-side JavaScript API calls for Algodex as an npm package
 - [Node.js](https://nodejs.org/en/download/)
 - [yarn](https://classic.yarnpkg.com/en/docs/install)
 
-## 📦 Setup
+## 📦 Installing
 
-## Node
+## NPM
 
 ```shell
 npm install @algodex/sdk
@@ -50,48 +35,12 @@ yarn add @algodex/sdk
 ## 📚 Documentation
 Detailed documentation can be found [here](https://algodex-dky9z8dda-algodex-dev.vercel.app/module-order_structure.html)
 
-## ✅ Testing
+## ⚗ Usage
 
-## Automated smart contract tests
+#### 🔧 API Configuration:
 
-```shell
-yarn test
-```
-## Unit testing with coverage
-
-```shell
-yarn coverage
-```
-
-## End to End integeration testing
-
-```shell
-yarn test-integration
-```
-
-## Exclude Teal Tests
-
-```shell 
-yarn test-sanity
-```
-
-With Chrome debugger support:
-
-```shell
-yarn testDebug
-```
-
-### 🔧 Enabling smart contract source logs in the console output
-
-export DEBUG_SMART_CONTRACT_SOURCE=1
-
-Note: if https://github.com/algodex/algodex-go-api is set up and running, the console will also print out the transactions in json format
-
-## ⚗Usage
-```
-// In Node.js
- const [AlgodexAPI]{@link AlgodexApi} = require(@algodex/algodex-sdk)
- const apiProps = {
+``` json
+{
   config: {
     'algod': {
       'uri': 'http:/ec2-3-18-80-65.us-east-2.compute.amazonaws.com',
@@ -115,12 +64,18 @@ Note: if https://github.com/algodex/algodex-go-api is set up and running, the co
       'token': '',
     },
   },
-};
+}
 
- const api = new [AlgodexAPI]{@link AlgodexApi}(apiProps)
+```
 
+#### 🪴🚿 Create an instance of the API 
+
+``` javascript
+ const config = require('./config.js')
+ const AlgodexAPI = require(@algodex/algodex-sdk)
+ const api = new AlgodexAPI({config})
  console.log(api)
- //OUTPUTS:
+//  OUTPUTS:
  {
       emit: [Function: emit],
       on: [Function: on],
@@ -171,23 +126,41 @@ Note: if https://github.com/algodex/algodex-go-api is set up and running, the co
         tinyman: { uri: 'https://mainnet.analytics.tinyman.org', token: '' }
       }
     }
+```
+
+
+#### 🔨 Placing Orders:
+```javascript
+ //Configure wallet
+    await api.setWallet({
+    "type": "sdk",
+    "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+    "connector": {
+      "connected": false
+    },
+    "mnemonic": "Your 25 word mneumonic goes here"})
+
+ 
+ // Placing an Order
+    await api.placeOrder({
+    "client": api.algod,
+    "indexer": api.indexer,
+    "asset": {
+      "id": 15322902,
+      "decimals": 6,
+    },
+    "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+    "price": 2.22,
+    "amount": 1,
+    "total": 2,
+    "execution": "both",
+    "type": "buy",
+    "appId": 22045503,
+    "version": 6
+  })
  ```
 
-## ⚗ Manual Usage
-
-1. Download and set up https://github.com/algodex/algodex-experimental
-2. Run the following in the algodex-sdk directory:
-
-```shell
-yarn link
-```
-
-3. Run the following in the algodex-experimental directory:
-
-```shell
-rm -rf 'node_modules/@algodex'
-yarn link @algodex/algodex-sdk
-```
+ See all possible orders that [placeOrder]() supports: [here]()
 
 ## 🏘 Community 
 [Discord](https://discord.com/invite/qS3Q7AqwF6)
