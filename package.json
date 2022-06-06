@@ -1,6 +1,6 @@
 {
   "name": "@algodex/algodex-sdk",
-  "version": "1.1.14",
+  "version": "1.1.17",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "algorand"
   ],
   "author": "Alexander Trefonas",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "bugs": {
     "url": "https://github.com/algodex/algodex-sdk/issues"
   },
@@ -30,6 +30,7 @@
     "@randlabs/myalgo-connect": "^1.0.1",
     "algosdk": "^1.13.1",
     "axios": "^0.21.4",
+    "big.js": "^6.1.1",
     "js-big-decimal": "^1.3.4",
     "minimist": "^1.2.5",
     "mocha": "^9.0.2",

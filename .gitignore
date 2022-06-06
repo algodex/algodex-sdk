@@ -1,3 +1,8 @@
+.idea
+docs
+coverage
+.dockerignore
+pnpm-lock.yaml
 .env
 *.js.orig
 *.diff

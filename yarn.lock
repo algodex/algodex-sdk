@@ -844,6 +844,11 @@
     "cross-domain-utils" "^2"
     "zalgo-promise" "^1"
 
+"big.js@^6.1.1":
+  "integrity" "sha512-1vObw81a8ylZO5ePrtMay0n018TcftpTA5HFKDaSuiUDBo8biRBtjIobw60OpwuvrGk+FsxKamqN4cnmj/eXdg=="
+  "resolved" "https://registry.npmjs.org/big.js/-/big.js-6.1.1.tgz"
+  "version" "6.1.1"
+
 "bignumber.js@^9.0.0":
   "integrity" "sha512-IdZR9mh6ahOBv/hYGiXyVuyCetmGJhtYkqLBpTStdhEGjegpPlUawydyaF3pbIOFynJTpllEs+NP+CS9jKFLjA=="
   "resolved" "https://registry.npmjs.org/bignumber.js/-/bignumber.js-9.0.1.tgz"
