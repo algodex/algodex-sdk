@@ -1,7 +1,8 @@
 {
   "plugins": ["plugins/markdown"],
   "source": {
-    "include": ["./lib", "./spec"]
+    "include": ["./lib/order", "./spec", "./lib/AlgodexApi.js"],
+    "exclude": ["./lib/order/__tests__", "./lib/order/http"]
   },
   "templates": {
     "default": {
