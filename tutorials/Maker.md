@@ -1,4 +1,4 @@
-# What is a Maker Order?
+# What is a Maker Order? [WIP]
 
 **TLDR:** A Maker order is an order with no active takers, therefore it "Makes" its own order to be fufilled at a later date. 
 
