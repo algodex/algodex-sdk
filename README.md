@@ -3,13 +3,11 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 [![algodex/algodex-sdk:main](https://github.com/algodex/algodex-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/algodex/algodex-sdk/actions/workflows/ci.yml)
-[![Maintainability](https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/maintainability)](https://codeclimate.com/repos/62438536b3ae7671bd0005a9/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/test_coverage)](https://codeclimate.com/repos/62438536b3ae7671bd0005a9/test_coverage)
+
+[//]: # ([![Maintainability]&#40;https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/maintainability&#41;]&#40;https://codeclimate.com/repos/62438536b3ae7671bd0005a9/maintainability&#41;)
+[//]: # ([![Test Coverage]&#40;https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/test_coverage&#41;]&#40;https://codeclimate.com/repos/62438536b3ae7671bd0005a9/test_coverage&#41;)
 
 Client-side JavaScript API calls for Algodex as an npm package
-
-
-
 
 # ⚙ Getting Started
 
@@ -23,13 +21,13 @@ Client-side JavaScript API calls for Algodex as an npm package
 ## NPM
 
 ```shell
-npm install @algodex/sdk
+npm install @algodex/algodex-sdk
 ```
 
 ## Yarn
 
 ```shell
-yarn add @algodex/sdk
+yarn add @algodex/algodex-sdk
 ```
 
 ## 📚 Documentation
@@ -39,13 +37,20 @@ Detailed documentation can be found [here](https://algodex-dky9z8dda-algodex-dev
 
 #### 🔧 API Configuration:
 
+The API fetches data from the following resources:
+
+- [Algorand Node] ()
+- [Algorand Indexer] ()
+- [AlgoExplorer Indexer] ()
+- [Algodex REST API] ()
+
+#### ⚙ Example Testnet config.json
 ``` json
 {
   config: {
     'algod': {
-      'uri': 'http:/ec2-3-18-80-65.us-east-2.compute.amazonaws.com',
-      'token': '11e4dcfb445a8c7e8380848747f18afcd5d84ccb395e003e5b72127ca5e9a259',
-      'port': 8080,
+      'uri': 'https://testnet-algorand.api.purestake.io/ps2',
+      'token': '<TOKEN>',
     },
     'indexer': {
       'uri': 'https://algoindexer.testnet.algoexplorerapi.io',
@@ -59,105 +64,68 @@ Detailed documentation can be found [here](https://algodex-dky9z8dda-algodex-dev
       'uri': 'https://api-testnet-public.algodex.com/algodex-backend',
       'token': '',
     },
-    'tinyman': {
-      'uri': 'https://mainnet.analytics.tinyman.org',
+  },
+}
+
+```
+#### ⚙ Example Mainnet config.json
+``` json
+{
+  config: {
+    'algod': {
+      'uri': 'https://mainnet-algorand.api.purestake.io/ps2',
+      'token': '<TOKEN>',
+      'port': 443,
+    },
+    'indexer': {
+      'uri': 'https://algoindexer.algoexplorerapi.io',
+      'token': '',
+    },
+    'explorer': {
+      'uri': 'https://indexer.algoexplorerapi.io',
+      'port': '',
+    },
+    'dexd': {
+      'uri': 'https://app.algodex.com/algodex-backend',
       'token': '',
     },
   },
 }
 
 ```
-
-#### 🪴🚿 Create an instance of the API 
+#### 🏗 Create an instance of the API 
 
 ``` javascript
- const config = require('./config.js')
- const AlgodexAPI = require(@algodex/algodex-sdk)
- const api = new AlgodexAPI({config})
- console.log(api)
-//  OUTPUTS:
- {
-      emit: [Function: emit],
-      on: [Function: on],
-      type: 'API',
-      isInitialized: true,
-      addresses: [],
-      algod: AlgodClient {
-        c: HTTPClient { bc: [URLTokenBaseHTTPClient] },
-        intDecoding: 'default'
-      },
-      indexer: IndexerClient {
-        c: HTTPClient { bc: [URLTokenBaseHTTPClient] },
-        intDecoding: 'default'
-      },
-      http: {
-        explorer: Function {
-          config: undefined,
-          baseUrl: 'https://indexer.testnet.algoexplorerapi.io',
-          etags: false
-        },
-        dexd: Function {
-          config: undefined,
-          baseUrl: 'https://api-testnet-public.algodex.com/algodex-backend',
-          etags: true,
-          cache: [Object]
-        },
-        indexer: Function {
-          config: [Object],
-          baseUrl: 'https://algoindexer.testnet.algoexplorerapi.io',
-          etags: false
-        }
-      },
-      config: {
-        algod: {
-          uri: 'http:/ec2-3-18-80-65.us-east-2.compute.amazonaws.com',
-          token: '11e4dcfb445a8c7e8380848747f18afcd5d84ccb395e003e5b72127ca5e9a259',
-          port: 8080
-        },
-        indexer: {
-          uri: 'https://algoindexer.testnet.algoexplorerapi.io',
-          token: ''
-        },
-        explorer: { uri: 'https://indexer.testnet.algoexplorerapi.io', port: '' },
-        dexd: {
-          uri: 'https://api-testnet-public.algodex.com/algodex-backend',
-          token: ''
-        },
-        tinyman: { uri: 'https://mainnet.analytics.tinyman.org', token: '' }
-      }
-    }
+ const config = require('./config.json')
+ const AlgodexAPI = require('@algodex/algodex-sdk')
+ const api = new AlgodexAPI(config)
 ```
 
 
 #### 🔨 Placing Orders:
 ```javascript
- //Configure wallet
-    await api.setWallet({
-    "type": "sdk",
-    "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
-    "connector": {
-      "connected": false
-    },
-    "mnemonic": "Your 25 word mneumonic goes here"})
+// Configure wallet
+api.setWallet({
+  "type": "sdk",
+  "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+  "connector": require('@algodex/algodex-sdk/lib/wallet/connector/AlgoSDK'),
+  "mnemonic": "Your 25 word mneumonic goes here"
+})
 
- 
- // Placing an Order
-    await api.placeOrder({
-    "client": api.algod,
-    "indexer": api.indexer,
-    "asset": {
-      "id": 15322902,
-      "decimals": 6,
-    },
-    "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
-    "price": 2.22,
-    "amount": 1,
-    "total": 2,
-    "execution": "both",
-    "type": "buy",
-    "appId": 22045503,
-    "version": 6
-  })
+
+// Placing an Order
+await api.placeOrder({
+  "asset": {
+    "id": 15322902, // Asset Index
+    "decimals": 6, // Asset Decimals
+  },
+  "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+  "price": 2.22, // Price in ALGOs
+  "amount": 1, // Buy orders are in ALGOs amounts, Sell Orders are in Asset amounts
+  "execution": "both", // Type of exeuction
+  "type": "buy", // Order Type
+})
+
  ```
 
  See all possible orders that [placeOrder]() supports: [here]()
