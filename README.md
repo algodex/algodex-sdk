@@ -9,6 +9,8 @@
 
 Client-side JavaScript API calls for Algodex as an npm package
 
+[Github](https://github.com/algodex/algodex-sdk)
+
 # ⚙ Getting Started
 
 ### ✨ Prerequisites
@@ -102,7 +104,7 @@ See [API Properties](https://docs.algodex.com/APIProperties.html) for more infor
 
 ## 💱 Placing Orders:
 > 💡️ We recommend reading the following links before placing your first order:
-> [Maker Order]() | [Taker Order]() | [Orderbook]()
+> [Maker Order](https://docs.algodex.com/tutorial-MakerOrder.html) | [Taker Order](https://docs.algodex.com/tutorial-TakerOrder.html) | [Orderbook](https://docs.algodex.com/tutorial-Orderbook.html)
 
 #### Maker Buy Order
 ```javascript
