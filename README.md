@@ -104,7 +104,7 @@ See [APIProperties](https://algodex-sdk.vercel.app/APIProperties.html) for more 
 > 💡️ We recommend reading the following links before placing your first order:
 > [Maker Order]() | [Taker Order]() | [Orderbook]()
 
-#### Maker/Taker Buy Order (Both)
+#### Maker Buy Order
 ```javascript
 // Configure wallet
 api.setWallet({
@@ -116,7 +116,7 @@ api.setWallet({
 
 
 // Placing an Order
-await api.placeOrder({
+const orders = await api.placeOrder({
   "asset": {
     "id": 15322902, // Asset Index
     "decimals": 6, // Asset Decimals
@@ -124,9 +124,12 @@ await api.placeOrder({
   "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
   "price": 2.22, // Price in ALGOs
   "amount": 1, // Buy orders are in ALGOs amounts, Sell Orders are in Asset amounts
-  "execution": "both", // Type of exeuction
+  "execution": "maker", // Type of exeuction
   "type": "buy", // Order Type
 })
+
+// Closing an Order
+await api.closeOrder(orders[0])
 ```
 
 # 📚 Documentation

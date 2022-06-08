@@ -5,6 +5,9 @@
   "TakerOrder": {
     "title": "Taker Order"
   },
+  "CloseOrder": {
+    "title": "Close Order"
+  },
   "PlacingOrder": {
     "title": "Placing Orders",
     "children": {
