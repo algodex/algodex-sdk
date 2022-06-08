@@ -1,0 +1,19 @@
+{
+  "plugins": ["plugins/markdown"],
+  "source": {
+    "include": ["./lib/order", "./spec", "./lib/AlgodexApi.js"],
+    "exclude": ["./lib/order/__tests__", "./lib/order/http"]
+  },
+  "templates": {
+    "default": {
+      "outputSourceFiles": true
+    }
+  },
+  "opts": {
+    "template": "./node_modules/clean-jsdoc-theme",
+    "theme_opts": {
+      "theme": "dark",
+      "create_style": "header,h4.name,.page-title{visibility: hidden; height: 0px; margin: 0px; padding: 0px;} h3.subsection-title {font-size: 2.5rem;} .description>h2>a {text-decoration: none; color: white;}"
+    }
+  }
+}
