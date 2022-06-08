@@ -1,17 +1,21 @@
 # What is a Maker Order? [WIP]
 
-**TLDR:** A Maker order is an order with no active takers, therefore it "Makes" its own order to be fufilled at a later date. 
+### 📖 Definition
+A Maker order is an order that **does not** execute instantly
 
-### Description
-When a user places an order, if no one immediatley agrees to the terms of the order, the order is considered a Maker order. 
+A Maker order has no active [Takers]{@tutorial TakerOrder}, therefore it "makes" its own order to be fulfilled at a later date
 
-* There are no existing orders in the orderbook that fufill the user's criteria so they decide to "make" their own order.
-* The user submitted order is added to the Algodex Orderbook 
-* The order is now visible to other users of Algodex and fufills when another user agrees to "take" the order
+### 🤔 Condition
+When a user places an order, if no one immediately agrees to the terms of the order, the order is considered a Maker order
+
+### 🚶 Walkthrough
+1. There are no existing orders in the [Algodex Orderbook]{@tutorial Orderbook} that fulfill the user's criteria so they decide to "make" their own order
+2. The user submitted order is added to the [Algodex Orderbook]{@tutorial Orderbook}
+3. The order is now visible to other users of Algodex and fulfills when another user agrees to "take" the order
 
  
+##### Related Concepts: [Taker]{@tutorial TakerOrder} || [Orderbook]{@tutorial Orderbook} || [Placing an Order]{@tutorial PlacingOrder}
 
-##### Related Concepts: [General Maker Information](google.com)
 
 
 
