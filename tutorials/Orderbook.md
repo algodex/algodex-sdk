@@ -1,9 +1,7 @@
 # What is an Orderbook? [WIP]
 
-<!-- ![Orderbook](/Users/ericsharma/Documents/GitHub/algodex-sdk/tutorials/images/Orderbook.png =100x20) -->
-
 <p align="center">
-<img src="/Users/ericsharma/Documents/GitHub/algodex-sdk/tutorials/images/Orderbook.png" height="400" width="300"/>
+<img src="../assets/images/Orderbook.png" height="400" width="300"/>
 </p>
 
 ### Description

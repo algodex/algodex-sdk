@@ -12,9 +12,4 @@ The user submitted order changes the state of the Orderbook in 1 of 3 ways:
    2. The User takes the entire order removing it from the orderbook.
    3. The User takes multiple orders, removing them from the orderbook.
 
-
-
-
-
-
 ##### Related Concepts:

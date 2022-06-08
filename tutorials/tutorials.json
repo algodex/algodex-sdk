@@ -1,0 +1,41 @@
+{
+  "MakerOrder": {
+    "title": "Maker Order"
+  },
+  "TakerOrder": {
+    "title": "Taker Order"
+  },
+  "PlacingOrder": {
+    "title": "Placing Orders",
+    "children": {
+      "Orders": {
+        "title": "Orders",
+        "children": {
+          "Buy": {
+            "title": "Buy Orders"
+          },
+          "Sell": {
+            "title": "Sell Orders"
+          },
+          "Executions": {
+            "title": "Executions",
+            "children": {
+              "BothExecution": {
+                "title": "Execute Maker/Taker"
+              },
+              "ExecutableExecution": {
+                "title": "Existing Orders"
+              },
+              "MakerExecution": {
+                "title": "Execute Maker Order"
+              },
+              "TakerExecution": {
+                "title": "Execute Taker Orders"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
