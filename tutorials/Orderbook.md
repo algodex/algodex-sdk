@@ -1,7 +1,7 @@
 # What is an Orderbook? [WIP]
 
 <p align="center">
-<img src="../assets/images/Orderbook.png" height="400" width="300"/>
+<img src="https://github.com/algodex/algodex-sdk/blob/main/assets/images/Orderbook.png?raw=true" height="400" width="300"/>
 </p>
 
 ### 📖 Definition
