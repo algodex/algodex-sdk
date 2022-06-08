@@ -16,11 +16,6 @@
     "dexd": {
       "uri": "https://api-testnet-public.algodex.com/algodex-backend",
       "token": ""
-    },
-    "tinyman": {
-      "uri": "https://testnet.analytics.tinyman.org",
-      "token": "",
-      "spread": 50
     }
   },
   "asset": {

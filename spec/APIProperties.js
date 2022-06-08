@@ -1,9 +1,11 @@
 /**
+ * API Properties Specification
  *
  * @typedef {Object} APIProperties
  * @property {Config} config Configuration
  * @property {Asset} asset Asset
  * @property {Wallet} wallet Wallet
+ * @namespace APIProperties
  */
 
 /**

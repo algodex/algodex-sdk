@@ -3,6 +3,7 @@
  * @property {URI} uri URI for resource
  * @property {string} token API Access Token
  * @property {number} port Service Port
+ * @ignore
  */
 
 /**
@@ -11,6 +12,7 @@
  * @property {DaemonConfig} algod Algorand daemon configuration
  * @property {DaemonConfig} indexer Algorand indexer configuration
  * @property {DaemonConfig} dexd Algodex API configuration
+ * @memberOf APIProperties
  */
 
 /**
