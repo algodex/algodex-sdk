@@ -9,6 +9,8 @@
 
 Client-side JavaScript API calls for Algodex as an npm package
 
+[Github](https://github.com/algodex/algodex-sdk)
+
 # ⚙ Getting Started
 
 ### ✨ Prerequisites
@@ -43,7 +45,7 @@ The SDK fetches data from the following API resources:
 - [Algodex REST API](https://app.algodex.com/algodex-backend/assets.php?id=724480511)
 
 The service URIs, token, port are passed into the AlgodexAPI constructor.
-See [APIProperties](https://algodex-sdk.vercel.app/APIProperties.html) for more information
+See [APIProperties](https://docs.algodex.com/AlgodexApi.html) for more information
 
 ### ⚙ Example Testnet config.json
 ```json
@@ -102,7 +104,7 @@ See [APIProperties](https://algodex-sdk.vercel.app/APIProperties.html) for more 
 
 ## 💱 Placing Orders:
 > 💡️ We recommend reading the following links before placing your first order:
-> [Maker Order]() | [Taker Order]() | [Orderbook]()
+> [Maker Order](https://docs.algodex.com/tutorial-MakerOrder.html) | [Taker Order](https://docs.algodex.com/tutorial-TakerOrder.html) | [Orderbook](https://docs.algodex.com/tutorial-Orderbook.html)
 
 #### Maker Buy Order
 ```javascript
@@ -134,7 +136,7 @@ await api.closeOrder(orders[0])
 
 # 📚 Documentation
 
-All available execution types are found in the [Place Order Tutorial](https://algodex-sdk.vercel.app/tutorial-PlacingOrder.html)
+All available execution types are found in the [Place Order Tutorial](https://docs.algodex.com/tutorial-PlacingOrder.html)
 
 # 🏘 Community 
 - [Discord](https://discord.com/invite/qS3Q7AqwF6)
