@@ -6,7 +6,7 @@
   },
   "templates": {
     "default": {
-      "outputSourceFiles": false
+      "outputSourceFiles": true
     }
   },
   "opts": {
