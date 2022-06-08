@@ -17,16 +17,7 @@ module.exports = {
     'no-shadow': 'warn',
     'new-cap': 'warn',
     'linebreak-style': 'off',
-    'no-tabs': 'off',
     'max-len': ['warn', 120],
     'camelcase': ['warn'],
-    // TODO go back to error for the following:
-    'no-unused-vars': ['warn'],
-    'no-undef': ['warn'],
-    'valid-jsdoc': ['warn'],
-    'no-useless-catch': ['warn'],
-    'require-jsdoc': ['warn'],
-    'no-constant-condition': ['warn'],
-    'no-throw-literal': ['warn'],
   },
 };
