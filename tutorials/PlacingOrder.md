@@ -1,4 +1,4 @@
-# ℹ Placing an Order 
+# ℹ Placing an Order [WIP]
 > 🧰 You can think of {@link AlgodexApi#placeOrder} as a toolbox: it's got everything you need to tackle order execution
 
 ## 🪜 Steps
