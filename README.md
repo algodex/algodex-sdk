@@ -134,7 +134,7 @@ await api.closeOrder(orders[0])
 
 # 📚 Documentation
 
-All available execution types are found in the [Place Order Tutorial](https://algodex-sdk.vercel.app/tutorial-PlacingOrder.html)
+All available execution types are found in the [Place Order Tutorial](https://docs.algodex.com/tutorial-PlacingOrder.html)
 
 # 🏘 Community 
 - [Discord](https://discord.com/invite/qS3Q7AqwF6)
