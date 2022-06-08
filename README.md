@@ -18,13 +18,13 @@ Client-side JavaScript API calls for Algodex as an npm package
 
 ## 📦 Installing
 
-## NPM
+#### NPM
 
 ```shell
 npm install @algodex/algodex-sdk
 ```
 
-## Yarn
+#### Yarn
 
 ```shell
 yarn add @algodex/algodex-sdk
@@ -104,7 +104,7 @@ See [APIProperties](https://algodex-sdk.vercel.app/APIProperties.html) for more 
 > 💡️ We recommend reading the following links before placing your first order:
 > [Maker Order]() | [Taker Order]() | [Orderbook]()
 
-### Maker/Taker Buy Order (Both)
+#### Maker/Taker Buy Order (Both)
 ```javascript
 // Configure wallet
 api.setWallet({
