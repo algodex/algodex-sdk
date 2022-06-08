@@ -43,7 +43,7 @@ The SDK fetches data from the following API resources:
 - [Algodex REST API](https://app.algodex.com/algodex-backend/assets.php?id=724480511)
 
 The service URIs, token, port are passed into the AlgodexAPI constructor.
-See [APIProperties](https://algodex-sdk.vercel.app/APIProperties.html) for more information
+See [APIProperties](https://docs.algodex.com/APIProperties.html) for more information
 
 ### ⚙ Example Testnet config.json
 ```json
