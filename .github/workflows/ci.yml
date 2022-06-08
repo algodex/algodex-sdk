@@ -61,10 +61,10 @@ jobs:
           NPM_AUTH_TOKEN: ${{ secrets.GH_PKG_READONLY }}
       - name: Run End to End Tests
         run: yarn test
-  release:
-    name: Release Package
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
-    needs: [ e2e ]
-    steps:
-      - run: echo Need to implement Release Cycle
+#  release:
+#    name: Release Package
+#    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+#    needs: [ e2e ]
+#    steps:
+#      - run: echo Need to implement Release Cycle
