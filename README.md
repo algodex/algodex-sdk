@@ -126,7 +126,7 @@ const orders = await api.placeOrder({
   },
   "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
   "price": 2.22, // Price in ALGOs
-  "amount": 1, // Buy orders are in ALGOs amounts, Sell Orders are in Asset amounts
+  "amount": 1, // Amount to Buy or Sell
   "execution": "maker", // Type of exeuction
   "type": "buy", // Order Type
 })
