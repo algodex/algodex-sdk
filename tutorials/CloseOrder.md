@@ -1,7 +1,7 @@
 
 # <a name="close"></a> ❌ Close order [WIP]
 
-Close an order from the {@tutorial Orderbook}. Must be connected to the wallet
+Close an order from the {@tutorial Orderbook}. Must be connected to the wallet this is a test by adam
 that created the order.
 
 ### Cancel Maker Order
