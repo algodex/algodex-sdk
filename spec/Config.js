@@ -1,8 +1,3 @@
-const algosdk = require('algosdk');
-const instanceofDef = require('ajv-keywords/dist/definitions/instanceof');
-instanceofDef.CONSTRUCTORS.Algodv2 = algosdk.Algodv2;
-instanceofDef.CONSTRUCTORS.Indexer = algosdk.Indexer;
-
 /**
  * @typedef {Object} DaemonConfig
  * @property {URI} uri URI for resource
