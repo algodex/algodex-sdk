@@ -1,3 +1,8 @@
+const algosdk = require('algosdk');
+const instanceofDef = require('ajv-keywords/dist/definitions/instanceof');
+instanceofDef.CONSTRUCTORS.Algodv2 = algosdk.Algodv2;
+instanceofDef.CONSTRUCTORS.Indexer = algosdk.Indexer;
+
 /**
  * @typedef {Object} DaemonConfig
  * @property {URI} uri URI for resource
@@ -14,6 +19,7 @@
  * @property {DaemonConfig} dexd Algodex API configuration
  * @memberOf APIProperties
  */
+
 
 /**
  * ## 🔧 Config Schema
@@ -90,40 +96,51 @@ module.exports = {
   'type': 'object',
   'properties': {
     'algod': {
-      'type': 'object',
-      'properties': {
-        'uri': {
-          '$ref': 'https://schemas.algodex.com/v1/URI.json',
-        },
-        'token': {
-          oneOf: [
-            {'type': 'string'},
-            {'type': 'object'},
+      oneOf: [
+        {
+          'type': 'object',
+          'properties': {
+            'uri': {
+              '$ref': 'https://schemas.algodex.com/v1/URI.json',
+            },
+            'token': {
+              oneOf: [
+                {'type': 'string'},
+                {'type': 'object'},
+              ],
+            },
+            'port': {
+              'type': 'number',
+              'minimum': 1,
+            },
+          },
+          'required': [
+            'uri',
+            'token',
           ],
         },
-        'port': {
-          'type': 'number',
-          'minimum': 1,
-        },
-      },
-      'required': [
-        'uri',
-        'token',
+        {instanceof: 'Algodv2'},
       ],
+
     },
     'indexer': {
-      'type': 'object',
-      'properties': {
-        'uri': {
-          '$ref': 'https://schemas.algodex.com/v1/URI.json',
+      oneOf: [
+        {
+          'type': 'object',
+          'properties': {
+            'uri': {
+              '$ref': 'https://schemas.algodex.com/v1/URI.json',
+            },
+            'token': {
+              'type': 'string',
+            },
+          },
+          'required': [
+            'uri',
+            'token',
+          ],
         },
-        'token': {
-          'type': 'string',
-        },
-      },
-      'required': [
-        'uri',
-        'token',
+        {instanceof: 'Indexer'},
       ],
     },
     'dexd': {
