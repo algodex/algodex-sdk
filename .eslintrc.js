@@ -19,5 +19,6 @@ module.exports = {
     'linebreak-style': 'off',
     'max-len': ['warn', 120],
     'camelcase': ['warn'],
+    'arrow-parens': ['error', 'as-needed'],
   },
 };
