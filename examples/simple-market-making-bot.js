@@ -87,10 +87,10 @@ const initWallet = async algodexApi => {
   });
 };
 
-const getEscrowsToCancelAndMake = ({escrows, lastPrice, minSpreadPerc, nearestNeighborKeep,
+const getEscrowsToCancelAndMake = ({escrows, latestPrice, minSpreadPerc, nearestNeighborKeep,
   idealPrices}) => {
-  const bidCancelPoint = lastPrice * (1 - minSpreadPerc);
-  const askCancelPoint = lastPrice * (1 + minSpreadPerc);
+  const bidCancelPoint = latestPrice * (1 - minSpreadPerc);
+  const askCancelPoint = latestPrice * (1 + minSpreadPerc);
   const cancelEscrowAddrs = escrows.filter(escrow => {
     if (escrow.price > bidCancelPoint && escrow.type === 'buy') {
       return true;
@@ -103,7 +103,7 @@ const getEscrowsToCancelAndMake = ({escrows, lastPrice, minSpreadPerc, nearestNe
     return false;
   }).map(escrow => escrow.contract.escrow);
   const cancelAddrSet = new Set(cancelEscrowAddrs);
-  const remainingEscrows = escrows.filter(escrow => cancelAddrSet.has(escrow.contract.escrow));
+  const remainingEscrows = escrows.filter(escrow => !cancelAddrSet.has(escrow.contract.escrow));
 
   const createEscrowPrices = idealPrices.filter(idealPrice => {
     if (remainingEscrows.find(escrow => Math.abs(escrow.price - idealPrice) < nearestNeighborKeep)) {
@@ -113,7 +113,7 @@ const getEscrowsToCancelAndMake = ({escrows, lastPrice, minSpreadPerc, nearestNe
   }).map(price => {
     return {
       price,
-      'type': price < lastPrice ? 'buy' : 'sell',
+      'type': price < latestPrice ? 'buy' : 'sell',
     };
   });
 
@@ -125,10 +125,31 @@ const getIdealPrices = (ladderTiers, latestPrice, minSpreadPerc) => {
   for (let i = 1; i <= ladderTiers; i++) {
     const sellPrice = latestPrice * ((1 + minSpreadPerc) ** i);
     const bidPrice = latestPrice * ((1 - minSpreadPerc) ** i);
-    prices.add(sellPrice);
-    prices.add(bidPrice);
+    prices.push(sellPrice);
+    prices.push(bidPrice);
   }
   prices.sort();
+  return prices;
+};
+
+const convertToDBObject = (dbOrder) => {
+  return { 
+    address: dbOrder.address,
+    version: dbOrder.version,
+    price: dbOrder.price,
+    amount: dbOrder.amount,
+    total: dbOrder.price * dbOrder.amount,
+    asset: {id: assetId, decimals: 6},
+    assetId: dbOrder.assetId,
+    type: dbOrder.type,
+    appId: dbOrder.type === 'buy' ? 22045503 : 22045522,
+    contract: {
+      creator: dbOrder.contract.creator,
+      data: dbOrder.contract.lsig.lsig.logic.data,
+    },
+    wallet: api.wallet,
+    client: api.algod,
+  };
 };
 
 const run = async ({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock} ) => {
@@ -146,29 +167,15 @@ const run = async ({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock} )
   }
 
   const idealPrices = getIdealPrices(ladderTiers, latestPrice, minSpreadPerc);
-  const {createEscrowPrices, cancelEscrowAddrs} = getEscrowsToCancelAndMake({currentEscrows,
-    latestPrice, minSpreadPerc, nearestNeighborKeep, idealPrices});
+  const {createEscrowPrices, cancelEscrowAddrs} = getEscrowsToCancelAndMake(
+      {escrows: currentEscrows.rows,
+        latestPrice, minSpreadPerc, nearestNeighborKeep, idealPrices});
   const cancelSet = new Set(cancelEscrowAddrs);
   const cancelPromises = currentEscrows.rows.map(order => order.doc.order)
       .filter(order => cancelSet.has(order.contract.escrow))
       .map(dbOrder => {
-        const cancelOrderObj = {
-          address: dbOrder.address,
-          version: dbOrder.version,
-          price: dbOrder.price,
-          amount: dbOrder.amount,
-          total: dbOrder.price * dbOrder.amount,
-          asset: {id: assetId, decimals: 6},
-          assetId: dbOrder.assetId,
-          type: dbOrder.type,
-          appId: dbOrder.type === 'buy' ? 22045503 : 22045522,
-          contract: {
-            creator: dbOrder.contract.creator,
-            lsig: new LogicSigAccount(dbOrder.contract.lsig.lsig.logic.data),
-          },
-          wallet: api.wallet,
-          client: api.algod,
-        };
+        const cancelOrderObj = {...dbOrder};
+        cancelOrderObj.contract.lsig = new LogicSigAccount(dbOrder.contract.data);
         return api.closeOrder(cancelOrderObj);
       });
   const removeFromDBPromises = currentEscrows.rows.map(order => order.doc.order)
@@ -179,7 +186,7 @@ const run = async ({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock} )
 
   // const remainingEscrows = await escrowDB.allDocs({include_docs: true});
   const ordersToPlace = createEscrowPrices.map(priceObj => {
-    const orders = api.placeOrder({
+    const orderPromise = api.placeOrder({
       'asset': {
         'id': 15322902, // Asset Index
         'decimals': 6, // Asset Decimals
@@ -190,16 +197,21 @@ const run = async ({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock} )
       'execution': 'maker', // Type of exeuction
       'type': priceObj.type, // Order Type
     });
-    return orders[0];
+    return orderPromise;
   });
-  const ordersAddToDB = ordersToPlace.map(order => {
+  const results = await Promise.all(ordersToPlace);
+  const ordersAddToDB = results.map(order => {
     return escrowDB.put({
-      '_id': order.contract.escrow,
-      'order': order,
+      '_id': order[0].contract.escrow,
+      'order': convertToDBObject(order[0]),
     });
   });
-  await Promise.all(ordersAddToDB);
-
+  try {
+    await Promise.all(ordersAddToDB);
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
   // await escrowDB.put({
   //   '_id': orders[0].contract.escrow,
   //   'order': orders[0],
