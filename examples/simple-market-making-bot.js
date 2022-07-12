@@ -91,19 +91,26 @@ const getEscrowsToCancelAndMake = ({escrows, latestPrice, minSpreadPerc, nearest
   idealPrices}) => {
   const bidCancelPoint = latestPrice * (1 - minSpreadPerc);
   const askCancelPoint = latestPrice * (1 + minSpreadPerc);
-  const cancelEscrowAddrs = escrows.filter(escrow => {
+  const escrowsTemp = escrows.map(escrow => {
+    return {
+      price: escrow.doc.order.price,
+      type: escrow.doc.order.type,
+      address: escrow.doc._id,
+    };
+  });
+  const cancelEscrowAddrs = escrowsTemp.filter(escrow => {
     if (escrow.price > bidCancelPoint && escrow.type === 'buy') {
       return true;
     } else if (escrow.price < askCancelPoint && escrow.type === 'sell') {
       return true;
     }
     if (idealPrices.find(idealPrice => Math.abs(idealPrice - escrow.price) < nearestNeighborKeep)) {
-      return true;
+      return false;
     }
-    return false;
-  }).map(escrow => escrow.contract.escrow);
+    return true;
+  }).map(escrow => escrow.address);
   const cancelAddrSet = new Set(cancelEscrowAddrs);
-  const remainingEscrows = escrows.filter(escrow => !cancelAddrSet.has(escrow.contract.escrow));
+  const remainingEscrows = escrowsTemp.filter(escrow => !cancelAddrSet.has(escrow.address));
 
   const createEscrowPrices = idealPrices.filter(idealPrice => {
     if (remainingEscrows.find(escrow => Math.abs(escrow.price - idealPrice) < nearestNeighborKeep)) {
