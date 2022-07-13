@@ -201,9 +201,6 @@ const run = async ({escrowDB, assetId, ladderTiers, lastBlock} ) => {
         console.log('CANCELLING ORDER: ', JSON.stringify(tempOrder));
         return api.closeOrder(cancelOrderObj);
       });
-  const removeFromDBPromises = currentEscrows.rows
-      .filter(order => cancelSet.has(order.doc.order.escrowAddr))
-      .map(order => escrowDB.remove(order.doc));
 
   await Promise.all(cancelPromises).then(async function(results) {
     const addrs = results.map(result => result[0].escrowAddr);
