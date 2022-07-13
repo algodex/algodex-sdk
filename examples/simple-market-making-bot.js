@@ -139,8 +139,8 @@ const getIdealPrices = (ladderTiers, latestPrice, minSpreadPerc) => {
   return prices;
 };
 
-const convertToDBObject = (dbOrder) => {
-  return { 
+const convertToDBObject = dbOrder => {
+  const obj = {
     address: dbOrder.address,
     version: dbOrder.version,
     price: dbOrder.price,
@@ -152,25 +152,33 @@ const convertToDBObject = (dbOrder) => {
     appId: dbOrder.type === 'buy' ? 22045503 : 22045522,
     contract: {
       creator: dbOrder.contract.creator,
-      data: dbOrder.contract.lsig.lsig.logic.data,
+      data: dbOrder.contract.lsig.lsig.logic.toJSON(),
+      escrow: dbOrder.contract.escrow,
     },
-    wallet: api.wallet,
-    client: api.algod,
   };
+  return obj;
 };
 
-const run = async ({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock} ) => {
+const run = async ({escrowDB, assetId, ladderTiers, lastBlock} ) => {
+  console.log('LOOPING...');
   if (!api.wallet) {
     await initWallet(api);
   }
-  if (!currentEscrows) {
-    currentEscrows = await escrowDB.allDocs({include_docs: true});
+  const currentEscrows = await escrowDB.allDocs({include_docs: true});
+  currentEscrows.rows.forEach(escrow => {
+    escrow.doc.order.escrowAddr = escrow.doc._id;
+  });
+  let latestPrice;
+  try {
+    latestPrice = await getLatestPrice(environment);
+  } catch (e) {
+    console.error(e);
+    await sleep(100);
+    run({escrowDB, assetId, ladderTiers, lastBlock});
   }
-
-  const latestPrice = await getLatestPrice(environment);
   if (latestPrice === undefined) {
-    sleep(1000);
-    run({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock});
+    await sleep(1000);
+    run({escrowDB, assetId, ladderTiers, lastBlock});
   }
 
   const idealPrices = getIdealPrices(ladderTiers, latestPrice, minSpreadPerc);
@@ -179,21 +187,43 @@ const run = async ({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock} )
         latestPrice, minSpreadPerc, nearestNeighborKeep, idealPrices});
   const cancelSet = new Set(cancelEscrowAddrs);
   const cancelPromises = currentEscrows.rows.map(order => order.doc.order)
-      .filter(order => cancelSet.has(order.contract.escrow))
+      .filter(order => cancelSet.has(order.escrowAddr))
+      .filter(order => order.contract.data !== undefined)
       .map(dbOrder => {
         const cancelOrderObj = {...dbOrder};
-        cancelOrderObj.contract.lsig = new LogicSigAccount(dbOrder.contract.data);
+        cancelOrderObj.contract.lsig = new LogicSigAccount(dbOrder.contract.data.data);
+        cancelOrderObj.client = api.algod;
+        cancelOrderObj.wallet = api.wallet;
+        const tempOrder = {...cancelOrderObj};
+        delete tempOrder.wallet;
+        delete tempOrder.contract;
+        delete tempOrder.client;
+        console.log('CANCELLING ORDER: ', JSON.stringify(tempOrder));
         return api.closeOrder(cancelOrderObj);
       });
-  const removeFromDBPromises = currentEscrows.rows.map(order => order.doc.order)
-      .filter(order => cancelSet.has(order.contract.escrow))
-      .map(order => escrowDB.remove(order));
-  await Promise.all(removeFromDBPromises);
-  await Promise.all(cancelPromises);
+  const removeFromDBPromises = currentEscrows.rows
+      .filter(order => cancelSet.has(order.doc.order.escrowAddr))
+      .map(order => escrowDB.remove(order.doc));
+
+  await Promise.all(cancelPromises).then(async function(results) {
+    const addrs = results.map(result => result[0].escrowAddr);
+    const resultAddrs = new Set(addrs);
+    const removeFromDBPromises = currentEscrows.rows
+        .filter(order => resultAddrs.has(order.doc.order.escrowAddr))
+        .map(order => escrowDB.remove(order.doc));
+    if (results.length > 0) {
+      console.log({results});
+    }
+    await Promise.all(removeFromDBPromises).catch(function(e) {
+      console.error(e);
+    });
+  }).catch(function(e) {
+    console.error(e);
+  });
 
   // const remainingEscrows = await escrowDB.allDocs({include_docs: true});
   const ordersToPlace = createEscrowPrices.map(priceObj => {
-    const orderPromise = api.placeOrder({
+    const orderToPlace = {
       'asset': {
         'id': 15322902, // Asset Index
         'decimals': 6, // Asset Decimals
@@ -203,71 +233,32 @@ const run = async ({escrowDB, currentEscrows, assetId, ladderTiers, lastBlock} )
       'amount': 0.001, // Amount to Buy or Sell
       'execution': 'maker', // Type of exeuction
       'type': priceObj.type, // Order Type
-    });
+    };
+    console.log('PLACING ORDER: ', JSON.stringify(orderToPlace));
+    const orderPromise = api.placeOrder(orderToPlace);
     return orderPromise;
   });
-  const results = await Promise.all(ordersToPlace);
-  const ordersAddToDB = results.map(order => {
-    return escrowDB.put({
-      '_id': order[0].contract.escrow,
-      'order': convertToDBObject(order[0]),
-    });
-  });
   try {
-    await Promise.all(ordersAddToDB);
+    const results = await Promise.all(ordersToPlace);
+    const ordersAddToDB = results.map(order => {
+      return escrowDB.put({
+        '_id': order[0].contract.escrow,
+        'order': convertToDBObject(order[0]),
+      });
+    });
+    try {
+      await Promise.all(ordersAddToDB);
+    } catch (e) {
+      console.error(e);
+    }
   } catch (e) {
-    console.log(e);
-    throw e;
+    console.error(e);
   }
-  // await escrowDB.put({
-  //   '_id': orders[0].contract.escrow,
-  //   'order': orders[0],
-  // });
-  // console.log({orders});
-  // await sleep(2000);
-  // run({wallet, escrowDB, currentEscrows, assetId, ladderTiers, lastBlock});
+
+  await sleep(1000);
+  run({escrowDB, assetId, ladderTiers, lastBlock: 0});
 };
 
 run({escrowDB, assetId, ladderTiers, lastBlock: 0});
 
-
-
-
-// if (currentEscrows.rows.length > 0) {
-//   const dbOrder = currentEscrows.rows[0].doc.order;
-//   await escrowDB.remove(currentEscrows.rows[0].doc);
-//   const appId = await api.getAppId(dbOrder);
-
-//   const cancelOrderObj = {
-//     address: dbOrder.address,
-//     version: dbOrder.version,
-//     price: dbOrder.price,
-//     amount: dbOrder.amount,
-//     total: dbOrder.price * dbOrder.amount,
-//     asset: {id: assetId, decimals: 6},
-//     assetId: dbOrder.assetId,
-//     type: dbOrder.type,
-//     appId: appId,
-//     contract: {
-//       creator: dbOrder.contract.creator,
-//       lsig: new LogicSigAccount(dbOrder.contract.lsig.lsig.logic.data),
-//     },
-//     wallet: api.wallet,
-//     client: api.algod,
-//   };
-
-
-//   // const order = {
-//   //   'asset': dbOrder.asset,
-//   //   'address': dbOrder.address,
-//   //   'price': dbOrder.price,
-//   //   'amount': dbOrder.amount,
-//   //   'execution': 'close',
-//   //   'type': dbOrder.type,
-//   //   'contract': dbOrder.contract,
-//   //   'appId': appId,
-//   // };
-//   // order.client = api.algod;
-
-//   await api.closeOrder(cancelOrderObj);
 
