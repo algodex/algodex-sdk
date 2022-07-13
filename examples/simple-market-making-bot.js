@@ -159,15 +159,54 @@ const convertToDBObject = dbOrder => {
   return obj;
 };
 
+const getCurrentOrders = async (escrowDB, indexer) => {
+  const currentEscrows = await escrowDB.allDocs({include_docs: true});
+  currentEscrows.rows.forEach(escrow => {
+    escrow.doc.order.escrowAddr = escrow.doc._id;
+  });
+  const escrowsWithBalances = [];
+  for (let i = 0; i < currentEscrows.rows.length; i++) {
+    const escrow = currentEscrows.rows[i];
+    const escrowAddr = escrow.doc.order.escrowAddr;
+    try {
+      const accountInfo =
+        await indexer.lookupAccountByID(escrowAddr).do();
+      // console.log('Information for Account: ' + JSON.stringify(accountInfo, undefined, 2));
+      if (accountInfo?.account?.amount && accountInfo?.account?.amount > 0) {
+        escrowsWithBalances.push(escrow);
+      } else {
+        console.log(`account ${escrowAddr} not found!`);
+      }
+    } catch (e) {
+      console.log(`account ${escrowAddr} not found!`);
+      console.error(e);
+    }
+  }
+  const hasBalanceSet = new Set(escrowsWithBalances.map(escrow => escrow.doc.order.escrowAddr));
+  const removeFromDBPromises = [];
+  currentEscrows.rows.forEach(async escrow => {
+    const addr = escrow.doc.order.escrowAddr;
+    if (!hasBalanceSet.has(addr)) {
+      removeFromDBPromises.push(escrowDB.remove(escrow.doc));
+    }
+  });
+  await Promise.all(removeFromDBPromises).catch(function(e) {
+    console.error(e);
+  });
+  return {rows: escrowsWithBalances};
+};
+
 const run = async ({escrowDB, assetId, ladderTiers, lastBlock} ) => {
   console.log('LOOPING...');
   if (!api.wallet) {
     await initWallet(api);
   }
-  const currentEscrows = await escrowDB.allDocs({include_docs: true});
-  currentEscrows.rows.forEach(escrow => {
-    escrow.doc.order.escrowAddr = escrow.doc._id;
-  });
+  // const currentEscrows = await escrowDB.allDocs({include_docs: true});
+  // currentEscrows.rows.forEach(escrow => {
+  //   escrow.doc.order.escrowAddr = escrow.doc._id;
+  // });
+
+  const currentEscrows = await getCurrentOrders(escrowDB, api.indexer);
   let latestPrice;
   try {
     latestPrice = await getLatestPrice(environment);
@@ -175,10 +214,12 @@ const run = async ({escrowDB, assetId, ladderTiers, lastBlock} ) => {
     console.error(e);
     await sleep(100);
     run({escrowDB, assetId, ladderTiers, lastBlock});
+    return;
   }
   if (latestPrice === undefined) {
     await sleep(1000);
     run({escrowDB, assetId, ladderTiers, lastBlock});
+    return;
   }
 
   const idealPrices = getIdealPrices(ladderTiers, latestPrice, minSpreadPerc);
@@ -235,22 +276,21 @@ const run = async ({escrowDB, assetId, ladderTiers, lastBlock} ) => {
     const orderPromise = api.placeOrder(orderToPlace);
     return orderPromise;
   });
-  try {
-    const results = await Promise.all(ordersToPlace);
-    const ordersAddToDB = results.map(order => {
-      return escrowDB.put({
-        '_id': order[0].contract.escrow,
-        'order': convertToDBObject(order[0]),
-      });
-    });
-    try {
-      await Promise.all(ordersAddToDB);
-    } catch (e) {
+  await Promise.all(ordersToPlace).then(async results => {
+    const ordersAddToDB = results
+        .filter(order => order[0].contract.amount > 0)
+        .map(order => {
+          return escrowDB.put({
+            '_id': order[0].contract.escrow,
+            'order': convertToDBObject(order[0]),
+          });
+        });
+    await Promise.all(ordersAddToDB).catch(e => {
       console.error(e);
-    }
-  } catch (e) {
+    });
+  }).catch(e => {
     console.error(e);
-  }
+  });
 
   await sleep(1000);
   run({escrowDB, assetId, ladderTiers, lastBlock: 0});
