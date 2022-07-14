@@ -96,7 +96,10 @@ module.exports = {
           '$ref': 'https://schemas.algodex.com/v1/URI.json',
         },
         'token': {
-          'type': 'string',
+          oneOf: [
+            {'type': 'string'},
+            {'type': 'object'},
+          ],
         },
         'port': {
           'type': 'number',
@@ -115,7 +118,10 @@ module.exports = {
           '$ref': 'https://schemas.algodex.com/v1/URI.json',
         },
         'token': {
-          'type': 'string',
+          oneOf: [
+            {'type': 'string'},
+            {'type': 'object'},
+          ],
         },
       },
       'required': [
