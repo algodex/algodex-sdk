@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/algodex/algodex-sdk#readme",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/algodex"
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "ajv": "^8.10.0",
