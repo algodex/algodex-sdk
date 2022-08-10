@@ -11,7 +11,7 @@ Client-side JavaScript API calls for Algodex as an npm package
 
 [Github](https://github.com/algodex/algodex-sdk)
 
-[Documentation](https://docs.algodex.com/index.html)
+[Documentation](https://docs-sdk.algodex.com/index.html)
 
 [Examples](https://github.com/algodex/algodex-sdk-examples)
 
