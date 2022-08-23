@@ -1,7 +1,7 @@
 ---
 name: 🧹 Chore
 about: Complete a chore(🧹) for the project
-title: '🧹 Chore: '
+title: 'Chore: '
 labels: 'chore'
 assignees: ''
 ---
