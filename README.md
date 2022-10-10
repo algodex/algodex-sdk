@@ -1,32 +1,21 @@
-# algodex-sdk
+# @algodex/algodex-sdk
 
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 [![algodex/algodex-sdk:main](https://github.com/algodex/algodex-sdk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/algodex/algodex-sdk/actions/workflows/ci.yml)
-[![unit-branches](./assets/badge-branches.svg)](./lib)
-[![unit-functions](./assets/badge-functions.svg)](./lib)
-[![unit-lines](./assets/badge-lines.svg)](./lib)
-[![unit-statements](./assets/badge-statements.svg)](./lib)
+
+[//]: # ([![Maintainability]&#40;https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/maintainability&#41;]&#40;https://codeclimate.com/repos/62438536b3ae7671bd0005a9/maintainability&#41;)
+[//]: # ([![Test Coverage]&#40;https://api.codeclimate.com/v1/badges/ec6d58e1e3562cd4be26/test_coverage&#41;]&#40;https://codeclimate.com/repos/62438536b3ae7671bd0005a9/test_coverage&#41;)
 
 Client-side JavaScript API calls for Algodex as an npm package
 
+[Github](https://github.com/algodex/algodex-sdk)
 
-### 📁 Folder Structure
-```shell
-# tree -f -L 2
-.
-├── ./bin # Binary Files
-├── ./lib # Library Files
-│   ├── ./lib/functions # Algodex Functions
-│   └── ./lib/teal # Contract Code
-│   └── ./lib/http # REST Clients
-│   └── ./lib/utils # Utilities
-│   └── ./lib/AlgodexAPI.js # API Interface
-├── ./spec # Type Specifications
-├── ./test # Testing Directory
-├── ./package.json
-└── ./yarn.lock
-```
+[SDK Reference](https://docs-sdk.algodex.com/index.html)
+
+[Examples](https://github.com/algodex/algodex-sdk-examples)
+
+[Algodex Documentation](https://docs.algodex.com/index.html)
 
 # ⚙ Getting Started
 
@@ -35,51 +24,134 @@ Client-side JavaScript API calls for Algodex as an npm package
 - [Node.js](https://nodejs.org/en/download/)
 - [yarn](https://classic.yarnpkg.com/en/docs/install)
 
-## 📦 Setup
+## 📦 Installing
+
+#### NPM
 
 ```shell
-yarn
+npm install @algodex/algodex-sdk
 ```
 
-## ✅ Testing
-
-## Automated smart contract tests
+#### Yarn
 
 ```shell
-yarn test
+yarn add @algodex/algodex-sdk
 ```
 
-With Chrome debugger support:
+# ⚗ Usage
 
-```shell
-yarn testDebug
+## 🔧 Configuration:
+> ⚠ The API resources must be accessible with valid credentials (where necessary).
+
+The SDK fetches data from the following API resources:
+
+- [Algorand Node](https://developer.algorand.org/docs/run-a-node/setup/install/)
+- [Algorand Indexer](https://developer.algorand.org/docs/run-a-node/setup/indexer/)
+- [AlgoExplorer Indexer](https://indexer.algoexplorerapi.io/rl/v1/search?keywords=724480511)
+- [Algodex REST API](https://app.algodex.com/algodex-backend/assets.php?id=724480511)
+
+The service URIs, token, port are passed into the AlgodexAPI constructor.
+See [API Properties](https://docs.algodex.com/APIProperties.html) for more information
+
+### ⚙ Example Testnet config.json
+```json
+{
+  "config": {
+    "algod": {
+      "uri": "https://testnet-algorand.api.purestake.io/ps2",
+      "token": "<TOKEN>"
+    },
+    "indexer": {
+      "uri": "https://algoindexer.testnet.algoexplorerapi.io",
+      "token": ""
+    },
+    "explorer": {
+      "uri": "https://indexer.testnet.algoexplorerapi.io",
+      "port": ""
+    },
+    "dexd": {
+      "uri": "https://api-testnet-public.algodex.com/algodex-backend",
+      "token": ""
+    }
+  }
+}
+
+```
+### ⚙ Example Mainnet config.json
+```json
+{
+  "config": {
+    "algod": {
+      "uri": "https://mainnet-algorand.api.purestake.io/ps2",
+      "token": "<TOKEN>"
+    },
+    "indexer": {
+      "uri": "https://algoindexer.algoexplorerapi.io",
+      "token": ""
+    },
+    "explorer": {
+      "uri": "https://indexer.algoexplorerapi.io",
+      "port": ""
+    },
+    "dexd": {
+      "uri": "https://app.algodex.com/algodex-backend",
+      "token": ""
+    }
+  }
+}
+```
+## 🏗 Constructing
+
+```javascript
+ const config = require('./config.json')
+ const AlgodexAPI = require('@algodex/algodex-sdk')
+ const api = new AlgodexAPI(config)
 ```
 
-### 🔧 Enabling smart contract source logs in the console output
+## 💱 Placing Orders:
+> 💡️ We recommend reading the following links before placing your first order:
+> [Maker Order](https://docs.algodex.com/tutorial-MakerOrder.html) | [Taker Order](https://docs.algodex.com/tutorial-TakerOrder.html) | [Orderbook](https://docs.algodex.com/tutorial-Orderbook.html)
 
-export DEBUG_SMART_CONTRACT_SOURCE=1
+#### Maker Buy Order
+```javascript
+// Configure wallet
+api.setWallet({
+  "type": "sdk",
+  "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+  "connector": require('@algodex/algodex-sdk/lib/wallet/connector/AlgoSDK'),
+  "mnemonic": "Your 25 word mneumonic goes here"
+})
 
-Note: if https://github.com/algodex/algodex-go-api is set up and running, the console will also print out the transactions in json format
 
-## ⚗ Manual Usage
+// Placing an Order
+const orders = await api.placeOrder({
+  "asset": {
+    "id": 15322902, // Asset Index
+    "decimals": 6, // Asset Decimals
+  },
+  "address": "WYWRYK42XADLY3O62N52BOLT27DMPRA3WNBT2OBRT65N6OEZQWD4OSH6PI",
+  "price": 2.22, // Price in ALGOs
+  "amount": 1, // Amount to Buy or Sell
+  "execution": "maker", // Type of exeuction
+  "type": "buy", // Order Type
+})
 
-1. Download and set up https://github.com/algodex/algodex-experimental
-2. Run the following in the algodex-sdk directory:
-
-```shell
-yarn link
+// Closing an Order
+await api.closeOrder(orders[0])
 ```
 
-3. Run the following in the algodex-experimental directory:
+# 📚 Documentation
 
-```shell
-rm -rf 'node_modules/@algodex'
-yarn link @algodex/algodex-sdk
-```
+All available execution types are found in the [Place Order Tutorial](https://docs.algodex.com/tutorial-PlacingOrder.html)
 
-## 🕸 Links
+# 🏘 Community 
+- [Discord](https://discord.com/invite/qS3Q7AqwF6)
+- [Telegram](https://t.me/algodex)
+- [Reddit](https://www.reddit.com/r/Algodex/)
+- [Twitter](https://twitter.com/AlgodexOfficial)
+
+
+# 🕸 Links
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Contributing](.github/CONTRIBUTING.md)
 - [Architecture Documentation](https://github.com/algodex/algodex-architecture)
-
-

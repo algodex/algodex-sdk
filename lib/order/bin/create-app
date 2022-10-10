@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+
+/* 
+ * Copyright (C) 2021-2022 Algodex VASP (BVI) Corp.
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+const fs = require('fs');
+const path = require('path');
+const algosdk = require('algosdk');
+const {Command} = require('commander');
+
+const AlgodexApi = require('../../AlgodexApi');
+const makeApplicationCreateTxn = require('../txns/makeApplicationCreateTxn');
+const config = require(`${process.cwd()}${path.sep}config.json`);
+const program = new Command();
+const api = new AlgodexApi(config);
+
+program
+    .name('dex-create-app')
+    .description('CLI to create an Algodex Orderbook')
+    .requiredOption('-t, --type <buy|sell>', 'type of orderbook to create')
+    .requiredOption('-f, --from <address>', 'creator account address')
+    .requiredOption('-m, --from-mnemonic <mnemonic>', 'mnemonic phrase for the creator account')
+    .option('--dry-run', 'flag to save transaction to disk and dry run')
+    .version(require('../../../package.json').version)
+    .showHelpAfterError();
+
+program.parse();
+
+/**
+ *
+ * @return {Promise<number>}
+ */
+(async function() {
+  console.log(`⚙ Loading...`);
+  const client = api.algod;
+  const {type, from, fromMnemonic, dryRun} = program.opts();
+
+  const account = algosdk.mnemonicToSecretKey(fromMnemonic);
+
+  // Make sure we have valid parameters
+  if (account.addr !== from) {
+    throw new Error('Account mismatch!');
+  }
+  console.log(`⚙ Wallet Unlocked: ${account.addr}`);
+
+  // create unsigned transaction
+  const txn = await makeApplicationCreateTxn(
+      client,
+      type,
+      from,
+  );
+  const txId = txn.txID().toString();
+  console.log(`⚙ Transaction Created: ${txId}`);
+  // Dry Run, save to disk and exit
+  if (dryRun) {
+    const _txnOut = `${process.cwd()}${path.sep}unsigned.${txId}.txn`;
+    fs.writeFileSync(_txnOut, algosdk.encodeUnsignedTransaction(txn));
+    console.log(`✅ Dry Run Complete: ${_txnOut}`);
+    process.exit(0);
+  }
+
+  // Sign the transaction
+  const signedTxn = txn.signTxn(account.sk);
+  console.log(`⚙ Signed Transaction: ${txId}`);
+
+  // Submit the transaction
+  await client.sendRawTransaction(signedTxn).do();
+  console.log(`⚙ Sent Transaction: ${txId}`);
+
+  // Wait for confirmation
+  const res = await algosdk.waitForConfirmation(client, txId, 10);
+  console.log('✅ Application Deployment: ', res['application-index']);
+})();

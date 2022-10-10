@@ -1,9 +1,22 @@
-# ℹ Overview
+# 📦 @algodex/teal
+>Note: This module lives in `@algodex/sdk` until the `@algodex/mailbox` refactor.
 
-TEAL and contract utilities
+## ℹ Overview
 
-# Guidance:
+Collection of teal and algosdk utilities used across all projects. The primary responsibility
+for the library is to provide features outside the native algosdk. This includes creating an
+application from the command line, generating test dependencies and compiling custom templates.
 
-- Contracts should be in mixed template language. Handlebars or Mustache as `<TemplateName>.handlebars.teal`
-- Generators and TEAL should be treated as a "module"
-- 
+### 📁 Folder Structure
+```shell
+# tree -f -L 2
+.
+├── ./bin        # Binary Files
+├── ./compile    # Compile Namespace
+├── ./test       # Test Namespace
+├── ./*.teal.js  # Reusable Teal code
+├── ./package.json
+└── ./yarn.lock
+```
+
+ 

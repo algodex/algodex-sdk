@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2021-2022 Algodex VASP (BVI) Corp.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
 /**
  * ## 📝 Wallet List
@@ -52,7 +59,7 @@
  *   'properties': {
  *     'type': {
  *       'type': 'string',
- *       'enum': ['my-algo-wallet', 'wallet-connect'],
+ *       'enum': ['my-algo-wallet', 'wallet-connect', 'sdk'],
  *     },
  *     'address': {
  *       'type': 'string',
@@ -85,7 +92,7 @@ module.exports = {
   'properties': {
     'type': {
       'type': 'string',
-      'enum': ['my-algo-wallet', 'wallet-connect'],
+      'enum': ['my-algo-wallet', 'wallet-connect', 'sdk'],
     },
     'address': {
       'type': 'string',
@@ -99,10 +106,8 @@ module.exports = {
       '$ref': 'https://schemas.algodex.com/v1/Asset.json',
     },
     'assets': {
-      'type': 'object',
-      'additionalProperties': {
-        '$ref': 'https://schemas.algodex.com/v1/Asset.json',
-      },
+      'type': 'array',
     },
   },
+  'required': ['address', 'type'],
 };

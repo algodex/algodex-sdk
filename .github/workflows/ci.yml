@@ -1,9 +1,9 @@
 name: CI
 on:
   pull_request:
-    branches: [master, development, next]
+    branches: [main, development, next]
   push:
-    branches: [master, development, next]
+    branches: [main, development, next]
 jobs:
   lint:
     name: Lint
@@ -38,6 +38,11 @@ jobs:
           NPM_AUTH_TOKEN: ${{ secrets.GH_PKG_READONLY }}
       - name: Run Unit Tests
         run: yarn test-unit
+      - uses: paambaati/codeclimate-action@v3.0.0
+        env:
+          CC_TEST_REPORTER_ID: 428b1b4423d32a7196b50c38f2ceee54154b384ffe47cad103e6c8d1fb19e58a
+        with:
+          coverageCommand: yarn coverage
   e2e:
     name: End<->End
     runs-on: ubuntu-latest
@@ -56,10 +61,10 @@ jobs:
           NPM_AUTH_TOKEN: ${{ secrets.GH_PKG_READONLY }}
       - name: Run End to End Tests
         run: yarn test
-  release:
-    name: Release Package
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
-    needs: [ e2e ]
-    steps:
-      - run: echo Need to implement Release Cycle
+#  release:
+#    name: Release Package
+#    runs-on: ubuntu-latest
+#    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+#    needs: [ e2e ]
+#    steps:
+#      - run: echo Need to implement Release Cycle
