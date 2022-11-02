@@ -51,7 +51,7 @@ The SDK fetches data from the following API resources:
 - [Algodex REST API](https://app.algodex.com/algodex-backend/assets.php?id=724480511)
 
 The service URIs, token, port are passed into the AlgodexAPI constructor.
-See [API Properties](https://docs.algodex.com/APIProperties.html) for more information
+See [API Properties](https://docs-sdk.algodex.com/APIProperties.html) for more information
 
 ### ⚙ Example Testnet config.json
 ```json
@@ -110,7 +110,7 @@ See [API Properties](https://docs.algodex.com/APIProperties.html) for more infor
 
 ## 💱 Placing Orders:
 > 💡️ We recommend reading the following links before placing your first order:
-> [Maker Order](https://docs.algodex.com/tutorial-MakerOrder.html) | [Taker Order](https://docs.algodex.com/tutorial-TakerOrder.html) | [Orderbook](https://docs.algodex.com/tutorial-Orderbook.html)
+> [Maker Order](https://docs-sdk.algodex.com/tutorial-MakerOrder.html) | [Taker Order](https://docs-sdk.algodex.com/tutorial-TakerOrder.html) | [Orderbook](https://docs-sdk.algodex.com/tutorial-Orderbook.html)
 
 #### Maker Buy Order
 ```javascript
@@ -142,7 +142,7 @@ await api.closeOrder(orders[0])
 
 # 📚 Documentation
 
-All available execution types are found in the [Place Order Tutorial](https://docs.algodex.com/tutorial-PlacingOrder.html)
+All available execution types are found in the [Place Order Tutorial](https://docs-sdk.algodex.com/tutorial-PlacingOrder.html)
 
 # 🏘 Community 
 - [Discord](https://discord.com/invite/qS3Q7AqwF6)
