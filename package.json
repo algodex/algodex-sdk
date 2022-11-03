@@ -1,6 +1,6 @@
 {
   "name": "@algodex/algodex-sdk",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "description": "API calls for interacting with the Algorand blockchain",
   "main": "lib/index.js",
   "browserslist": [
