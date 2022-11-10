@@ -94,7 +94,8 @@ See [API Properties](https://docs-sdk.algodex.com/APIProperties.html) for more i
       "port": ""
     },
     "dexd": {
-      "uri": "https://app.algodex.com/algodex-backend",
+      "apiVersion": 2,
+      "uri": "https://app.algodex.com/api/v2",
       "token": ""
     }
   }
