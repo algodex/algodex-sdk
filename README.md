@@ -70,7 +70,8 @@ See [API Properties](https://docs-sdk.algodex.com/APIProperties.html) for more i
       "port": ""
     },
     "dexd": {
-      "uri": "https://api-testnet-public.algodex.com/algodex-backend",
+      "apiVersion": 2,
+      "uri": "https://testnet.algodex.com/api/v2",
       "token": ""
     }
   }
