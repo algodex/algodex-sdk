@@ -17,7 +17,7 @@
     "doc-types": "tsc",
     "test": "yarn test-lint && yarn test-unit && yarn test-integration",
     "test-lint": "eslint . --quiet",
-    "test-unit": "jest",
+    "test-unit": "jest --testPathIgnorePatterns='__tests__/*'",
     "test-integration": "cross-env TEST_ENV=integration jest",
     "coverage": "yarn test-unit --coverage",
     "test-sanity": "jest --testPathIgnorePatterns='__tests__/*' --testPathIgnorePatterns='./lib/*' --coverage",
